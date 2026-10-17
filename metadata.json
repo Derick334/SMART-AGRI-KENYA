@@ -1,0 +1,6 @@
+{
+  "name": "SMART-AGRI KENYA",
+  "description": "All-in-one digital agricultural platform for Kenyan farmers, livestock keepers, agricultural inputs, soil health testing, pest diagnosis, market prices, and farm-to-door deliveries.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
