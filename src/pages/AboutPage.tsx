@@ -1,4 +1,3 @@
-import React from 'react';
 import { 
   Sprout, 
   ShieldCheck, 
@@ -9,12 +8,16 @@ import {
   Globe2, 
   Cpu 
 } from 'lucide-react';
+import { SmartAgriLogo } from '../components/common/SmartAgriLogo';
 
 export const AboutPage: React.FC = () => {
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
       {/* Hero Section */}
       <div className="text-center space-y-4">
+        <div className="flex justify-center mb-2">
+          <SmartAgriLogo variant="full" size="xl" />
+        </div>
         <div className="inline-flex items-center gap-2 bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
           <Sprout className="w-4 h-4 text-emerald-700" />
           <span>About SMART-AGRI KENYA</span>

@@ -29,8 +29,9 @@ export const FarmerDashboardPage: React.FC = () => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState<ProductCategory>('crops');
+  const [productType, setProductType] = useState('Cereals');
   const [subcategory, setSubcategory] = useState('Cereals & Grains');
-  const [variety, setVariety] = useState('');
+  const [variety, setVariety] = useState('H614');
   const [priceKsh, setPriceKsh] = useState(3500);
   const [unit, setUnit] = useState('90kg bag');
   const [quantityAvailable, setQuantityAvailable] = useState(50);
@@ -40,6 +41,8 @@ export const FarmerDashboardPage: React.FC = () => {
   const [imageUrl, setImageUrl] = useState('https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&w=800&q=80');
 
   // Livestock specific fields
+  const [animalGroup, setAnimalGroup] = useState<'Cattle' | 'Goats' | 'Sheep' | 'Poultry' | 'Pigs' | 'Rabbits' | 'Fish' | 'Other livestock'>('Cattle');
+  const [cattlePurpose, setCattlePurpose] = useState<'Dairy' | 'Beef' | 'Dual-purpose'>('Dairy');
   const [animalType, setAnimalType] = useState<LivestockType>('dairy_cow');
   const [breed, setBreed] = useState('Friesian');
   const [ageValue, setAgeValue] = useState(3);
@@ -47,6 +50,10 @@ export const FarmerDashboardPage: React.FC = () => {
   const [sex, setSex] = useState<'female' | 'male' | 'mixed_batch'>('female');
   const [purpose, setPurpose] = useState<'milk' | 'beef' | 'breeding' | 'eggs' | 'meat'>('milk');
   const [milkYield, setMilkYield] = useState(25);
+
+  // Equipment specific fields
+  const [powerSource, setPowerSource] = useState<'Manual' | 'Petrol' | 'Diesel' | 'Solar' | 'Electric'>('Diesel');
+  const [equipmentCondition, setEquipmentCondition] = useState<'new' | 'used'>('new');
 
   const myProducts = products.filter(p => p.sellerId === currentUser.id || p.sellerName.includes('Kiprono') || p.sellerName.includes('Rongai'));
 
@@ -60,7 +67,13 @@ export const FarmerDashboardPage: React.FC = () => {
       description,
       category,
       subcategory,
-      variety,
+      productType,
+      variety: category === 'crops' || category === 'inputs' ? variety : undefined,
+      breed: category === 'livestock' ? breed : undefined,
+      animalType: category === 'livestock' ? animalGroup : undefined,
+      cattlePurpose: category === 'livestock' && animalGroup === 'Cattle' ? cattlePurpose : undefined,
+      powerSource: category === 'equipment' ? powerSource : undefined,
+      condition: category === 'equipment' ? equipmentCondition : 'new',
       priceKsh: Number(priceKsh),
       unit,
       quantityAvailable: Number(quantityAvailable),
@@ -310,46 +323,209 @@ export const FarmerDashboardPage: React.FC = () => {
                 />
               </div>
 
+              {/* Dynamic Product Type & Variety for Crops */}
+              {category === 'crops' && (
+                <div className="p-3.5 bg-emerald-50/70 rounded-2xl border border-emerald-200 grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-bold text-stone-700 mb-1">Crop Product Type</label>
+                    <select
+                      value={productType}
+                      onChange={(e) => setProductType(e.target.value)}
+                      className="w-full p-2.5 rounded-xl border border-stone-300 bg-white"
+                    >
+                      <option value="Cereals">Cereals (Maize, Rice, Wheat)</option>
+                      <option value="Legumes">Legumes (Beans, Peas, Grams)</option>
+                      <option value="Fruits">Fruits (Avocados, Bananas, Mangoes)</option>
+                      <option value="Vegetables">Vegetables (Tomatoes, Onions, Kales)</option>
+                      <option value="Root and tuber crops">Root & Tuber Crops (Potatoes, Cassava)</option>
+                      <option value="Other agricultural produce">Other Agricultural Produce</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block font-bold text-stone-700 mb-1">Crop Variety</label>
+                    <input
+                      type="text"
+                      value={variety}
+                      onChange={(e) => setVariety(e.target.value)}
+                      placeholder="e.g. H614, Rosecoco, Anna F1, Shangi, Hass"
+                      className="w-full p-2.5 rounded-xl border border-stone-300 bg-white"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Dynamic Inputs Type for Certified Seeds & Fertilizers */}
+              {category === 'inputs' && (
+                <div className="p-3.5 bg-blue-50/70 rounded-2xl border border-blue-200 grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-bold text-stone-700 mb-1">Input Product Type</label>
+                    <select
+                      value={productType}
+                      onChange={(e) => setProductType(e.target.value)}
+                      className="w-full p-2.5 rounded-xl border border-stone-300 bg-white"
+                    >
+                      <option value="Certified crop seeds">Certified Crop Seeds</option>
+                      <option value="Vegetable seeds">Vegetable Seeds</option>
+                      <option value="Pasture seeds">Pasture Seeds</option>
+                      <option value="Organic fertilizers">Organic Fertilizers</option>
+                      <option value="Inorganic fertilizers">Inorganic Fertilizers</option>
+                      <option value="Soil conditioners">Soil Conditioners</option>
+                      <option value="Other available agricultural inputs">Other Available Inputs</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block font-bold text-stone-700 mb-1">Variety or Formulation</label>
+                    <input
+                      type="text"
+                      value={variety}
+                      onChange={(e) => setVariety(e.target.value)}
+                      placeholder="e.g. H614D, DAP 18:46:0, Lime CaCO3"
+                      className="w-full p-2.5 rounded-xl border border-stone-300 bg-white"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Dynamic Equipment Type & Power Source */}
+              {category === 'equipment' && (
+                <div className="p-3.5 bg-purple-50/70 rounded-2xl border border-purple-200 grid grid-cols-3 gap-3">
+                  <div>
+                    <label className="block font-bold text-stone-700 mb-1">Equipment Type</label>
+                    <select
+                      value={productType}
+                      onChange={(e) => setProductType(e.target.value)}
+                      className="w-full p-2 rounded-xl border border-stone-300 bg-white"
+                    >
+                      <option value="Irrigation systems">Irrigation Systems</option>
+                      <option value="Water pumps">Water Pumps</option>
+                      <option value="Drip irrigation kits">Drip Irrigation Kits</option>
+                      <option value="Sprayers">Sprayers</option>
+                      <option value="Tractors">Tractors</option>
+                      <option value="Ploughs / Tillers">Ploughs / Tillers</option>
+                      <option value="Milking machines">Milking Machines</option>
+                      <option value="Incubation and brooding equipment">Incubation & Brooding</option>
+                      <option value="Animal feed processing equipment">Feed Processing Equipment</option>
+                      <option value="Greenhouses and shade nets">Greenhouses & Shade Nets</option>
+                      <option value="Solar equipment">Solar Equipment</option>
+                      <option value="Hand tools and farm implements">Hand Tools & Implements</option>
+                      <option value="Other equipment">Other Equipment</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block font-bold text-stone-700 mb-1">Power Source</label>
+                    <select
+                      value={powerSource}
+                      onChange={(e) => setPowerSource(e.target.value as any)}
+                      className="w-full p-2 rounded-xl border border-stone-300 bg-white"
+                    >
+                      <option value="Manual">Manual</option>
+                      <option value="Petrol">Petrol</option>
+                      <option value="Diesel">Diesel</option>
+                      <option value="Solar">Solar</option>
+                      <option value="Electric">Electric</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block font-bold text-stone-700 mb-1">Condition</label>
+                    <select
+                      value={equipmentCondition}
+                      onChange={(e) => setEquipmentCondition(e.target.value as any)}
+                      className="w-full p-2 rounded-xl border border-stone-300 bg-white"
+                    >
+                      <option value="new">Brand New</option>
+                      <option value="used">Used / Refurbished</option>
+                    </select>
+                  </div>
+                </div>
+              )}
+
               {/* Livestock specific fields */}
               {category === 'livestock' && (
                 <div className="p-4 bg-amber-50/60 rounded-2xl border border-amber-200 space-y-3">
-                  <span className="font-bold text-amber-950 block">Animal Specifications</span>
+                  <span className="font-bold text-amber-950 block">Animal Specifications & Verified Breed</span>
                   <div className="grid grid-cols-3 gap-3">
                     <div>
                       <label className="block font-bold text-stone-700 mb-1">Animal Type</label>
                       <select
-                        value={animalType}
-                        onChange={(e) => setAnimalType(e.target.value as any)}
-                        className="w-full p-2 rounded-lg border border-stone-300"
+                        value={animalGroup}
+                        onChange={(e) => {
+                          const val = e.target.value as any;
+                          setAnimalGroup(val);
+                          if (val === 'Cattle') {
+                            setBreed('Friesian');
+                            setAnimalType('dairy_cow');
+                          } else if (val === 'Goats') {
+                            setBreed('Galla');
+                            setAnimalType('goat');
+                          } else if (val === 'Sheep') {
+                            setBreed('Dorper');
+                            setAnimalType('sheep');
+                          } else if (val === 'Poultry') {
+                            setBreed('Kienyeji');
+                            setAnimalType('chicken');
+                          } else if (val === 'Pigs') {
+                            setBreed('Large White');
+                            setAnimalType('pig');
+                          } else if (val === 'Rabbits') {
+                            setBreed('New Zealand White');
+                            setAnimalType('rabbit');
+                          } else if (val === 'Fish') {
+                            setBreed('Tilapia');
+                            setAnimalType('fish');
+                          } else {
+                            setBreed('African Honeybee');
+                            setAnimalType('bees');
+                          }
+                        }}
+                        className="w-full p-2 rounded-lg border border-stone-300 bg-white"
                       >
-                        <option value="dairy_cow">Dairy Cow</option>
-                        <option value="beef_cattle">Beef Cattle</option>
-                        <option value="bull">Breeding Bull</option>
-                        <option value="heifer">Heifer</option>
-                        <option value="chicken">Poultry / Chicken</option>
-                        <option value="goat">Goat</option>
-                        <option value="sheep">Sheep</option>
+                        <option value="Cattle">Cattle</option>
+                        <option value="Goats">Goats</option>
+                        <option value="Sheep">Sheep</option>
+                        <option value="Poultry">Poultry</option>
+                        <option value="Pigs">Pigs</option>
+                        <option value="Rabbits">Rabbits</option>
+                        <option value="Fish">Fish</option>
+                        <option value="Other livestock">Other livestock</option>
                       </select>
                     </div>
 
+                    {animalGroup === 'Cattle' ? (
+                      <div>
+                        <label className="block font-bold text-stone-700 mb-1">Cattle Purpose</label>
+                        <select
+                          value={cattlePurpose}
+                          onChange={(e) => setCattlePurpose(e.target.value as any)}
+                          className="w-full p-2 rounded-lg border border-stone-300 bg-white"
+                        >
+                          <option value="Dairy">Dairy</option>
+                          <option value="Beef">Beef</option>
+                          <option value="Dual-purpose">Dual-purpose</option>
+                        </select>
+                      </div>
+                    ) : (
+                      <div>
+                        <label className="block font-bold text-stone-700 mb-1">Sex</label>
+                        <select
+                          value={sex}
+                          onChange={(e) => setSex(e.target.value as any)}
+                          className="w-full p-2 rounded-lg border border-stone-300 bg-white"
+                        >
+                          <option value="female">Female</option>
+                          <option value="male">Male</option>
+                          <option value="mixed_batch">Mixed Batch</option>
+                        </select>
+                      </div>
+                    )}
+
                     <div>
-                      <label className="block font-bold text-stone-700 mb-1">Breed</label>
+                      <label className="block font-bold text-stone-700 mb-1">Breed / Strain</label>
                       <input
                         type="text"
                         value={breed}
                         onChange={(e) => setBreed(e.target.value)}
-                        placeholder="e.g. Friesian, Ayrshire, Kienyeji"
-                        className="w-full p-2 rounded-lg border border-stone-300"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block font-bold text-stone-700 mb-1">Milk Yield (L/day)</label>
-                      <input
-                        type="number"
-                        value={milkYield}
-                        onChange={(e) => setMilkYield(Number(e.target.value))}
-                        className="w-full p-2 rounded-lg border border-stone-300"
+                        placeholder="e.g. Friesian, Galla, Dorper, Kienyeji"
+                        className="w-full p-2 rounded-lg border border-stone-300 bg-white"
                       />
                     </div>
                   </div>

@@ -21,6 +21,7 @@ import { Product } from '../types';
 import { ProductCard } from '../components/marketplace/ProductCard';
 import { LivestockCard } from '../components/livestock/LivestockCard';
 import { KENYA_COUNTIES } from '../data/kenyaCounties';
+import { SmartAgriLogo } from '../components/common/SmartAgriLogo';
 
 interface HomePageProps {
   products: Product[];
@@ -51,9 +52,12 @@ export const HomePage: React.FC<HomePageProps> = ({
         <div className="absolute inset-0 bg-[radial-gradient(#15803d_1px,transparent_1px)] [background-size:24px_24px] opacity-20 pointer-events-none"></div>
 
         <div className="max-w-4xl mx-auto text-center relative z-10 space-y-6">
-          <div className="inline-flex items-center gap-2 bg-emerald-800/80 border border-emerald-500/40 px-3.5 py-1 rounded-full text-xs font-semibold text-emerald-200">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-            <span>Serving All 47 Counties of Kenya</span>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <SmartAgriLogo variant="full" size="md" isDark={true} className="bg-emerald-950/70 px-4 py-2 rounded-2xl border border-emerald-600/40 shadow-inner" />
+            <div className="inline-flex items-center gap-2 bg-emerald-800/80 border border-emerald-500/40 px-3.5 py-1.5 rounded-full text-xs font-semibold text-emerald-200">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+              <span>Serving All 47 Counties of Kenya</span>
+            </div>
           </div>
 
           <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-white leading-tight">

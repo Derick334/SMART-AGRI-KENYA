@@ -13,7 +13,7 @@ import { SAMPLE_PRODUCTS } from '../data/sampleProducts';
 import { SAMPLE_LIVESTOCK } from '../data/sampleLivestock';
 import { SAMPLE_MARKET_PRICES } from '../data/sampleMarketPrices';
 
-const LOCAL_STORAGE_KEY_PRODUCTS = 'smart_agri_products_v1';
+const LOCAL_STORAGE_KEY_PRODUCTS = 'smart_agri_products_v3';
 const LOCAL_STORAGE_KEY_ORDERS = 'smart_agri_orders_v1';
 const LOCAL_STORAGE_KEY_CART = 'smart_agri_cart_v1';
 const LOCAL_STORAGE_KEY_USER = 'smart_agri_user_v1';

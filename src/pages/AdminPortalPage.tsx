@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { agriStore } from '../services/store';
 import { KENYA_VEHICLES } from '../services/distanceCalculator';
+import { SmartAgriLogo } from '../components/common/SmartAgriLogo';
 
 export const AdminPortalPage: React.FC = () => {
   const currentUser = agriStore.getCurrentUser();
@@ -49,6 +50,9 @@ export const AdminPortalPage: React.FC = () => {
   if (currentUser.role !== 'admin') {
     return (
       <div className="max-w-md mx-auto px-4 py-16 text-center space-y-4">
+        <div className="flex justify-center mb-1">
+          <SmartAgriLogo variant="full" size="md" />
+        </div>
         <div className="w-16 h-16 rounded-3xl bg-amber-100 text-amber-800 flex items-center justify-center mx-auto shadow-sm">
           <ShieldAlert className="w-8 h-8" />
         </div>
@@ -84,9 +88,12 @@ export const AdminPortalPage: React.FC = () => {
       {/* Admin Header */}
       <div className="bg-linear-to-r from-stone-950 via-amber-950 to-stone-900 text-white rounded-3xl p-6 sm:p-8 border border-amber-800/50 shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-amber-400 text-xs font-bold uppercase tracking-wider mb-2">
-            <ShieldAlert className="w-4 h-4" />
-            <span>Central Operations & Governance Portal</span>
+          <div className="flex items-center gap-3 mb-3">
+            <SmartAgriLogo variant="full" size="sm" isDark={true} />
+            <div className="inline-flex items-center gap-1.5 text-amber-400 text-xs font-bold uppercase tracking-wider bg-amber-950/80 px-2.5 py-1 rounded-full border border-amber-800">
+              <ShieldAlert className="w-3.5 h-3.5" />
+              <span>Central Operations & Governance Portal</span>
+            </div>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
             SMART-AGRI KENYA Administration Dashboard

@@ -13,6 +13,7 @@ import {
 import { UserRole, UserProfile } from '../types';
 import { agriStore, ADMIN_USER, DEFAULT_USER } from '../services/store';
 import { KENYA_COUNTIES } from '../data/kenyaCounties';
+import { SmartAgriLogo } from '../components/common/SmartAgriLogo';
 
 interface AuthPageProps {
   onSuccess: (role: UserRole) => void;
@@ -92,12 +93,12 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onSuccess }) => {
 
       {/* Main Auth Card */}
       <div className="bg-white rounded-3xl p-6 sm:p-8 border border-stone-200 shadow-sm space-y-6">
-        <div className="text-center space-y-1">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center mx-auto mb-2 shadow-sm">
-            <Sprout className="w-6 h-6" />
+        <div className="text-center space-y-2">
+          <div className="flex justify-center mb-2">
+            <SmartAgriLogo variant="full" size="lg" />
           </div>
           <h2 className="text-xl font-black text-stone-950">
-            {isLogin ? 'Log in to SMART-AGRI KENYA' : 'Create Farmer / Trader Account'}
+            {isLogin ? 'Sign In to Your Account' : 'Create Farmer / Trader Account'}
           </h2>
           <p className="text-xs text-stone-500">
             Access certified agricultural inputs, livestock auctions, and national market prices

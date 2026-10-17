@@ -29,13 +29,25 @@ export type ProductCategory =
   | 'fodder' 
   | 'seedlings';
 
+export type ProductCondition = 'new' | 'used' | 'certified' | 'reconditioned';
+
+export type MarketplaceCategoryFilter = 'all' | 'crops' | 'livestock' | 'inputs' | 'equipment';
+
 export interface Product {
   id: string;
   title: string;
   description: string;
   category: ProductCategory;
   subcategory: string;
-  variety?: string;
+  productType?: string; // e.g. Cereals, Legumes, Cattle, Poultry, Inorganic Fertilizers, Sprayers, etc.
+  variety?: string; // e.g. H614, Rosecoco, Shangi, Anna F1, Hass
+  breed?: string; // e.g. Friesian, Ayrshire, Kienyeji, Kenbro, Galla, Dorper
+  model?: string; // for equipment e.g. 20L 2-Stroke, 16mm UV Button
+  brand?: string; // e.g. Kenya Seed Company, Simlaw, Unganex, Stihl
+  condition?: ProductCondition;
+  formulation?: string; // e.g. DAP 18:46:0, CAN 26% N, 16% Crude Protein
+  packageSize?: string; // e.g. 2kg packet, 50kg bag, 70kg bag
+  certificationInfo?: string; // e.g. KEPHIS Certified, KEBS Standard
   priceKsh: number;
   unit: string; // 'kg', '90kg bag', 'crate', 'litre', 'bunch', 'piece', 'head'
   quantityAvailable: number;
@@ -53,6 +65,10 @@ export interface Product {
   status: 'active' | 'sold_out' | 'paused' | 'pending_approval';
   isDemo?: boolean;
   createdAt: string;
+  powerSource?: 'Manual' | 'Petrol' | 'Diesel' | 'Solar' | 'Electric' | 'PTO / Tractor Driven';
+  capacity?: string;
+  animalType?: 'Cattle' | 'Goats' | 'Sheep' | 'Poultry' | 'Pigs' | 'Rabbits' | 'Fish' | 'Other livestock';
+  cattlePurpose?: 'Dairy' | 'Beef' | 'Dual-purpose';
   // Specific for livestock
   livestockDetails?: LivestockDetails;
 }

@@ -18,6 +18,7 @@ import {
 import { agriStore } from '../../services/store';
 import { KENYA_COUNTIES } from '../../data/kenyaCounties';
 import { UserRole } from '../../types';
+import { SmartAgriLogo } from '../common/SmartAgriLogo';
 
 interface NavbarProps {
   activeTab: string;
@@ -139,25 +140,9 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Logo */}
           <div 
             onClick={() => onSelectTab('home')}
-            className="flex items-center gap-2.5 cursor-pointer select-none group"
+            className="flex items-center cursor-pointer select-none group py-1"
           >
-            <div className="w-10 h-10 rounded-xl bg-linear-to-br from-emerald-600 to-green-700 flex items-center justify-center text-white shadow-md shadow-emerald-700/20 group-hover:scale-105 transition">
-              <Sprout className="w-6 h-6" />
-            </div>
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="font-extrabold text-xl tracking-tight text-emerald-950">
-                  SMART-AGRI
-                </span>
-                <span className="font-black text-xl text-emerald-600">
-                  KENYA
-                </span>
-                <span className="hidden md:inline-block w-2 h-2 rounded-full bg-amber-500"></span>
-              </div>
-              <p className="text-[11px] text-stone-600 -mt-0.5 tracking-wide">
-                Digital Agricultural Ecosystem
-              </p>
-            </div>
+            <SmartAgriLogo size="md" className="group-hover:scale-102 transition" />
           </div>
 
           {/* County Location Selector */}
@@ -285,9 +270,17 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-white border-t border-stone-200 shadow-2xl max-h-[85vh] overflow-y-auto px-4 py-3">
+        <div className="lg:hidden bg-white border-t border-stone-200 shadow-2xl max-h-[85vh] overflow-y-auto px-4 py-3 space-y-3">
+          {/* Mobile Drawer Brand Header */}
+          <div className="flex items-center justify-between pb-2 border-b border-stone-100">
+            <SmartAgriLogo size="sm" />
+            <span className="text-[10px] font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full">
+              Kenya Hub
+            </span>
+          </div>
+
           {/* County Selector for Mobile */}
-          <div className="mb-3 p-3 bg-stone-50 rounded-xl border border-stone-200">
+          <div className="p-3 bg-stone-50 rounded-xl border border-stone-200">
             <label className="block text-xs font-bold text-stone-700 mb-1">
               Select Your Current County (Kenya)
             </label>

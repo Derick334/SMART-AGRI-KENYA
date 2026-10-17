@@ -1,5 +1,6 @@
 import React from 'react';
 import { Sprout, Phone, Mail, MapPin, ShieldCheck, HeartHandshake, ExternalLink } from 'lucide-react';
+import { SmartAgriLogo } from '../common/SmartAgriLogo';
 
 interface FooterProps {
   onSelectTab: (tabId: string) => void;
@@ -47,13 +48,8 @@ export const Footer: React.FC<FooterProps> = ({ onSelectTab }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
           {/* Brand & Mission */}
           <div className="lg:col-span-2">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white font-bold">
-                <Sprout className="w-5 h-5" />
-              </div>
-              <span className="font-extrabold text-lg text-white tracking-tight">
-                SMART-AGRI <span className="text-emerald-500">KENYA</span>
-              </span>
+            <div className="mb-3">
+              <SmartAgriLogo size="md" isDark={true} />
             </div>
             <p className="text-stone-400 text-xs leading-relaxed mb-4 pr-6">
               The national digital agricultural ecosystem empowering smallholders, commercial growers, livestock keepers, input suppliers, and logistics partners across all 47 counties of Kenya. Buy, sell, test soil, diagnose pests, and arrange deliveries without leaving your farm.
