@@ -13,6 +13,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json({ limit: '20mb' }));
+app.use(express.static(path.resolve(__dirname, 'public')));
 
 // Server-side Google GenAI initialization with required telemetry header
 const apiKey = process.env.GEMINI_API_KEY;

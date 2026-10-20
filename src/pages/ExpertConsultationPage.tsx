@@ -22,6 +22,7 @@ export const ExpertConsultationPage: React.FC = () => {
   const [bookingTime, setBookingTime] = useState('10:00 AM');
   const [farmSubject, setFarmSubject] = useState('Dairy nutrition & breeding synchronization');
   const [bookingSuccess, setBookingSuccess] = useState(false);
+  const [consultationNotice, setConsultationNotice] = useState<string | null>(null);
 
   const handleBook = (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,12 +30,27 @@ export const ExpertConsultationPage: React.FC = () => {
     setTimeout(() => {
       setSelectedExpert(null);
       setBookingSuccess(false);
-      alert('Consultation confirmed! An SMS confirmation with the Google Meet / phone link has been sent to your registered number.');
-    }, 1200);
+      setConsultationNotice('Consultation confirmed! An SMS confirmation with the Google Meet / phone link has been sent to your registered number.');
+    }, 600);
   };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      {consultationNotice && (
+        <div className="p-3.5 bg-[#EBF3ED] border border-[#CFD7CA] text-[#214E34] text-xs font-semibold rounded-lg flex items-center justify-between shadow-xs">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-[#367C46] shrink-0" />
+            <span>{consultationNotice}</span>
+          </div>
+          <button
+            onClick={() => setConsultationNotice(null)}
+            className="text-[#68756A] hover:text-[#252D27] cursor-pointer"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* Banner */}
       <div className="bg-linear-to-r from-stone-900 via-emerald-950 to-stone-900 text-white rounded-3xl p-6 sm:p-8 border border-emerald-800/40 shadow-lg">
         <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold uppercase tracking-wider mb-2">

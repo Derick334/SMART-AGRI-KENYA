@@ -179,68 +179,68 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-stone-950/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
-      <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[92vh] overflow-y-auto shadow-2xl border border-stone-200 relative animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+      <div className="bg-white rounded-xl max-w-2xl w-full max-h-[92vh] overflow-y-auto shadow-xl border border-[#E2E7DE] relative animate-in fade-in duration-200">
         {/* Header */}
-        <div className="p-5 border-b border-stone-200 flex items-center justify-between bg-stone-50">
+        <div className="p-4 sm:p-5 border-b border-[#E2E7DE] flex items-center justify-between bg-[#F7F6F0]">
           <div>
-            <h2 className="text-lg font-extrabold text-stone-950 flex items-center gap-2">
+            <h2 className="text-base sm:text-lg font-bold text-[#214E34] flex items-center gap-2">
               <span>Checkout & Delivery Order</span>
-              <span className="text-xs bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">
+              <span className="text-xs bg-[#EBF3ED] text-[#214E34] font-bold px-2 py-0.5 rounded border border-[#CFD7CA]">
                 M-Pesa Daraja
               </span>
             </h2>
-            <p className="text-xs text-stone-500">
+            <p className="text-xs text-[#68756A]">
               Verified Kenyan agricultural transport with escrow protection
             </p>
           </div>
 
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-white border border-stone-200 hover:bg-stone-100 text-stone-600 flex items-center justify-center transition cursor-pointer"
+            className="w-8 h-8 rounded-lg bg-white border border-[#E2E7DE] hover:bg-[#EBF3ED] text-[#252D27] flex items-center justify-center transition cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Content / Payment Flow */}
-        <div className="p-6">
+        <div className="p-5 sm:p-6">
           {stkStatus === 'prompt_sent' || stkStatus === 'pin_entered' || stkStatus === 'completed' ? (
             /* Interactive Safaricom M-Pesa STK Prompt Simulation */
             <div className="flex flex-col items-center justify-center text-center p-4 space-y-4">
-              <div className="w-20 h-20 rounded-full bg-emerald-100 border-4 border-emerald-500 flex items-center justify-center text-emerald-800 animate-pulse">
-                <Smartphone className="w-10 h-10" />
+              <div className="w-16 h-16 rounded-full bg-[#EBF3ED] border-2 border-[#367C46] flex items-center justify-center text-[#214E34] animate-pulse">
+                <Smartphone className="w-8 h-8 text-[#367C46]" />
               </div>
 
               <div>
-                <h3 className="text-base font-bold text-stone-900">
+                <h3 className="text-base font-bold text-[#214E34]">
                   Lipa na M-Pesa Online STK Push Sent!
                 </h3>
-                <p className="text-xs text-stone-600 max-w-sm mt-1">
-                  A payment request of <strong>KSh {grandTotal.toLocaleString()}</strong> has been sent to phone <strong>{buyerPhone}</strong>.
+                <p className="text-xs text-[#68756A] max-w-sm mt-1">
+                  A payment request of <strong className="text-[#252D27]">KSh {grandTotal.toLocaleString()}</strong> has been sent to phone <strong className="text-[#252D27]">{buyerPhone}</strong>.
                 </p>
               </div>
 
               {/* Simulated Phone Prompt Modal */}
-              <div className="w-full max-w-xs bg-stone-900 text-white rounded-2xl p-4 shadow-xl text-left border border-stone-700">
-                <div className="flex items-center justify-between text-[11px] text-stone-400 border-b border-stone-800 pb-2 mb-3">
-                  <span>SAFARICOM M-PESA</span>
+              <div className="w-full max-w-xs bg-[#252D27] text-white rounded-xl p-4 shadow-xl text-left border border-[#68756A]">
+                <div className="flex items-center justify-between text-[11px] text-[#CFD7CA] border-b border-[#68756A]/50 pb-2 mb-3">
+                  <span className="font-bold">SAFARICOM M-PESA</span>
                   <span>SIM 1</span>
                 </div>
 
-                <p className="text-xs font-medium text-stone-200 mb-3">
-                  Do you want to pay <strong>KSh {grandTotal.toLocaleString()}</strong> to <strong>SMART-AGRI KENYA</strong> (Acc: SMART-AGRI)?
+                <p className="text-xs font-medium text-[#F7F6F0] mb-3 leading-relaxed">
+                  Do you want to pay <strong className="text-[#D6A545]">KSh {grandTotal.toLocaleString()}</strong> to <strong>SMART-AGRI KENYA</strong> (Acc: SMART-AGRI)?
                 </p>
 
                 {stkStatus === 'completed' ? (
-                  <div className="p-3 bg-emerald-950/80 rounded-xl border border-emerald-500/50 text-center">
-                    <CheckCircle className="w-6 h-6 text-emerald-400 mx-auto mb-1" />
-                    <p className="text-xs font-bold text-emerald-300">Payment Confirmed!</p>
-                    <p className="text-[10px] text-emerald-400 font-mono">Receipt: {mpesaReceipt}</p>
+                  <div className="p-3 bg-[#183C27] rounded-lg border border-[#367C46] text-center">
+                    <CheckCircle className="w-5 h-5 text-[#78A65A] mx-auto mb-1" />
+                    <p className="text-xs font-bold text-white">Payment Confirmed!</p>
+                    <p className="text-[10px] text-[#CFD7CA] font-mono mt-0.5">Receipt: {mpesaReceipt}</p>
                   </div>
                 ) : (
                   <div>
-                    <label className="block text-[11px] text-stone-400 mb-1">
+                    <label className="block text-[11px] text-[#CFD7CA] mb-1 font-medium">
                       Enter M-Pesa PIN (Simulated Tester):
                     </label>
                     <input
@@ -249,13 +249,13 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                       value={simulatedPin}
                       onChange={(e) => setSimulatedPin(e.target.value)}
                       placeholder="••••"
-                      className="w-full text-center text-lg tracking-widest p-2 rounded-lg bg-stone-800 border border-stone-600 text-white font-mono mb-3"
+                      className="w-full text-center text-lg tracking-widest p-2 rounded-lg bg-black/40 border border-[#68756A] text-white font-mono mb-3 focus:outline-none focus:border-[#367C46]"
                     />
 
                     <button
                       onClick={handleCompletePinVerification}
                       disabled={simulatedPin.length < 4 || stkStatus === 'pin_entered'}
-                      className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-xs py-2 rounded-lg transition flex items-center justify-center gap-1.5 cursor-pointer"
+                      className="w-full bg-[#367C46] hover:bg-[#2B6437] disabled:opacity-50 text-white font-semibold text-xs py-2 rounded-lg transition flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
                     >
                       {stkStatus === 'pin_entered' ? (
                         <>
@@ -270,7 +270,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 )}
               </div>
 
-              <p className="text-[11px] text-stone-500">
+              <p className="text-[11px] text-[#68756A]">
                 Test simulation: Enter any 4 digits (e.g. 1234) to confirm M-Pesa transaction.
               </p>
             </div>
@@ -278,19 +278,19 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
             /* Standard Checkout Form */
             <form onSubmit={handleInitiateOrder} className="space-y-4">
               {errorMessage && (
-                <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 text-xs rounded-xl flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+                <div className="p-3 bg-[#FCF8EE] border border-[#D6A545]/40 text-[#79543A] text-xs rounded-lg flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-[#D6A545] shrink-0" />
                   <span>{errorMessage}</span>
                 </div>
               )}
 
               {/* Order Summary Pill */}
-              <div className="p-3 bg-stone-50 rounded-2xl border border-stone-200">
-                <div className="flex items-center justify-between text-xs font-semibold text-stone-700 mb-1">
+              <div className="p-3 bg-[#F7F6F0] rounded-lg border border-[#E2E7DE]">
+                <div className="flex items-center justify-between text-xs font-semibold text-[#252D27] mb-1">
                   <span>Purchasing {cartItems.length} Item(s)</span>
-                  <span className="font-bold text-emerald-900">Total KSh {grandTotal.toLocaleString()}</span>
+                  <span className="font-extrabold text-[#214E34] tabular-nums">Total KSh {grandTotal.toLocaleString()}</span>
                 </div>
-                <div className="text-[11px] text-stone-500 flex flex-wrap gap-2">
+                <div className="text-[11px] text-[#68756A] flex flex-wrap gap-2">
                   <span>Produce Subtotal: KSh {subtotal.toLocaleString()}</span>
                   <span>•</span>
                   <span>Freight/Transport: KSh {deliveryFreightTotal.toLocaleString()}</span>
@@ -300,18 +300,18 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               {/* Recipient Details */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 <div>
-                  <label className="block font-bold text-stone-700 mb-1">Buyer Full Name</label>
+                  <label className="block font-semibold text-[#252D27] mb-1">Buyer Full Name</label>
                   <input
                     type="text"
                     required
                     value={buyerName}
                     onChange={(e) => setBuyerName(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-stone-300 focus:border-emerald-600 focus:outline-hidden"
+                    className="w-full p-2.5 rounded-lg border border-[#E2E7DE] bg-white text-[#252D27] focus:border-[#367C46] focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-stone-700 mb-1">
+                  <label className="block font-semibold text-[#252D27] mb-1">
                     Safaricom Phone Number (For M-Pesa)
                   </label>
                   <input
@@ -320,7 +320,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     value={buyerPhone}
                     onChange={(e) => setBuyerPhone(e.target.value)}
                     placeholder="0712345678 or 0112345678"
-                    className="w-full p-2.5 rounded-xl border border-stone-300 focus:border-emerald-600 focus:outline-hidden font-mono"
+                    className="w-full p-2.5 rounded-lg border border-[#E2E7DE] bg-white text-[#252D27] focus:border-[#367C46] focus:outline-none font-mono"
                   />
                 </div>
               </div>
@@ -328,13 +328,13 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
               {/* Destination County & Address */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 <div>
-                  <label className="block font-bold text-stone-700 mb-1">
+                  <label className="block font-semibold text-[#252D27] mb-1">
                     Destination County
                   </label>
                   <select
                     value={deliveryCounty}
                     onChange={(e) => setDeliveryCounty(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-stone-300 focus:border-emerald-600 focus:outline-hidden font-medium"
+                    className="w-full p-2.5 rounded-lg border border-[#E2E7DE] bg-white text-[#252D27] focus:border-[#367C46] focus:outline-none font-medium cursor-pointer"
                   >
                     {KENYA_COUNTIES.map((c) => (
                       <option key={c.code} value={c.name}>
@@ -345,7 +345,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 </div>
 
                 <div>
-                  <label className="block font-bold text-stone-700 mb-1">
+                  <label className="block font-semibold text-[#252D27] mb-1">
                     Sub-County / Nearest Town
                   </label>
                   <input
@@ -354,13 +354,13 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     value={deliveryTown}
                     onChange={(e) => setDeliveryTown(e.target.value)}
                     placeholder="e.g. Njoro, Kitale, Thika, Mwea"
-                    className="w-full p-2.5 rounded-xl border border-stone-300 focus:border-emerald-600 focus:outline-hidden"
+                    className="w-full p-2.5 rounded-lg border border-[#E2E7DE] bg-white text-[#252D27] focus:border-[#367C46] focus:outline-none"
                   />
                 </div>
               </div>
 
               <div className="text-xs">
-                <label className="block font-bold text-stone-700 mb-1">
+                <label className="block font-semibold text-[#252D27] mb-1">
                   Specific Delivery Address / Road Landmark
                 </label>
                 <input
@@ -369,67 +369,68 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                   value={deliveryAddress}
                   onChange={(e) => setDeliveryAddress(e.target.value)}
                   placeholder="e.g. Next to Kenya Seed Depot, Plot 4"
-                  className="w-full p-2.5 rounded-xl border border-stone-300 focus:border-emerald-600 focus:outline-hidden"
+                  className="w-full p-2.5 rounded-lg border border-[#E2E7DE] bg-white text-[#252D27] focus:border-[#367C46] focus:outline-none"
                 />
               </div>
 
               {/* Payment Method Selector */}
               <div className="pt-2">
-                <label className="block text-xs font-bold text-stone-800 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-bold text-[#252D27] uppercase tracking-wider mb-2">
                   Select Payment Method
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                   <div
                     onClick={() => setPaymentMethod('mpesa')}
-                    className={`p-3 rounded-2xl border flex items-center gap-3 cursor-pointer transition ${
+                    className={`p-3 rounded-lg border flex items-center gap-3 cursor-pointer transition ${
                       paymentMethod === 'mpesa'
-                        ? 'border-emerald-600 bg-emerald-50/50 ring-1 ring-emerald-600'
-                        : 'border-stone-200 hover:bg-stone-50'
+                        ? 'border-[#367C46] bg-[#EBF3ED] shadow-xs'
+                        : 'border-[#E2E7DE] hover:bg-[#F7F6F0]'
                     }`}
                   >
-                    <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white font-black text-xs flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-lg bg-[#367C46] text-white font-black text-xs flex items-center justify-center">
                       M
                     </div>
                     <div>
-                      <span className="font-bold text-stone-900 block">Lipa na M-Pesa STK</span>
-                      <span className="text-[10px] text-stone-500">Official instant PIN prompt</span>
+                      <span className="font-bold text-[#214E34] block">Lipa na M-Pesa STK</span>
+                      <span className="text-[10px] text-[#68756A]">Official instant PIN prompt</span>
                     </div>
                   </div>
 
                   <div
                     onClick={() => setPaymentMethod('cash_on_delivery')}
-                    className={`p-3 rounded-2xl border flex items-center gap-3 cursor-pointer transition ${
+                    className={`p-3 rounded-lg border flex items-center gap-3 cursor-pointer transition ${
                       paymentMethod === 'cash_on_delivery'
-                        ? 'border-emerald-600 bg-emerald-50/50 ring-1 ring-emerald-600'
-                        : 'border-stone-200 hover:bg-stone-50'
+                        ? 'border-[#367C46] bg-[#EBF3ED] shadow-xs'
+                        : 'border-[#E2E7DE] hover:bg-[#F7F6F0]'
                     }`}
                   >
-                    <div className="w-8 h-8 rounded-lg bg-stone-800 text-white font-black text-xs flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-lg bg-[#252D27] text-white font-black text-xs flex items-center justify-center">
                       COD
                     </div>
                     <div>
-                      <span className="font-bold text-stone-900 block">Pay on Delivery</span>
-                      <span className="text-[10px] text-stone-500">Upon inspection at farm gate</span>
+                      <span className="font-bold text-[#252D27] block">Pay on Delivery</span>
+                      <span className="text-[10px] text-[#68756A]">Upon inspection at farm gate</span>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Submit CTA */}
-              <div className="pt-4 border-t border-stone-200">
+              <div className="pt-4 border-t border-[#E2E7DE]">
                 <button
                   type="submit"
                   disabled={isProcessingPayment}
-                  className="w-full bg-emerald-700 hover:bg-emerald-800 active:bg-emerald-900 text-white font-bold text-sm py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 shadow-md shadow-emerald-800/20 transition cursor-pointer"
+                  className="w-full bg-[#367C46] hover:bg-[#2B6437] text-white font-semibold text-xs sm:text-sm py-3 px-4 rounded-lg flex items-center justify-center gap-2 shadow-xs transition cursor-pointer"
                 >
-                  <Lock className="w-4 h-4 text-emerald-300" />
+                  <Lock className="w-4 h-4" />
                   <span>
                     Confirm & Pay KSh {grandTotal.toLocaleString()}
                   </span>
                 </button>
-                <p className="text-[10px] text-stone-400 text-center mt-2">
-                  🔒 Payments are secured with SSL and Daraja API verification protocols.
-                </p>
+                <div className="flex items-center justify-center gap-1.5 text-[10px] text-[#68756A] mt-2">
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#367C46]" />
+                  <span>Payments secured with SSL and Safaricom Daraja API verification protocols.</span>
+                </div>
               </div>
             </form>
           )}

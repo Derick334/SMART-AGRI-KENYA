@@ -1,0 +1,129 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="100%" height="100%">
+  <defs>
+    <linearGradient id="skyHighlands" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#93C5FD"/>
+      <stop offset="45%" stop-color="#BFDBFE"/>
+      <stop offset="85%" stop-color="#EFF6FF"/>
+      <stop offset="100%" stop-color="#FEFCE8"/>
+    </linearGradient>
+    <linearGradient id="hillGreen1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4E8C5D"/>
+      <stop offset="100%" stop-color="#2D5E39"/>
+    </linearGradient>
+    <linearGradient id="hillGreen2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6AA878"/>
+      <stop offset="100%" stop-color="#3D784A"/>
+    </linearGradient>
+    <linearGradient id="pastureGrass" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#559960"/>
+      <stop offset="35%" stop-color="#3F7A49"/>
+      <stop offset="100%" stop-color="#22532B"/>
+    </linearGradient>
+    <linearGradient id="cowCoatWhite" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="80%" stop-color="#F3F5F4"/>
+      <stop offset="100%" stop-color="#D9DDD9"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Clear Kenyan Highland Sky -->
+  <rect width="1600" height="900" fill="url(#skyHighlands)"/>
+
+  <!-- Subtle Sun Radiance -->
+  <circle cx="1300" cy="180" r="140" fill="#FFFBEB" opacity="0.6"/>
+
+  <!-- Distant Rolling Rift Valley Hills & Farm Belts -->
+  <path d="M0,420 Q300,340 700,390 T1600,360 L1600,900 L0,900 Z" fill="url(#hillGreen1)" opacity="0.45"/>
+  <path d="M0,480 Q450,410 950,460 T1600,430 L1600,900 L0,900 Z" fill="url(#hillGreen2)" opacity="0.6"/>
+
+  <!-- Neat Dairy Farm Wooden Fences (Paddock Enclosure) -->
+  <g opacity="0.5">
+    <!-- Fence Posts -->
+    <rect x="120" y="460" width="16" height="110" fill="#583C25" rx="3"/>
+    <rect x="360" y="470" width="16" height="110" fill="#583C25" rx="3"/>
+    <rect x="620" y="460" width="16" height="110" fill="#583C25" rx="3"/>
+    <rect x="880" y="470" width="16" height="110" fill="#583C25" rx="3"/>
+    <rect x="1140" y="460" width="16" height="110" fill="#583C25" rx="3"/>
+    <rect x="1400" y="470" width="16" height="110" fill="#583C25" rx="3"/>
+    <!-- Rails -->
+    <line x1="0" y1="490" x2="1600" y2="490" stroke="#785333" stroke-width="8"/>
+    <line x1="0" y1="535" x2="1600" y2="535" stroke="#785333" stroke-width="8"/>
+  </g>
+
+  <!-- Midground Grazing Cattle 1 & 2 (Background Dairy Cows) -->
+  <g transform="translate(1050, 430) scale(0.4)" opacity="0.8">
+    <ellipse cx="280" cy="160" rx="200" ry="110" fill="#FFFFFF"/>
+    <!-- Black Patches -->
+    <path d="M180,90 Q220,150 280,120 Q340,90 320,190 Q260,240 210,180 Z" fill="#202421"/>
+    <!-- Head -->
+    <circle cx="80" cy="130" r="50" fill="#202421"/>
+    <!-- Legs -->
+    <rect x="150" y="240" width="24" height="140" fill="#202421"/>
+    <rect x="220" y="240" width="22" height="140" fill="#FFFFFF"/>
+    <rect x="380" y="235" width="24" height="145" fill="#202421"/>
+    <rect x="430" y="235" width="22" height="145" fill="#FFFFFF"/>
+  </g>
+
+  <!-- Foreground Lush Green Pasture -->
+  <path d="M0,540 Q400,510 800,535 T1600,520 L1600,900 L0,900 Z" fill="url(#pastureGrass)"/>
+
+  <!-- Prime Mature Pedigree Friesian Dairy Cow (Prominent Foreground Focal Point) -->
+  <g transform="translate(240, 280)">
+    <!-- Main Cow Torso -->
+    <path d="M260,260 C260,180 340,150 560,150 C760,150 860,190 920,290 C950,340 920,440 880,480 C800,520 400,540 280,460 C250,420 260,320 260,260 Z" fill="url(#cowCoatWhite)"/>
+
+    <!-- Distinctive Pedigree Friesian Black Markings -->
+    <path d="M420,152 C480,210 430,320 540,360 C640,400 700,280 680,154 Z" fill="#1C1E1D"/>
+    <path d="M780,180 C840,240 920,280 880,380 C840,460 760,490 710,420 C680,360 720,260 780,180 Z" fill="#1C1E1D"/>
+    <path d="M265,240 C310,210 360,260 380,340 C400,430 330,470 280,460 Z" fill="#1C1E1D"/>
+
+    <!-- Udder (Healthy Dairy Breed Feature) -->
+    <ellipse cx="730" cy="505" rx="58" ry="36" fill="#F4B8B0"/>
+    <rect x="705" y="525" width="8" height="20" rx="3" fill="#E89E96"/>
+    <rect x="740" y="525" width="8" height="20" rx="3" fill="#E89E96"/>
+
+    <!-- Hind Legs -->
+    <path d="M830,440 L850,600 L875,600 L895,440 Z" fill="url(#cowCoatWhite)"/>
+    <rect x="850" y="590" width="28" height="20" rx="4" fill="#3D2B1F"/> <!-- Hoof -->
+
+    <path d="M750,450 L770,590 L792,590 L810,450 Z" fill="#1C1E1D"/>
+    <rect x="770" y="580" width="26" height="20" rx="4" fill="#3D2B1F"/>
+
+    <!-- Front Legs -->
+    <path d="M330,450 L345,595 L370,595 L390,450 Z" fill="url(#cowCoatWhite)"/>
+    <rect x="345" y="585" width="28" height="20" rx="4" fill="#3D2B1F"/>
+
+    <path d="M410,450 L425,585 L448,585 L465,450 Z" fill="#1C1E1D"/>
+    <rect x="425" y="575" width="26" height="20" rx="4" fill="#3D2B1F"/>
+
+    <!-- Neck & Head -->
+    <path d="M320,280 C260,250 200,200 160,170 C140,240 180,340 280,370 Z" fill="url(#cowCoatWhite)"/>
+    <path d="M190,170 C150,150 120,180 110,240 C100,290 140,330 190,320 C220,310 240,240 220,190 Z" fill="#1C1E1D"/>
+
+    <!-- Muzzle / Nose (Pink & Dark) -->
+    <ellipse cx="105" cy="275" rx="34" ry="24" fill="#F4B8B0"/>
+    <ellipse cx="95" cy="275" rx="7" ry="5" fill="#4A2B2B"/>
+    <ellipse cx="115" cy="275" rx="7" ry="5" fill="#4A2B2B"/>
+
+    <!-- Eye (Gentle, alert) -->
+    <ellipse cx="170" cy="210" rx="8" ry="7" fill="#151716"/>
+    <circle cx="172" cy="208" r="2.5" fill="#FFFFFF"/>
+
+    <!-- Ears & Polled Crest -->
+    <path d="M185,160 C230,130 250,155 210,185 Z" fill="#1C1E1D"/>
+    <path d="M135,170 C95,140 85,170 120,190 Z" fill="#F4B8B0"/>
+
+    <!-- Tail -->
+    <path d="M920,290 C960,340 970,440 940,500" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round" fill="none"/>
+    <path d="M940,500 L955,545 L930,550 Z" fill="#1C1E1D"/>
+  </g>
+
+  <!-- Foreground Grass Blades Details -->
+  <g stroke="#7BC683" stroke-width="4" stroke-linecap="round">
+    <line x1="380" y1="880" x2="395" y2="820"/>
+    <line x1="400" y1="880" x2="420" y2="830"/>
+    <line x1="780" y1="890" x2="795" y2="830"/>
+    <line x1="1250" y1="880" x2="1270" y2="810"/>
+    <line x1="1275" y1="880" x2="1290" y2="830"/>
+  </g>
+</svg>

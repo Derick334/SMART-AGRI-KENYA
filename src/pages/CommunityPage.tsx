@@ -26,6 +26,7 @@ export const CommunityPage: React.FC = () => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [category, setCategory] = useState<ForumPost['category']>('General Farming');
+  const [noticeMessage, setNoticeMessage] = useState<string | null>(null);
 
   const currentUser = agriStore.getCurrentUser();
 
@@ -59,6 +60,21 @@ export const CommunityPage: React.FC = () => {
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+      {noticeMessage && (
+        <div className="p-3.5 bg-[#EBF3ED] border border-[#CFD7CA] text-[#214E34] text-xs font-semibold rounded-lg flex items-center justify-between shadow-xs">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-[#367C46] shrink-0" />
+            <span>{noticeMessage}</span>
+          </div>
+          <button
+            onClick={() => setNoticeMessage(null)}
+            className="text-[#68756A] hover:text-[#252D27] cursor-pointer"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* Banner */}
       <div className="bg-linear-to-r from-emerald-950 via-stone-900 to-emerald-900 text-white rounded-3xl p-6 sm:p-8 border border-emerald-800/40 shadow-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
@@ -285,7 +301,7 @@ export const CommunityPage: React.FC = () => {
               </button>
               <button
                 onClick={() => {
-                  alert('Thank you. Complaint lodged with the SMART-AGRI Kenya Security and Moderation Desk.');
+                  setNoticeMessage('Complaint successfully lodged with the SMART-AGRI Kenya Security and Moderation Desk.');
                   setShowReportModal(false);
                 }}
                 className="bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs px-4 py-2 rounded-xl shadow-xs cursor-pointer"

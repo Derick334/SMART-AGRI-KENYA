@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="100%" height="100%">
+  <defs>
+    <linearGradient id="soilSky" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#E8F4E8"/>
+      <stop offset="50%" stop-color="#D7EBD8"/>
+      <stop offset="100%" stop-color="#C5DFC6"/>
+    </linearGradient>
+    <linearGradient id="richSoil" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#543A26"/>
+      <stop offset="50%" stop-color="#3D2817"/>
+      <stop offset="100%" stop-color="#24170C"/>
+    </linearGradient>
+    <linearGradient id="soilCrumb" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#735237"/>
+      <stop offset="100%" stop-color="#4A311D"/>
+    </linearGradient>
+    <linearGradient id="sproutGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#66BB6A"/>
+      <stop offset="100%" stop-color="#2E7D32"/>
+    </linearGradient>
+    <linearGradient id="glassTube" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.8"/>
+      <stop offset="25%" stop-color="#E0F2FE" stop-opacity="0.3"/>
+      <stop offset="75%" stop-color="#BAE6FD" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.7"/>
+    </linearGradient>
+    <linearGradient id="phFluid" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#4ADE80"/>
+      <stop offset="100%" stop-color="#16A34A"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Clean Agricultural Background -->
+  <rect width="1600" height="900" fill="url(#soilSky)"/>
+
+  <!-- Soft Farm Scenery in Distance -->
+  <path d="M0,480 Q450,430 900,470 T1600,450 L1600,900 L0,900 Z" fill="#437750" opacity="0.35"/>
+  <path d="M0,550 Q380,510 850,540 T1600,520 L1600,900 L0,900 Z" fill="#2E5E3B" opacity="0.5"/>
+  <path d="M0,630 Q450,590 900,620 T1600,600 L1600,900 L0,900 Z" fill="#1C4527"/>
+
+  <!-- Left: Laboratory Soil Sampling Flask & Nutrient Tubes (Scientific Precision) -->
+  <g transform="translate(180, 260)">
+    <!-- Test Tube 1 (pH / Nitrogen Test) -->
+    <g transform="translate(140, 100) rotate(15)">
+      <rect x="0" y="0" width="48" height="280" rx="24" fill="url(#glassTube)" stroke="#94A3B8" stroke-width="3"/>
+      <!-- Measurement Lines -->
+      <line x1="8" y1="80" x2="22" y2="80" stroke="#64748B" stroke-width="2"/>
+      <line x1="8" y1="120" x2="26" y2="120" stroke="#64748B" stroke-width="2"/>
+      <line x1="8" y1="160" x2="22" y2="160" stroke="#64748B" stroke-width="2"/>
+      <line x1="8" y1="200" x2="26" y2="200" stroke="#64748B" stroke-width="2"/>
+      <!-- Testing Solution Fluid -->
+      <path d="M4,150 L44,150 L44,256 C44,268 36,276 24,276 C12,276 4,268 4,256 Z" fill="url(#phFluid)"/>
+    </g>
+
+    <!-- Test Tube 2 (Soil Suspension Sample) -->
+    <g transform="translate(60, 80) rotate(-10)">
+      <rect x="0" y="0" width="48" height="290" rx="24" fill="url(#glassTube)" stroke="#94A3B8" stroke-width="3"/>
+      <!-- Soil Core Settling in Liquid -->
+      <path d="M4,180 L44,180 L44,266 C44,278 36,286 24,286 C12,286 4,278 4,266 Z" fill="url(#richSoil)"/>
+      <rect x="4" y="110" width="40" height="70" fill="#E2BA84" opacity="0.6"/>
+    </g>
+  </g>
+
+  <!-- Center Focal Point: Cupped Farmer Hands Holding Nutrient-Rich Soil -->
+  <g transform="translate(640, 320)">
+    <!-- Farmer Hands -->
+    <!-- Left Hand -->
+    <path d="M20,380 C100,320 220,290 320,310 C340,320 350,350 320,380 C260,430 140,480 20,490 Z" fill="#6B4127"/>
+    <!-- Right Hand -->
+    <path d="M620,380 C540,320 420,290 320,310 C300,320 290,350 320,380 C380,430 500,480 620,490 Z" fill="#58341D"/>
+
+    <!-- Rich, Dark, Organic Kenyan Volcanic Loam Soil (Focal Mound) -->
+    <path d="M160,330 C200,240 280,210 320,210 C360,210 440,240 480,330 C490,380 430,420 320,430 C210,420 150,380 160,330 Z" fill="url(#richSoil)"/>
+
+    <!-- Textured Soil Granules & Organic Matter Crumbs -->
+    <g fill="url(#soilCrumb)">
+      <ellipse cx="260" cy="270" rx="28" ry="16"/>
+      <ellipse cx="320" cy="260" rx="34" ry="18"/>
+      <ellipse cx="380" cy="275" rx="30" ry="16"/>
+      <ellipse cx="290" cy="310" rx="36" ry="20"/>
+      <ellipse cx="350" cy="320" rx="32" ry="18"/>
+      <ellipse cx="230" cy="330" rx="26" ry="15"/>
+      <ellipse cx="420" cy="325" rx="24" ry="14"/>
+    </g>
+
+    <!-- Tender Green Seedling Sprouting from the Healthy Tested Soil -->
+    <g transform="translate(320, 220)">
+      <!-- Stem -->
+      <path d="M0,30 Q-5,-40 0,-90" stroke="#81C784" stroke-width="8" stroke-linecap="round" fill="none"/>
+      <!-- Left Cotyledon Leaf -->
+      <path d="M0,-80 C-40,-120 -80,-90 -60,-60 C-40,-30 -10,-60 0,-80 Z" fill="url(#sproutGrad)"/>
+      <!-- Right Cotyledon Leaf -->
+      <path d="M0,-85 C40,-125 80,-95 60,-65 C40,-35 10,-65 0,-85 Z" fill="url(#sproutGrad)"/>
+      <path d="M0,-80 L-50,-70" stroke="#A5D6A7" stroke-width="3" fill="none"/>
+      <path d="M0,-85 L50,-75" stroke="#A5D6A7" stroke-width="3" fill="none"/>
+    </g>
+  </g>
+
+  <!-- Right: Digital pH & Nitrogen Nutrient Indicators (Subtle Diagnostic Graphic) -->
+  <g transform="translate(1220, 320)" opacity="0.6">
+    <rect x="0" y="0" width="220" height="150" rx="16" fill="#FFFFFF" stroke="#C3D9C6" stroke-width="3"/>
+    <!-- N-P-K Indicators -->
+    <rect x="25" y="25" width="40" height="12" rx="3" fill="#2E7D32"/>
+    <rect x="80" y="25" width="110" height="12" rx="3" fill="#E8F5E9"/>
+    <rect x="80" y="25" width="85" height="12" rx="3" fill="#4CAF50"/>
+
+    <rect x="25" y="55" width="40" height="12" rx="3" fill="#2E7D32"/>
+    <rect x="80" y="55" width="110" height="12" rx="3" fill="#E8F5E9"/>
+    <rect x="80" y="55" width="75" height="12" rx="3" fill="#66BB6A"/>
+
+    <rect x="25" y="85" width="40" height="12" rx="3" fill="#2E7D32"/>
+    <rect x="80" y="85" width="110" height="12" rx="3" fill="#E8F5E9"/>
+    <rect x="80" y="85" width="95" height="12" rx="3" fill="#388E3C"/>
+
+    <circle cx="110" cy="125" r="8" fill="#D6A545"/>
+    <rect x="130" y="122" width="60" height="6" rx="3" fill="#214E34"/>
+  </g>
+</svg>

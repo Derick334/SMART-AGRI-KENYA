@@ -31,10 +31,29 @@ import { Product, CartItem, Order } from './types';
 import { agriStore } from './services/store';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('home');
+  // Sync initial tab from URL hash if provided (e.g. #marketplace)
+  const getInitialTab = (): string => {
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash.replace('#', '').toLowerCase();
+      const validTabs = [
+        'home', 'marketplace', 'crops', 'livestock', 'inputs', 
+        'soil-testing', 'pest-diagnosis', 'market-prices', 'weather', 
+        'ai-assistant', 'irrigation', 'community', 'experts', 
+        'orders', 'dashboard', 'about', 'contact', 'auth', 'admin'
+      ];
+      if (hash && validTabs.includes(hash)) return hash;
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get('tab');
+      if (tabParam && validTabs.includes(tabParam.toLowerCase())) return tabParam.toLowerCase();
+    }
+    return 'home';
+  };
+
+  const [activeTab, setActiveTab] = useState(getInitialTab);
   const [selectedCounty, setSelectedCounty] = useState('Nakuru');
   const [products, setProducts] = useState<Product[]>(agriStore.getProducts());
   const [cart, setCart] = useState<CartItem[]>(agriStore.getCart());
+  const [marketplaceSearch, setMarketplaceSearch] = useState<string>('');
 
   // Modals
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -43,6 +62,26 @@ export default function App() {
 
   // Toast notification
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Keep activeTab in sync with browser hash changes
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.replace('#', '').toLowerCase();
+      if (hash && hash !== activeTab) {
+        setActiveTab(hash);
+      }
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, [activeTab]);
+
+  const handleSelectTab = (tabId: string) => {
+    setActiveTab(tabId);
+    if (typeof window !== 'undefined') {
+      window.location.hash = tabId;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
 
   useEffect(() => {
     const syncState = () => {
@@ -66,15 +105,20 @@ export default function App() {
   // Handle Order Success
   const handleOrderSuccess = (order: Order) => {
     showToast(`Order #${order.orderNumber} placed successfully with M-Pesa escrow protection!`);
-    setActiveTab('orders');
+    handleSelectTab('orders');
+  };
+
+  const handleHomeSearch = (query: string) => {
+    setMarketplaceSearch(query);
+    handleSelectTab('marketplace');
   };
 
   return (
-    <div className="min-h-screen bg-stone-50 flex flex-col font-sans selection:bg-emerald-600 selection:text-white">
+    <div className="min-h-screen bg-[#F7F6F0] text-[#252D27] flex flex-col font-sans selection:bg-[#367C46] selection:text-white">
       {/* Toast Alert */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 bg-stone-900 text-white text-xs font-semibold px-4 py-3 rounded-2xl shadow-2xl border border-emerald-500/50 flex items-center gap-2 animate-in slide-in-from-bottom duration-200">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+        <div className="fixed bottom-6 right-6 z-50 bg-[#214E34] text-white text-xs font-semibold px-4 py-3 rounded-lg shadow-xl border border-[#367C46] flex items-center gap-2.5 animate-in slide-in-from-bottom duration-200">
+          <span className="w-2 h-2 rounded-full bg-[#D6A545] shrink-0"></span>
           <span>{toastMessage}</span>
         </div>
       )}
@@ -82,10 +126,7 @@ export default function App() {
       {/* Main Navigation Bar */}
       <Navbar
         activeTab={activeTab}
-        onSelectTab={(tabId) => {
-          setActiveTab(tabId);
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}
+        onSelectTab={handleSelectTab}
         onOpenCart={() => setIsCartOpen(true)}
         selectedCounty={selectedCounty}
         onSelectCounty={setSelectedCounty}
@@ -96,22 +137,27 @@ export default function App() {
         {activeTab === 'home' && (
           <HomePage
             products={products}
-            onSelectTab={setActiveTab}
+            onSelectTab={handleSelectTab}
             onViewProduct={setViewingProduct}
             onAddToCart={handleAddToCart}
             selectedCounty={selectedCounty}
             onSelectCounty={setSelectedCounty}
+            onSearchMarketplace={handleHomeSearch}
           />
         )}
 
+        {/* Kenya Agricultural Marketplace Route */}
         {activeTab === 'marketplace' && (
           <MarketplacePage
             products={products}
             onViewProduct={setViewingProduct}
             onAddToCart={handleAddToCart}
+            initialSearchQuery={marketplaceSearch}
+            userCounty={selectedCounty}
           />
         )}
 
+        {/* Crops & Produce Page */}
         {activeTab === 'crops' && (
           <CropsPage
             products={products}
@@ -120,6 +166,7 @@ export default function App() {
           />
         )}
 
+        {/* Livestock & Cattle Page */}
         {activeTab === 'livestock' && (
           <LivestockPage
             products={products}
@@ -128,6 +175,7 @@ export default function App() {
           />
         )}
 
+        {/* Farm Inputs Page */}
         {activeTab === 'inputs' && (
           <FarmInputsPage
             products={products}

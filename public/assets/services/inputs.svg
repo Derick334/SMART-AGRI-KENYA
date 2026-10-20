@@ -1,0 +1,142 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="100%" height="100%">
+  <defs>
+    <linearGradient id="shopWall" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#F7FAF7"/>
+      <stop offset="100%" stop-color="#E2EBE2"/>
+    </linearGradient>
+    <linearGradient id="woodCounter" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#DEB887"/>
+      <stop offset="30%" stop-color="#C89D66"/>
+      <stop offset="100%" stop-color="#A57845"/>
+    </linearGradient>
+    <linearGradient id="shelfGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#D9E2D9"/>
+    </linearGradient>
+    <linearGradient id="seedMaize" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FEDE68"/>
+      <stop offset="50%" stop-color="#ECAE2B"/>
+      <stop offset="100%" stop-color="#B87D12"/>
+    </linearGradient>
+    <linearGradient id="seedBean" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#A94842"/>
+      <stop offset="50%" stop-color="#7B241C"/>
+      <stop offset="100%" stop-color="#4D130E"/>
+    </linearGradient>
+    <linearGradient id="packGreen" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#367C46"/>
+      <stop offset="100%" stop-color="#183C27"/>
+    </linearGradient>
+    <linearGradient id="sackBurlap" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#E1D2BA"/>
+      <stop offset="100%" stop-color="#B7A07E"/>
+    </linearGradient>
+    <linearGradient id="glassGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.8"/>
+      <stop offset="30%" stop-color="#E0F2FE" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#BAE6FD" stop-opacity="0.6"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Clean Agrivet Store Interior Wall -->
+  <rect width="1600" height="900" fill="url(#shopWall)"/>
+
+  <!-- Background Retail Display Shelves -->
+  <g opacity="0.65">
+    <rect x="100" y="80" width="1400" height="24" fill="url(#shelfGrad)" rx="3"/>
+    <rect x="100" y="240" width="1400" height="24" fill="url(#shelfGrad)" rx="3"/>
+
+    <!-- Neatly Arranged Packaged Crop-Care & Feed Products on Top Shelf -->
+    <!-- Packet 1 -->
+    <rect x="220" y="-10" width="130" height="90" rx="6" fill="url(#packGreen)"/>
+    <!-- Packet 2 -->
+    <rect x="380" y="-20" width="140" height="100" rx="6" fill="#2A5C75"/>
+    <!-- Packet 3 -->
+    <rect x="550" y="-10" width="120" height="90" rx="6" fill="#8B572A"/>
+    <!-- Packet 4 -->
+    <rect x="700" y="-25" width="150" height="105" rx="6" fill="url(#packGreen)"/>
+    <rect x="880" y="-15" width="130" height="95" rx="6" fill="#3D7B54"/>
+    <rect x="1040" y="-20" width="140" height="100" rx="6" fill="#8B572A"/>
+    <rect x="1210" y="-15" width="130" height="95" rx="6" fill="url(#packGreen)"/>
+
+    <!-- Middle Shelf: Sturdy Fertilizer Sacks & Quality Seed Boxes -->
+    <rect x="180" y="120" width="180" height="120" rx="10" fill="url(#sackBurlap)"/>
+    <rect x="400" y="110" width="190" height="130" rx="10" fill="#E8ECE9"/>
+    <rect x="630" y="125" width="160" height="115" rx="8" fill="url(#packGreen)"/>
+    <rect x="830" y="115" width="180" height="125" rx="10" fill="url(#sackBurlap)"/>
+    <rect x="1050" y="110" width="190" height="130" rx="10" fill="#E8ECE9"/>
+    <rect x="1270" y="120" width="160" height="120" rx="8" fill="url(#packGreen)"/>
+  </g>
+
+  <!-- Foreground: Clean Polished Wooden Retail Display Counter -->
+  <path d="M0,450 L1600,450 L1600,900 L0,900 Z" fill="url(#woodCounter)"/>
+  <rect x="0" y="440" width="1600" height="16" fill="#FFFFFF" opacity="0.4"/>
+
+  <!-- Left: Sealed High-Yield Certified Seed Packets on Stand -->
+  <g transform="translate(180, 360)">
+    <!-- Seed Packet 1 (Front View) -->
+    <rect x="0" y="40" width="220" height="300" rx="12" fill="url(#packGreen)" stroke="#4E995E" stroke-width="4"/>
+    <rect x="25" y="70" width="170" height="120" rx="8" fill="#F4F8F4"/>
+    <!-- Generic Seed Graphic inside packet window -->
+    <ellipse cx="110" cy="130" rx="36" ry="24" fill="url(#seedMaize)"/>
+    <rect x="30" y="210" width="120" height="12" rx="4" fill="#FFFFFF" opacity="0.7"/>
+    <rect x="30" y="235" width="160" height="8" rx="4" fill="#FFFFFF" opacity="0.5"/>
+    <rect x="30" y="255" width="90" height="8" rx="4" fill="#FFFFFF" opacity="0.5"/>
+
+    <!-- Seed Packet 2 (Angled behind) -->
+    <g transform="translate(160, -40)">
+      <rect x="0" y="40" width="200" height="280" rx="12" fill="#235A33" stroke="#3A754B" stroke-width="3"/>
+    </g>
+  </g>
+
+  <!-- Center Focal Point: Transparent Glass Bowls with Certified Seeds -->
+  <!-- Bowl 1: Golden Certified Hybrid Maize Seeds -->
+  <g transform="translate(620, 460)">
+    <!-- Glass Dish Outline -->
+    <ellipse cx="140" cy="180" rx="150" ry="80" fill="url(#glassGrad)"/>
+    <ellipse cx="140" cy="140" rx="140" ry="60" fill="#E8B038"/>
+
+    <!-- Individual Golden Maize Seeds -->
+    <g>
+      <ellipse cx="60" cy="140" rx="18" ry="12" fill="url(#seedMaize)"/>
+      <ellipse cx="95" cy="130" rx="17" ry="13" fill="url(#seedMaize)"/>
+      <ellipse cx="130" cy="125" rx="18" ry="12" fill="url(#seedMaize)"/>
+      <ellipse cx="165" cy="130" rx="18" ry="13" fill="url(#seedMaize)"/>
+      <ellipse cx="205" cy="140" rx="17" ry="12" fill="url(#seedMaize)"/>
+      <ellipse cx="110" cy="105" rx="17" ry="12" fill="url(#seedMaize)"/>
+      <ellipse cx="150" cy="100" rx="18" ry="13" fill="url(#seedMaize)"/>
+      <ellipse cx="180" cy="115" rx="17" ry="12" fill="url(#seedMaize)"/>
+      <ellipse cx="80" cy="115" rx="18" ry="12" fill="url(#seedMaize)"/>
+    </g>
+    <!-- Glass Highlights & Reflections -->
+    <ellipse cx="140" cy="180" rx="145" ry="75" stroke="#FFFFFF" stroke-width="4" fill="none" opacity="0.6"/>
+  </g>
+
+  <!-- Bowl 2: Deep Red Certified Bean Seeds -->
+  <g transform="translate(940, 470)">
+    <ellipse cx="140" cy="170" rx="140" ry="75" fill="url(#glassGrad)"/>
+    <ellipse cx="140" cy="135" rx="130" ry="55" fill="#6B1D16"/>
+
+    <!-- Individual Bean Seeds (Nyayo / Rosecoco style) -->
+    <g>
+      <ellipse cx="70" cy="135" rx="20" ry="13" fill="url(#seedBean)" transform="rotate(-15 70 135)"/>
+      <ellipse cx="110" cy="125" rx="19" ry="12" fill="url(#seedBean)" transform="rotate(20 110 125)"/>
+      <ellipse cx="150" cy="120" rx="20" ry="13" fill="url(#seedBean)" transform="rotate(-10 150 120)"/>
+      <ellipse cx="190" cy="130" rx="19" ry="12" fill="url(#seedBean)" transform="rotate(30 190 130)"/>
+      <ellipse cx="130" cy="100" rx="19" ry="12" fill="url(#seedBean)" transform="rotate(-25 130 100)"/>
+      <ellipse cx="170" cy="105" rx="20" ry="13" fill="url(#seedBean)" transform="rotate(15 170 105)"/>
+      <ellipse cx="90" cy="110" rx="19" ry="12" fill="url(#seedBean)" transform="rotate(5 90 110)"/>
+    </g>
+    <ellipse cx="140" cy="170" rx="135" ry="70" stroke="#FFFFFF" stroke-width="4" fill="none" opacity="0.6"/>
+  </g>
+
+  <!-- Right: Sealed Fertilizer Bag (Generic, Clean, Professional) -->
+  <g transform="translate(1260, 310)">
+    <path d="M40,120 L240,120 C260,260 270,380 280,500 L0,500 C10,380 20,260 40,120 Z" fill="url(#sackBurlap)"/>
+    <path d="M35,115 L245,115" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round"/>
+    <rect x="60" y="210" width="160" height="90" rx="6" fill="#FFFFFF" opacity="0.8"/>
+    <!-- Minimalist Crop Sprout Symbol on Sack -->
+    <path d="M140,270 C140,240 120,230 110,235 C120,250 130,260 140,270 Z" fill="#2E7D32"/>
+    <path d="M140,270 C140,235 160,225 170,230 C160,245 150,255 140,270 Z" fill="#388E3C"/>
+  </g>
+</svg>

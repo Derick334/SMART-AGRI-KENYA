@@ -1,515 +1,525 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Search, 
-  MapPin, 
-  ArrowUpDown, 
+  X, 
   Store, 
-  X,
+  Plus, 
+  Sparkles, 
+  ShieldCheck, 
+  RotateCcw, 
+  ShoppingBag,
   SlidersHorizontal,
-  RotateCcw,
-  Tag,
-  Plus
+  PackageOpen,
+  CheckCircle2,
+  Phone,
+  HelpCircle,
+  TrendingUp
 } from 'lucide-react';
 import { Product, ProductCategory } from '../types';
-import { ProductCard } from '../components/marketplace/ProductCard';
-import { LivestockCard } from '../components/livestock/LivestockCard';
+import { agriStore } from '../services/store';
 import { KENYA_COUNTIES } from '../data/kenyaCounties';
 import { 
-  MarketplaceFilterBar, 
-  FilterState, 
-  MainCategory 
-} from '../components/marketplace/MarketplaceFilterBar';
-import { ProductListingModal } from '../components/marketplace/ProductListingModal';
+  MarketplaceCategory, 
+  CATEGORY_PRODUCT_TYPES, 
+  VARIETIES_BY_PRODUCT_TYPE 
+} from '../data/marketplaceTaxonomy';
+import { useMarketplaceFilters } from '../hooks/useMarketplaceFilters';
+import { MarketplaceFilterBar } from '../components/marketplace/MarketplaceFilterBar';
+import { ProductCard } from '../components/marketplace/ProductCard';
+import { ProductDetailModal } from '../components/marketplace/ProductDetailModal';
 
 interface MarketplacePageProps {
-  products: Product[];
-  onViewProduct: (product: Product) => void;
-  onAddToCart: (product: Product) => void;
-  onToggleCompare?: (product: Product) => void;
-  comparedIds?: string[];
-  initialCategory?: ProductCategory | 'all';
+  products?: Product[];
+  onViewProduct?: (product: Product) => void;
+  onAddToCart?: (product: Product, quantity?: number, delivery?: 'pickup' | 'delivery') => void;
+  initialSearchQuery?: string;
+  initialCategory?: MarketplaceCategory;
+  userCounty?: string;
 }
 
-const DEFAULT_FILTERS: FilterState = {
-  category: 'all',
-  cropProductType: 'all',
-  cropVariety: 'all',
-  livestockAnimalType: 'all',
-  livestockBreed: 'all',
-  livestockCattlePurpose: 'all',
-  inputProductType: 'all',
-  inputFormulation: 'all',
-  inputPackageSize: 'all',
-  inputCertification: 'all',
-  equipmentProductType: 'all',
-  equipmentPowerSource: 'all',
-  equipmentCondition: 'all',
-  searchQuery: '',
-  selectedCounty: 'all',
-  maxPrice: 2000000,
-  sortBy: 'newest',
-};
-
 export const MarketplacePage: React.FC<MarketplacePageProps> = ({
-  products,
-  onViewProduct,
-  onAddToCart,
-  onToggleCompare,
-  comparedIds = [],
+  products: propProducts,
+  onViewProduct: propOnViewProduct,
+  onAddToCart: propOnAddToCart,
+  initialSearchQuery = '',
   initialCategory = 'all',
+  userCounty = 'Nakuru',
 }) => {
-  // Map incoming initialCategory to MainCategory
-  const mapInitialCategory = (cat: ProductCategory | 'all'): MainCategory => {
-    if (cat === 'crops' || cat === 'fodder' || cat === 'seedlings') return 'crops';
-    if (cat === 'livestock') return 'livestock';
-    if (cat === 'inputs') return 'inputs';
-    if (cat === 'equipment') return 'equipment';
-    return 'all';
+  // Store products fallback if not provided via props
+  const [storeProducts, setStoreProducts] = useState<Product[]>(() => agriStore.getProducts());
+
+  useEffect(() => {
+    if (!propProducts) {
+      const unsubscribe = agriStore.subscribe(() => {
+        setStoreProducts(agriStore.getProducts());
+      });
+      return unsubscribe;
+    }
+  }, [propProducts]);
+
+  const allProducts = propProducts || storeProducts;
+
+  // useMarketplaceFilters hook managing all filter, category, variety, location & price states
+  const {
+    category,
+    productType,
+    varietyOrBreed,
+    location,
+    minPrice,
+    maxPrice,
+    searchQuery,
+    sortBy,
+    setCategory,
+    setProductType,
+    setVarietyOrBreed,
+    setLocation,
+    setMinPrice,
+    setMaxPrice,
+    setSearchQuery,
+    setSortBy,
+    resetFilters,
+    clearFilter,
+    availableProductTypes,
+    availableVarieties,
+    isVarietyEnabled,
+    activeFilterCount,
+    isAnyFilterActive,
+    activeFilterTags,
+    filteredProducts,
+    totalCount,
+  } = useMarketplaceFilters(allProducts, initialCategory, initialSearchQuery);
+
+  // Modal states
+  const [modalProduct, setModalProduct] = useState<Product | null>(null);
+  const [isSellModalOpen, setIsSellModalOpen] = useState(false);
+  const [sellSuccessNotice, setSellSuccessNotice] = useState<string | null>(null);
+
+  // New product form state for "Sell Your Products" modal
+  const [newTitle, setNewTitle] = useState('');
+  const [newCategory, setNewCategory] = useState<ProductCategory>('crops');
+  const [newProductType, setNewProductType] = useState('Maize');
+  const [newVariety, setNewVariety] = useState('');
+  const [newCounty, setNewCounty] = useState(userCounty || 'Nakuru');
+  const [newPrice, setNewPrice] = useState('');
+  const [newUnit, setNewUnit] = useState('90kg bag');
+  const [newQuantity, setNewQuantity] = useState('20');
+  const [newDescription, setNewDescription] = useState('');
+  const [newSellerName, setNewSellerName] = useState('Rongai Valley Mixed Farm');
+  const [newSellerPhone, setNewSellerPhone] = useState('0722123456');
+
+  // Handle viewing product
+  const handleViewProduct = (product: Product) => {
+    if (propOnViewProduct) {
+      propOnViewProduct(product);
+    } else {
+      setModalProduct(product);
+    }
   };
 
-  const [filters, setFilters] = useState<FilterState>({
-    ...DEFAULT_FILTERS,
-    category: mapInitialCategory(initialCategory),
-  });
-
-  const [showAdvancedControls, setShowAdvancedControls] = useState(false);
-  const [isListingModalOpen, setIsListingModalOpen] = useState(false);
-  const [toastNotice, setToastNotice] = useState<string | null>(null);
-
-  const handleFilterChange = (newFilters: Partial<FilterState>) => {
-    setFilters((prev) => ({
-      ...prev,
-      ...newFilters,
-    }));
+  // Handle add to cart
+  const handleAddToCart = (product: Product, quantity = 1, delivery: 'pickup' | 'delivery' = 'delivery') => {
+    if (propOnAddToCart) {
+      propOnAddToCart(product, quantity, delivery);
+    } else {
+      agriStore.addToCart(product, quantity, delivery);
+    }
   };
 
-  const handleResetFilters = () => {
-    setFilters({
-      ...DEFAULT_FILTERS,
-      category: 'all',
+  // Handle product listing submission
+  const handleCreateListing = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTitle.trim() || !newPrice) return;
+
+    const created = agriStore.addProduct({
+      title: newTitle.trim(),
+      description: newDescription.trim() || `High quality ${newVariety || newProductType} from verified farm in ${newCounty}. Ready for immediate dispatch.`,
+      category: newCategory,
+      subcategory: newCategory === 'crops' ? 'Cereals & Produce' : newCategory === 'livestock' ? 'Livestock' : 'Farm Inputs',
+      productType: newProductType,
+      variety: newVariety.trim() || undefined,
+      priceKsh: Number(newPrice),
+      unit: newUnit,
+      quantityAvailable: Number(newQuantity) || 1,
+      minimumOrder: 1,
+      sellerId: 'usr-farmer-01',
+      sellerName: newSellerName.trim() || 'Verified Kenyan Farmer',
+      sellerPhone: newSellerPhone.trim() || '0722123456',
+      sellerCounty: newCounty,
+      sellerSubCounty: 'Central',
+      images: [
+        newCategory === 'crops' 
+          ? 'https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&w=800&q=80'
+          : newCategory === 'livestock'
+          ? 'https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&w=800&q=80'
+          : 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?auto=format&fit=crop&w=800&q=80'
+      ],
+      isVerifiedSeller: true,
+      rating: 5.0,
+      reviewsCount: 1,
+      deliveryOptions: ['pickup', 'carrier_dispatch'],
+      status: 'active',
     });
+
+    setIsSellModalOpen(false);
+    setSellSuccessNotice(`"${created.title}" successfully listed on SMART-AGRI Kenya Marketplace!`);
+    setTimeout(() => setSellSuccessNotice(null), 5000);
+
+    // Reset form fields
+    setNewTitle('');
+    setNewPrice('');
+    setNewDescription('');
+    setNewVariety('');
   };
-
-  // Filter products dynamically according to all criteria
-  const filteredProducts = useMemo(() => {
-    return products.filter((p) => {
-      // 1. Status: must be active (or default undefined status)
-      if (p.status && p.status !== 'active') return false;
-
-      // 2. Main Category Filter
-      if (filters.category !== 'all') {
-        if (filters.category === 'crops') {
-          if (p.category !== 'crops' && p.category !== 'fodder' && p.category !== 'seedlings') {
-            return false;
-          }
-        } else if (p.category !== filters.category) {
-          return false;
-        }
-      }
-
-      // 3. Crops Dynamic Filters
-      if (filters.category === 'crops') {
-        if (filters.cropProductType && filters.cropProductType !== 'all') {
-          if (p.productType !== filters.cropProductType) return false;
-        }
-        if (filters.cropVariety && filters.cropVariety !== 'all') {
-          const matchVariety = p.variety?.toLowerCase() === filters.cropVariety.toLowerCase();
-          const matchTitle = p.title.toLowerCase().includes(filters.cropVariety.toLowerCase());
-          if (!matchVariety && !matchTitle) return false;
-        }
-      }
-
-      // 4. Livestock Dynamic Filters
-      if (filters.category === 'livestock') {
-        // Animal Type Filter
-        if (filters.livestockAnimalType && filters.livestockAnimalType !== 'all') {
-          const expectedAnimal = filters.livestockAnimalType.toLowerCase();
-          const pAnimalType = p.animalType?.toLowerCase() || '';
-          const pProdType = (p.productType as string)?.toLowerCase() || '';
-          const pLiveType = p.livestockDetails?.animalType?.toLowerCase() || '';
-
-          // Cattle matching
-          if (expectedAnimal === 'cattle') {
-            const isCattle = 
-              pAnimalType === 'cattle' ||
-              pProdType === 'cattle' ||
-              ['dairy_cow', 'beef_cattle', 'bull', 'heifer', 'calf'].includes(pLiveType) ||
-              p.subcategory.toLowerCase().includes('cattle');
-            if (!isCattle) return false;
-
-            // Purpose filter (Dairy / Beef / Dual-purpose)
-            if (filters.livestockCattlePurpose && filters.livestockCattlePurpose !== 'all') {
-              const reqPurpose = filters.livestockCattlePurpose.toLowerCase();
-              const pCattlePurpose = p.cattlePurpose?.toLowerCase() || '';
-              const pDetailsPurpose = p.livestockDetails?.purpose?.toLowerCase() || '';
-              const matchPurpose = 
-                pCattlePurpose === reqPurpose ||
-                pDetailsPurpose === reqPurpose ||
-                (reqPurpose === 'dairy' && pDetailsPurpose === 'milk') ||
-                (reqPurpose === 'beef' && pDetailsPurpose === 'beef') ||
-                (reqPurpose === 'dual-purpose' && (pDetailsPurpose === 'dual_purpose' || pDetailsPurpose === 'breeding'));
-              if (!matchPurpose) return false;
-            }
-          } else if (expectedAnimal === 'poultry') {
-            const isPoultry =
-              pAnimalType === 'poultry' ||
-              pProdType === 'poultry' ||
-              ['chicken', 'duck', 'turkey'].includes(pLiveType) ||
-              p.subcategory.toLowerCase().includes('poultry');
-            if (!isPoultry) return false;
-          } else if (expectedAnimal === 'goats') {
-            const isGoat =
-              pAnimalType === 'goats' ||
-              pProdType === 'goats' ||
-              pLiveType === 'goat' ||
-              p.subcategory.toLowerCase().includes('goat');
-            if (!isGoat) return false;
-          } else if (expectedAnimal === 'sheep') {
-            const isSheep =
-              pAnimalType === 'sheep' ||
-              pProdType === 'sheep' ||
-              pLiveType === 'sheep' ||
-              p.subcategory.toLowerCase().includes('sheep');
-            if (!isSheep) return false;
-          } else if (expectedAnimal === 'pigs') {
-            const isPig =
-              pAnimalType === 'pigs' ||
-              pProdType === 'pigs' ||
-              pLiveType === 'pig' ||
-              p.subcategory.toLowerCase().includes('pig');
-            if (!isPig) return false;
-          } else if (expectedAnimal === 'rabbits') {
-            const isRabbit =
-              pAnimalType === 'rabbits' ||
-              pProdType === 'rabbits' ||
-              pLiveType === 'rabbit' ||
-              p.subcategory.toLowerCase().includes('rabbit');
-            if (!isRabbit) return false;
-          } else if (expectedAnimal === 'fish') {
-            const isFish =
-              pAnimalType === 'fish' ||
-              pProdType === 'fish' ||
-              pLiveType === 'fish' ||
-              p.subcategory.toLowerCase().includes('fish') ||
-              p.subcategory.toLowerCase().includes('aquaculture');
-            if (!isFish) return false;
-          } else if (expectedAnimal === 'other livestock') {
-            const isOther =
-              pAnimalType === 'other livestock' ||
-              pLiveType === 'bees' ||
-              p.subcategory.toLowerCase().includes('honey') ||
-              p.subcategory.toLowerCase().includes('apiculture');
-            if (!isOther) return false;
-          }
-        }
-
-        // Breed Filter (strictly relevant to selected animal)
-        if (filters.livestockBreed && filters.livestockBreed !== 'all') {
-          const reqBreed = filters.livestockBreed.toLowerCase();
-          const pBreed = (p.breed || p.livestockDetails?.breed || '').toLowerCase();
-          const pTitle = p.title.toLowerCase();
-          if (!pBreed.includes(reqBreed) && !pTitle.includes(reqBreed)) {
-            return false;
-          }
-        }
-      }
-
-      // 5. Inputs Dynamic Filters
-      if (filters.category === 'inputs') {
-        if (filters.inputProductType && filters.inputProductType !== 'all') {
-          if (p.productType !== filters.inputProductType) return false;
-        }
-        if (filters.inputFormulation && filters.inputFormulation !== 'all') {
-          const reqForm = filters.inputFormulation.toLowerCase();
-          const pForm = (p.formulation || '').toLowerCase();
-          const pTitle = p.title.toLowerCase();
-          if (!pForm.includes(reqForm) && !pTitle.includes(reqForm)) return false;
-        }
-      }
-
-      // 6. Equipment Dynamic Filters
-      if (filters.category === 'equipment') {
-        if (filters.equipmentProductType && filters.equipmentProductType !== 'all') {
-          if (p.productType !== filters.equipmentProductType) return false;
-        }
-        if (filters.equipmentPowerSource && filters.equipmentPowerSource !== 'all') {
-          if (p.powerSource !== filters.equipmentPowerSource) return false;
-        }
-        if (filters.equipmentCondition && filters.equipmentCondition !== 'all') {
-          if (p.condition !== filters.equipmentCondition) return false;
-        }
-      }
-
-      // 7. County Filter
-      if (filters.selectedCounty !== 'all') {
-        if (p.sellerCounty.toLowerCase() !== filters.selectedCounty.toLowerCase()) {
-          return false;
-        }
-      }
-
-      // 8. Max Price Filter
-      if (p.priceKsh > filters.maxPrice) return false;
-
-      // 9. Full Text Search
-      if (filters.searchQuery.trim()) {
-        const query = filters.searchQuery.toLowerCase();
-        const matchesTitle = p.title.toLowerCase().includes(query);
-        const matchesDesc = p.description.toLowerCase().includes(query);
-        const matchesVariety = p.variety?.toLowerCase().includes(query);
-        const matchesBreed = (p.breed || p.livestockDetails?.breed || '').toLowerCase().includes(query);
-        const matchesSeller = p.sellerName.toLowerCase().includes(query);
-        const matchesCounty = p.sellerCounty.toLowerCase().includes(query);
-        const matchesSubcat = p.subcategory.toLowerCase().includes(query);
-        const matchesType = (p.productType || '').toLowerCase().includes(query);
-        const matchesModel = (p.model || '').toLowerCase().includes(query);
-        const matchesBrand = (p.brand || '').toLowerCase().includes(query);
-
-        if (
-          !matchesTitle &&
-          !matchesDesc &&
-          !matchesVariety &&
-          !matchesBreed &&
-          !matchesSeller &&
-          !matchesCounty &&
-          !matchesSubcat &&
-          !matchesType &&
-          !matchesModel &&
-          !matchesBrand
-        ) {
-          return false;
-        }
-      }
-
-      return true;
-    }).sort((a, b) => {
-      if (filters.sortBy === 'price_asc') return a.priceKsh - b.priceKsh;
-      if (filters.sortBy === 'price_desc') return b.priceKsh - a.priceKsh;
-      if (filters.sortBy === 'rating') return (b.rating || 0) - (a.rating || 0);
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    });
-  }, [products, filters]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-      {/* Header Banner */}
-      <div className="bg-stone-900 text-white rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-4 border border-stone-800 shadow-xl">
-        <div>
-          <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold uppercase tracking-wider mb-1">
-            <Store className="w-4 h-4" />
-            <span>National Agricultural Marketplace</span>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-[70vh]">
+      {/* Listing success alert */}
+      {sellSuccessNotice && (
+        <div className="mb-6 bg-[#EBF3ED] border border-[#CFD7CA] text-[#214E34] rounded-lg p-3.5 flex items-center justify-between shadow-xs animate-in fade-in duration-200">
+          <div className="flex items-center gap-2.5">
+            <CheckCircle2 className="w-4 h-4 text-[#367C46] shrink-0" />
+            <p className="text-xs sm:text-sm font-semibold">{sellSuccessNotice}</p>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-            Buy & Sell Crops, Livestock & Farm Inputs
+          <button 
+            onClick={() => setSellSuccessNotice(null)}
+            className="text-[#214E34] hover:bg-[#DCECE0] rounded p-1 transition cursor-pointer"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      {/* Main Marketplace Header */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
+        <div>
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded bg-[#EBF3ED] text-[#214E34] text-xs font-semibold uppercase tracking-wider mb-2 border border-[#CFD7CA]">
+            <ShieldCheck className="w-3.5 h-3.5 text-[#367C46]" />
+            <span>Verified Agri-Trading Platform</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-[#214E34] tracking-tight">
+            Kenya Agricultural Marketplace
           </h1>
-          <p className="text-xs text-stone-400 mt-1 max-w-xl">
-            Browse verified listings from Kenyan farmers and suppliers with dynamic product-type, variety, and livestock breed filters.
+          <p className="mt-1.5 text-xs sm:text-sm text-[#68756A] max-w-2xl leading-relaxed">
+            Discover quality farm produce, livestock, seeds, fertilizers and equipment from farmers and agricultural suppliers across Kenya.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 shrink-0">
+        {/* Sell Button CTA */}
+        <div className="shrink-0">
           <button
             type="button"
-            onClick={() => setIsListingModalOpen(true)}
-            className="bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 text-stone-950 font-black text-xs px-4 py-2.5 rounded-2xl transition cursor-pointer flex items-center gap-1.5 shadow-md active:scale-95"
+            onClick={() => setIsSellModalOpen(true)}
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[#367C46] hover:bg-[#2B6437] text-white font-semibold text-xs sm:text-sm px-4 py-2.5 rounded-lg shadow-xs transition-colors cursor-pointer"
           >
-            <Plus className="w-4 h-4" />
-            <span>Post New Listing</span>
+            <Plus className="w-4 h-4 stroke-[2.5]" />
+            <span>Sell Your Products</span>
           </button>
-
-          <div className="bg-stone-800/80 px-4 py-2.5 rounded-2xl border border-stone-700 text-right shrink-0">
-            <span className="text-[10px] uppercase font-bold text-stone-400 block">Catalog Volume</span>
-            <span className="text-xl font-black text-emerald-400">
-              {filteredProducts.length} Listings Available
-            </span>
-          </div>
         </div>
       </div>
 
-      {/* Top Search & Fast County Controls */}
-      <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-stone-200 shadow-xs space-y-3">
-        <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
-          {/* Search Input */}
-          <div className="sm:col-span-5 flex items-center gap-2 bg-stone-50 border border-stone-300 rounded-xl px-3 py-2 text-xs">
-            <Search className="w-4 h-4 text-stone-400 shrink-0" />
-            <input
-              type="text"
-              placeholder="Search maize variety, Friesian cow, seed brand, seller..."
-              value={filters.searchQuery}
-              onChange={(e) => handleFilterChange({ searchQuery: e.target.value })}
-              className="w-full text-stone-800 focus:outline-hidden"
-            />
-            {filters.searchQuery && (
-              <button
-                type="button"
-                onClick={() => handleFilterChange({ searchQuery: '' })}
-                className="text-stone-400 hover:text-stone-700 cursor-pointer"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            )}
+      {/* Prominent Search Bar */}
+      <div className="mb-6">
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+            <Search className="w-4 h-4 text-[#68756A]" />
           </div>
-
-          {/* County Selector */}
-          <div className="sm:col-span-4 flex items-center gap-2 bg-stone-50 border border-stone-300 rounded-xl px-3 py-2 text-xs">
-            <MapPin className="w-4 h-4 text-emerald-700 shrink-0" />
-            <select
-              value={filters.selectedCounty}
-              onChange={(e) => handleFilterChange({ selectedCounty: e.target.value })}
-              className="w-full bg-transparent text-stone-800 focus:outline-hidden cursor-pointer"
-            >
-              <option value="all">All 47 Kenyan Counties</option>
-              {KENYA_COUNTIES.map((c) => (
-                <option key={c.code} value={c.name}>
-                  {c.name} County
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Sort By & Advanced Toggle */}
-          <div className="sm:col-span-3 flex items-center gap-2">
-            <div className="flex-1 flex items-center gap-2 bg-stone-50 border border-stone-300 rounded-xl px-3 py-2 text-xs">
-              <ArrowUpDown className="w-4 h-4 text-stone-500 shrink-0" />
-              <select
-                value={filters.sortBy}
-                onChange={(e) => handleFilterChange({ sortBy: e.target.value as any })}
-                className="w-full bg-transparent text-stone-800 focus:outline-hidden cursor-pointer"
-              >
-                <option value="newest">Newly Listed</option>
-                <option value="price_asc">Price: Low to High</option>
-                <option value="price_desc">Price: High to Low</option>
-                <option value="rating">Top Rated Sellers</option>
-              </select>
-            </div>
-
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search by crop, livestock breed, seeds, equipment or county (e.g. H614 Maize, Friesian, Shangi, Drip Kit)..."
+            className="w-full pl-10 pr-10 py-2.5 sm:py-3 bg-white border border-[#E2E7DE] text-[#252D27] placeholder:text-[#68756A] text-xs sm:text-sm rounded-lg focus:outline-none focus:border-[#367C46] focus:ring-1 focus:ring-[#367C46] shadow-xs transition"
+          />
+          {searchQuery && (
             <button
               type="button"
-              onClick={() => setShowAdvancedControls(!showAdvancedControls)}
-              className={`p-2 rounded-xl border text-xs cursor-pointer transition flex items-center justify-center shrink-0 ${
-                showAdvancedControls
-                  ? 'bg-emerald-700 text-white border-emerald-700'
-                  : 'bg-stone-50 text-stone-600 border-stone-300 hover:bg-stone-100'
-              }`}
-              title="Price Range & Advanced Options"
+              onClick={() => setSearchQuery('')}
+              className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[#68756A] hover:text-[#252D27] cursor-pointer"
+              aria-label="Clear search query"
             >
-              <SlidersHorizontal className="w-4 h-4" />
+              <X className="w-4 h-4" />
             </button>
-          </div>
+          )}
         </div>
+      </div>
 
-        {/* Collapsible Advanced Price Slider */}
-        {showAdvancedControls && (
-          <div className="pt-3 border-t border-stone-100 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs bg-stone-50/70 p-3 rounded-xl border border-stone-200">
-            <div className="w-full sm:w-80 space-y-1">
-              <div className="flex justify-between font-semibold text-stone-700">
-                <span>Maximum Price:</span>
-                <span className="font-bold text-emerald-800">
-                  {filters.maxPrice >= 2000000
-                    ? 'No Limit'
-                    : `KSh ${filters.maxPrice.toLocaleString()}`}
-                </span>
-              </div>
-              <input
-                type="range"
-                min="500"
-                max="2000000"
-                step="5000"
-                value={filters.maxPrice}
-                onChange={(e) => handleFilterChange({ maxPrice: Number(e.target.value) })}
-                className="w-full accent-emerald-700 cursor-pointer"
+      {/* Dedicated Filter Panel immediately below heading & search bar and above product listings */}
+      <MarketplaceFilterBar
+        category={category}
+        productType={productType}
+        varietyOrBreed={varietyOrBreed}
+        location={location}
+        minPrice={minPrice}
+        maxPrice={maxPrice}
+        sortBy={sortBy}
+        availableProductTypes={availableProductTypes}
+        availableVarieties={availableVarieties}
+        isVarietyEnabled={isVarietyEnabled}
+        activeFilterCount={activeFilterCount}
+        activeFilterTags={activeFilterTags}
+        totalCount={totalCount}
+        onSelectCategory={setCategory}
+        onSelectProductType={setProductType}
+        onSelectVarietyOrBreed={setVarietyOrBreed}
+        onSelectLocation={setLocation}
+        onMinPriceChange={setMinPrice}
+        onMaxPriceChange={setMaxPrice}
+        onSortChange={setSortBy}
+        onResetFilters={resetFilters}
+        onClearFilter={clearFilter}
+      />
+
+      {/* Products Display Section */}
+      <div className="mt-6">
+        {totalCount > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filteredProducts.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onViewDetails={handleViewProduct}
+                onAddToCart={(p) => handleAddToCart(p, 1, 'delivery')}
+                onContactSeller={(p) => {
+                  window.location.href = `tel:${p.sellerPhone}`;
+                }}
               />
+            ))}
+          </div>
+        ) : (
+          /* Clean Empty Results State */
+          <div className="bg-white rounded-xl border border-[#E2E7DE] p-8 sm:p-10 text-center max-w-xl mx-auto shadow-xs my-6">
+            <div className="w-12 h-12 rounded-lg bg-[#FCF8EE] text-[#D6A545] mx-auto flex items-center justify-center mb-3 border border-[#E2E7DE]">
+              <PackageOpen className="w-6 h-6 stroke-[1.75]" />
             </div>
-
-            <div className="flex items-center gap-2">
+            <h3 className="text-lg font-bold text-[#214E34] mb-1.5">
+              No matching agricultural products found
+            </h3>
+            <p className="text-[#68756A] text-xs sm:text-sm mb-5 max-w-md mx-auto">
+              We couldn't find any listings matching your active filters. Try adjusting your search query, broadening the price range, or clearing filters.
+            </p>
+            <div className="flex flex-wrap justify-center gap-2.5">
               <button
                 type="button"
-                onClick={() => handleFilterChange({ maxPrice: 2000000 })}
-                className="px-2.5 py-1 rounded-lg bg-white border border-stone-200 hover:bg-stone-100 text-stone-700 text-xs font-medium cursor-pointer"
+                onClick={resetFilters}
+                className="inline-flex items-center gap-2 bg-[#367C46] hover:bg-[#2B6437] text-white font-semibold text-xs px-4 py-2 rounded-lg transition shadow-xs cursor-pointer"
               >
-                Reset Price
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>Reset All Filters</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsSellModalOpen(true)}
+                className="inline-flex items-center gap-2 bg-[#F7F6F0] hover:bg-white text-[#252D27] border border-[#E2E7DE] font-semibold text-xs px-4 py-2 rounded-lg transition cursor-pointer"
+              >
+                <Store className="w-3.5 h-3.5 text-[#367C46]" />
+                <span>List Product for Sale</span>
               </button>
             </div>
           </div>
         )}
       </div>
 
-      {/* Dynamic Filter Bar (Category Tabs, Product Types, Varieties, Breeds & Active Filter Badges) */}
-      <MarketplaceFilterBar
-        products={products}
-        filters={filters}
-        onFilterChange={handleFilterChange}
-        onResetFilters={handleResetFilters}
-        totalFilteredCount={filteredProducts.length}
-      />
+      {/* Internal Product Detail Modal if not opened in global App state */}
+      {modalProduct && !propOnViewProduct && (
+        <ProductDetailModal
+          product={modalProduct}
+          onClose={() => setModalProduct(null)}
+          onAddToCart={(p, qty, delivery) => {
+            handleAddToCart(p, qty, delivery);
+            setModalProduct(null);
+          }}
+          userCounty={userCounty}
+        />
+      )}
 
-      {/* Results Header */}
-      <div className="flex items-center justify-between text-xs text-stone-500 pt-2 px-1">
-        <span>
-          Showing <strong className="text-stone-900">{filteredProducts.length}</strong> matching agricultural produce & livestock listings
-        </span>
-      </div>
+      {/* Sell Your Products Modal */}
+      {isSellModalOpen && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl max-w-lg w-full p-6 shadow-xl border border-[#E2E7DE] relative animate-in fade-in duration-200">
+            <button
+              onClick={() => setIsSellModalOpen(false)}
+              className="absolute top-4 right-4 w-7 h-7 rounded-lg bg-[#F7F6F0] hover:bg-[#EBF3ED] text-[#252D27] flex items-center justify-center transition cursor-pointer border border-[#E2E7DE]"
+              aria-label="Close modal"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
 
-      {/* Product Grid */}
-      {filteredProducts.length === 0 ? (
-        <div className="bg-white rounded-3xl p-12 text-center border border-stone-200 shadow-xs space-y-3">
-          <Store className="w-12 h-12 text-stone-300 mx-auto" />
-          <h3 className="text-base font-bold text-stone-800">No products match your selected criteria</h3>
-          <p className="text-xs text-stone-500 max-w-md mx-auto">
-            Try adjusting your variety or breed filters, selecting another Kenyan county, or resetting filters to view all listings.
-          </p>
-          <button
-            type="button"
-            onClick={handleResetFilters}
-            className="inline-flex items-center gap-1.5 bg-emerald-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-emerald-800 transition cursor-pointer shadow-sm"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-            <span>Reset All Filters</span>
-          </button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {filteredProducts.map((p) => {
-            if (p.category === 'livestock') {
-              return (
-                <LivestockCard
-                  key={p.id}
-                  product={p}
-                  onViewDetails={onViewProduct}
-                  onAddToCart={onAddToCart}
-                  onToggleCompare={onToggleCompare}
-                  isCompared={comparedIds.includes(p.id)}
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-9 h-9 rounded-lg bg-[#EBF3ED] text-[#214E34] flex items-center justify-center border border-[#CFD7CA]">
+                <Store className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-[#214E34]">List Your Agricultural Product</h3>
+                <p className="text-xs text-[#68756A]">Direct trade with verified buyers across Kenya</p>
+              </div>
+            </div>
+
+            <form onSubmit={handleCreateListing} className="space-y-3.5">
+              <div>
+                <label className="block text-xs font-semibold text-[#252D27] mb-1">Product Title</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Certified Seed Maize H614 or Grade 1 Rosecoco Beans"
+                  value={newTitle}
+                  onChange={(e) => setNewTitle(e.target.value)}
+                  className="w-full bg-white border border-[#E2E7DE] text-[#252D27] text-xs sm:text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-[#367C46]"
                 />
-              );
-            }
-            return (
-              <ProductCard
-                key={p.id}
-                product={p}
-                onViewDetails={onViewProduct}
-                onAddToCart={onAddToCart}
-              />
-            );
-          })}
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-[#252D27] mb-1">Category</label>
+                  <select
+                    value={newCategory}
+                    onChange={(e) => {
+                      const cat = e.target.value as ProductCategory;
+                      setNewCategory(cat);
+                      if (cat === 'crops') setNewProductType('Maize');
+                      else if (cat === 'livestock') setNewProductType('Dairy cattle');
+                      else setNewProductType('Certified seeds');
+                    }}
+                    className="w-full bg-white border border-[#E2E7DE] text-[#252D27] text-xs sm:text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-[#367C46]"
+                  >
+                    <option value="crops">Crops & Produce</option>
+                    <option value="livestock">Livestock & Cattle</option>
+                    <option value="inputs">Seeds & Fertilizers</option>
+                    <option value="equipment">Farm Equipment</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#252D27] mb-1">Product Type</label>
+                  <input
+                    type="text"
+                    required
+                    value={newProductType}
+                    onChange={(e) => setNewProductType(e.target.value)}
+                    placeholder="e.g. Maize, Beans, Dairy cow"
+                    className="w-full bg-white border border-[#E2E7DE] text-[#252D27] text-xs sm:text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-[#367C46]"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-[#252D27] mb-1">Variety or Breed</label>
+                  <input
+                    type="text"
+                    value={newVariety}
+                    onChange={(e) => setNewVariety(e.target.value)}
+                    placeholder="e.g. H614, Friesian, Shangi"
+                    className="w-full bg-white border border-[#E2E7DE] text-[#252D27] text-xs sm:text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-[#367C46]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#252D27] mb-1">County Location</label>
+                  <select
+                    value={newCounty}
+                    onChange={(e) => setNewCounty(e.target.value)}
+                    className="w-full bg-white border border-[#E2E7DE] text-[#252D27] text-xs sm:text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-[#367C46]"
+                  >
+                    {KENYA_COUNTIES.map((c) => (
+                      <option key={c.code} value={c.name}>{c.name} County</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-[#252D27] mb-1">Price (KSh)</label>
+                  <input
+                    type="number"
+                    required
+                    min="1"
+                    placeholder="e.g. 3600"
+                    value={newPrice}
+                    onChange={(e) => setNewPrice(e.target.value)}
+                    className="w-full bg-white border border-[#E2E7DE] text-[#252D27] text-xs sm:text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-[#367C46]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#252D27] mb-1">Unit</label>
+                  <input
+                    type="text"
+                    required
+                    value={newUnit}
+                    onChange={(e) => setNewUnit(e.target.value)}
+                    placeholder="90kg bag, kg, head"
+                    className="w-full bg-white border border-[#E2E7DE] text-[#252D27] text-xs sm:text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-[#367C46]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#252D27] mb-1">Quantity</label>
+                  <input
+                    type="number"
+                    required
+                    min="1"
+                    value={newQuantity}
+                    onChange={(e) => setNewQuantity(e.target.value)}
+                    className="w-full bg-white border border-[#E2E7DE] text-[#252D27] text-xs sm:text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-[#367C46]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-[#252D27] mb-1">Description</label>
+                <textarea
+                  rows={2}
+                  placeholder="Details on quality, grade, moisture content, packaging or health status..."
+                  value={newDescription}
+                  onChange={(e) => setNewDescription(e.target.value)}
+                  className="w-full bg-white border border-[#E2E7DE] text-[#252D27] text-xs sm:text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-[#367C46] resize-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-[#252D27] mb-1">Seller Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={newSellerName}
+                    onChange={(e) => setNewSellerName(e.target.value)}
+                    className="w-full bg-white border border-[#E2E7DE] text-[#252D27] text-xs sm:text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-[#367C46]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#252D27] mb-1">Seller Phone</label>
+                  <input
+                    type="tel"
+                    required
+                    value={newSellerPhone}
+                    onChange={(e) => setNewSellerPhone(e.target.value)}
+                    className="w-full bg-white border border-[#E2E7DE] text-[#252D27] text-xs sm:text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-[#367C46]"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-2 flex justify-end gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setIsSellModalOpen(false)}
+                  className="px-4 py-2 rounded-lg border border-[#E2E7DE] text-[#252D27] text-xs sm:text-sm font-semibold hover:bg-[#F7F6F0] transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-lg bg-[#367C46] hover:bg-[#2B6437] text-white text-xs sm:text-sm font-semibold shadow-xs transition cursor-pointer"
+                >
+                  Publish Listing
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
-
-      {/* Toast Notification */}
-      {toastNotice && (
-        <div className="fixed bottom-6 right-6 z-50 bg-stone-900 text-white text-xs font-semibold px-4 py-3 rounded-2xl shadow-2xl border border-emerald-500/50 flex items-center gap-2 animate-in slide-in-from-bottom duration-200">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-          <span>{toastNotice}</span>
-        </div>
-      )}
-
-      {/* Product Listing Modal */}
-      <ProductListingModal
-        isOpen={isListingModalOpen}
-        onClose={() => setIsListingModalOpen(false)}
-        onProductCreated={(newProd) => {
-          setToastNotice(`Listing "${newProd.title}" successfully published to Marketplace!`);
-          setTimeout(() => setToastNotice(null), 4000);
-        }}
-      />
     </div>
   );
 };

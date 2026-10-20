@@ -1,415 +1,284 @@
-import { Product, ProductCategory, MarketplaceCategoryFilter } from '../types';
+/**
+ * SMART-AGRI KENYA - Comprehensive Agricultural Marketplace Taxonomy
+ * Structured Kenyan Agricultural Products, Types, Varieties, and Breeds
+ */
+
+export type MarketplaceCategory = 'all' | 'crops' | 'livestock' | 'inputs' | 'equipment';
 
 export interface CategoryDefinition {
-  id: MarketplaceCategoryFilter;
+  id: MarketplaceCategory;
   label: string;
-  icon: string;
+  shortLabel: string;
   description: string;
+  iconName: string;
+  badgeColor: string;
 }
 
-export const MARKETPLACE_MAIN_CATEGORIES: CategoryDefinition[] = [
+export const MARKETPLACE_CATEGORIES: CategoryDefinition[] = [
   {
     id: 'all',
     label: 'All Products',
-    icon: 'Store',
-    description: 'All verified produce, livestock, certified inputs and machinery',
+    shortLabel: 'All',
+    description: 'Browse all agricultural produce, livestock, certified seeds and machinery across Kenya',
+    iconName: 'LayoutGrid',
+    badgeColor: 'bg-stone-800 text-white',
   },
   {
     id: 'crops',
-    label: 'Crops & Produce',
-    icon: 'Sprout',
-    description: 'Cereals, legumes, fruits, vegetables, root and tuber crops',
+    label: 'Crops & Fresh Produce',
+    shortLabel: 'Crops',
+    description: 'Farm-fresh cereals, pulses, vegetables, tubers, and fruits direct from Kenyan growers',
+    iconName: 'Sprout',
+    badgeColor: 'bg-emerald-700 text-white',
   },
   {
     id: 'livestock',
     label: 'Livestock & Cattle',
-    icon: 'Beef',
-    description: 'Dairy cattle, beef bulls, poultry, goats, sheep, and pigs',
+    shortLabel: 'Livestock',
+    description: 'Dairy cows, beef cattle, goats, sheep, improved kienyeji poultry, and breeding stock',
+    iconName: 'Beef',
+    badgeColor: 'bg-amber-700 text-white',
   },
   {
     id: 'inputs',
     label: 'Certified Seeds & Fertilizers',
-    icon: 'Package',
-    description: 'Certified seeds, DAP/CAN fertilizers, animal feeds, and soil conditioners',
+    shortLabel: 'Seeds & Fertilizers',
+    description: 'KEPHIS certified seeds, organic and mineral fertilizers, soil amendments, and agrochemicals',
+    iconName: 'Sparkles',
+    badgeColor: 'bg-teal-700 text-white',
   },
   {
     id: 'equipment',
     label: 'Farm Equipment & Irrigation',
-    icon: 'Wrench',
-    description: 'Drip irrigation kits, water pumps, sprayers, tractors, and farm machinery',
+    shortLabel: 'Equipment & Irrigation',
+    description: 'Solar water pumps, drip kits, chaff cutters, sprayers, walking tractors and tools',
+    iconName: 'Wrench',
+    badgeColor: 'bg-blue-700 text-white',
   },
 ];
 
-// Product Types per Category
-export const CATEGORY_PRODUCT_TYPES: Record<string, string[]> = {
+export const CATEGORY_PRODUCT_TYPES: Record<Exclude<MarketplaceCategory, 'all'>, string[]> = {
   crops: [
-    'Cereals',
-    'Legumes',
+    'Maize',
+    'Beans',
+    'Potatoes',
+    'Tomatoes',
+    'Rice',
     'Fruits',
-    'Vegetables',
-    'Root and tuber crops',
-    'Other agricultural produce',
+    'Vegetables & Greens',
+    'Other crops',
   ],
   livestock: [
-    'Cattle',
+    'Dairy cattle',
+    'Beef cattle',
     'Goats',
     'Sheep',
-    'Poultry',
+    'Poultry & Chickens',
     'Pigs',
-    'Rabbits',
-    'Fish',
-    'Other livestock',
+    'Fish & Aquaculture',
+    'Bees & Apiculture',
   ],
   inputs: [
-    'Certified crop seeds',
-    'Vegetable seeds',
-    'Pasture seeds',
-    'Organic fertilizers',
+    'Certified seeds',
     'Inorganic fertilizers',
-    'Soil conditioners',
-    'Other available agricultural inputs',
+    'Organic fertilizers',
+    'Crop protection & Agrochemicals',
+    'Animal feeds & Supplements',
   ],
   equipment: [
     'Irrigation systems',
     'Water pumps',
-    'Drip irrigation kits',
-    'Sprayers',
-    'Tractors',
-    'Ploughs and farm machinery',
-    'Greenhouse equipment',
-    'Farm tools',
-    'Other available equipment',
+    'Sprayers & Spraying equipment',
+    'Harvest & Processing machinery',
+    'Tillage & Walking tractors',
   ],
 };
 
-// Known Kenyan varieties, breeds, and models by category and product type
-export const TAXONOMY_OPTIONS: Record<string, Record<string, string[]>> = {
-  crops: {
-    'Cereals': [
-      'H614',
-      'H6213',
-      'H513',
-      'DUMA 43',
-      'Pishori / Basmati 370',
-      'Highland White',
-      'Local White Maize',
-      'Sorghum E1291',
-      'Finger Millet U-15',
-      'Wheat (KS Mwamba)',
-    ],
-    'Legumes': [
-      'Rosecoco',
-      'Nyayo',
-      'Wairimu',
-      'Soya Njano',
-      'Mwitemania',
-      'Yellow Beans',
-      'Green Grams (Ndengu)',
-      'Pigeon Peas',
-    ],
-    'Fruits': [
-      'Hass',
-      'Fuerte',
-      'Apple Mango',
-      'Ngowe Mango',
-      'Kent Mango',
-      'Cavendish Banana',
-      'Cooking Banana (Matoke / Ng\'ombe)',
-      'Gross Michel Banana',
-      'Passion Fruit',
-      'Watermelon (Sukari F1)',
-    ],
-    'Vegetables': [
-      'Anna F1',
-      'Kilele F1',
-      'Eden F1',
-      'Red Pinoy Onion',
-      'Red Creole Onion',
-      'Gloria F1 Cabbage',
-      'Thousand Headed Sukuma Wiki',
-      'Collard Greens',
-      'Spinach',
-      'Traditional Greens (Managu / Kunde / Terere)',
-      'French Beans (Samantha)',
-    ],
-    'Root and tuber crops': [
-      'Shangi',
-      'Tigoni',
-      'Asante',
-      'Unica',
-      'Yellow Fleshed Sweet Potato',
-      'Orange Fleshed Sweet Potato',
-      'Cassava KME4',
-      'Arrowroots (Nduma)',
-    ],
-    'Other agricultural produce': [
-      'Arabica Coffee AA',
-      'Purple Tea',
-      'Green Tea',
-      'Sugarcane',
-      'Macadamia Nuts',
-      'Boma Rhodes Hay',
-      'Lucerne Fodder',
-    ],
-  },
-  livestock: {
-    'Cattle': [
-      'Friesian',
-      'Ayrshire',
-      'Jersey',
-      'Guernsey',
-      'Sahiwal',
-      'Boran',
-      'Indigenous Cattle (Zebu)',
-      'Crossbreed',
-    ],
-    'Goats': [
-      'Galla',
-      'Small East African',
-      'Toggenburg',
-      'Saanen',
-      'Boer',
-    ],
-    'Sheep': [
-      'Dorper',
-      'Merino',
-      'Red Maasai',
-      'Blackhead Persian',
-    ],
-    'Poultry': [
-      'Kienyeji',
-      'Improved Kienyeji (KALRO)',
-      'Kenbro',
-      'Kuroiler',
-      'Sasso',
-      'Commercial Broilers',
-      'Commercial Layers',
-    ],
-    'Pigs': [
-      'Large White',
-      'Landrace',
-      'Pietrain',
-      'Duroc',
-      'Crossbreed',
-    ],
-    'Rabbits': [
-      'California White',
-      'New Zealand White',
-      'Chinchilla',
-      'Flemish Giant',
-    ],
-    'Fish': [
-      'Tilapia (Oreochromis niloticus)',
-      'African Catfish (Clarias gariepinus)',
-    ],
-    'Other livestock': [
-      'African Honeybee (Apis mellifera)',
-      'Dairy Camel',
-      'Turkey',
-      'Duck',
-    ],
-  },
-  inputs: {
-    'Certified crop seeds': [
-      'H614D Highland Seed Maize',
-      'H6213 Hybrid Seed Maize',
-      'SC Duma 43 Seed Maize',
-      'Certified Rosecoco Bean Seed',
-      'Certified Wheat Seed KS Mwamba',
-      'Certified Sorghum Seed Gadam',
-    ],
-    'Vegetable seeds': [
-      'Anna F1 Tomato Seed',
-      'Kilele F1 Tomato Seed',
-      'Red Pinoy F1 Onion Seed',
-      'Gloria F1 Cabbage Seed',
-      'Collards Seed',
-      'Sukari F1 Watermelon Seed',
-    ],
-    'Pasture seeds': [
-      'Boma Rhodes Certified Seed',
-      'Brachiaria Grass Seed',
-      'Lucerne / Alfalfa Seed',
-      'Desmodium Legume Seed',
-    ],
-    'Organic fertilizers': [
-      'Enriched Cattle Compost',
-      'Poultry Pellet Manure',
-      'Vermicompost (Worm Castings)',
-      'Bio-Fertilizer (Trichoderma)',
-    ],
-    'Inorganic fertilizers': [
-      'DAP (18:46:0)',
-      'CAN (26% N)',
-      'NPK (17:17:17)',
-      'NPK (23:23:0)',
-      'Urea (46% N)',
-      'Mavuno Planting Fertilizer',
-      'Soluble Foliar Booster',
-    ],
-    'Soil conditioners': [
-      'Agricultural Lime (CaCO3)',
-      'Dolomitic Lime (CaMg(CO3)2)',
-      'Agricultural Gypsum',
-      'Humic Acid Extract',
-      'Biochar Soil Enricher',
-    ],
-    'Other available agricultural inputs': [
-      'Dairy Meal Concentrate (16% CP)',
-      'Layers Mash Feed',
-      'Chick Starter Crumbles',
-      'Cattle Mineral Lick Block',
-      'Calf Early Weaner Pellets',
-    ],
-  },
-  equipment: {
-    'Irrigation systems': [
-      'Overhead Rain-Gun 1.5"',
-      'Micro-Sprinkler Kit',
-      'Center Pivot Lateral',
-      'Mist Emitter Propagation Kit',
-    ],
-    'Water pumps': [
-      'Solar Submersible Borehole Pump 1.5HP',
-      '3-Inch Petrol High Head Pump',
-      '2-Inch Diesel Booster Pump',
-      'Electric Surface Pump',
-    ],
-    'Drip irrigation kits': [
-      'Complete 1-Acre Drip Kit',
-      'Half-Acre Button Drip Kit',
-      'Kitchen Garden Gravity Drip Kit',
-      '16mm UV Button-Dripper Lateral',
-    ],
-    'Sprayers': [
-      '20L 2-Stroke Motorized Knapsack',
-      '16L Manual Knapsack Sprayer',
-      'Tractor Boom Sprayer 400L',
-      'Battery Powered Knapsack 16L',
-    ],
-    'Tractors': [
-      '75HP 4WD Agricultural Tractor',
-      '50HP Compact Farm Tractor',
-      'Walking Tractor Power Tiller 12HP',
-    ],
-    'Ploughs and farm machinery': [
-      '3-Disc Furrow Plough',
-      'Disc Harrow 16-Plate',
-      'Rotary Slasher',
-      'Chisel Subsoiler',
-      'Maize Sheller & De-husker',
-    ],
-    'Greenhouse equipment': [
-      '8m x 15m Tunnel Greenhouse Kit',
-      '200 Micron UV Treated Poly Film',
-      '50 Mesh Anti-Insect Netting',
-      'Galvanized Hoop Frame Set',
-    ],
-    'Farm tools': [
-      'Heavy Forged Crocodile Jembes',
-      'Forged Steel Pangas',
-      'Pruning Shears & Secateurs',
-      '50L Stainless Steel Milk Can',
-    ],
-    'Other available equipment': [
-      'Digital Grain Moisture Meter',
-      '500-Egg Automatic Solar Incubator',
-      'Heavy Duty Chaff Cutter 3HP',
-    ],
-  },
+export const VARIETIES_BY_PRODUCT_TYPE: Record<string, string[]> = {
+  // Crops
+  'Maize': [
+    'H614',
+    'H6213',
+    'H628',
+    'SC Duma 43',
+    'Pannar 67',
+    'Katumani Composite (Dryland)',
+    'Yellow Maize (Animal Feed Grade)',
+  ],
+  'Beans': [
+    'Rosecoco (GLP 2)',
+    'Wairimu (Red Haricot)',
+    'Yellow Beans (Nyayo)',
+    'Mwitemania',
+    'Chelalang',
+    'Green Grams (Ndengu KS20)',
+    'Cowpeas (Kundee)',
+  ],
+  'Potatoes': [
+    'Shangi',
+    'Dutch Robjin',
+    'Unica',
+    'Markies',
+    'Sherekea',
+    'Destiny',
+  ],
+  'Tomatoes': [
+    'Anna F1',
+    'Kilele F1',
+    'Rambo F1',
+    'Rio Grande',
+    'Prostar F1',
+    'Zara F1',
+  ],
+  'Rice': [
+    'Pishori / Basmati 370',
+    'Sindano',
+    'Nerica 4',
+    'BW 196',
+    'Komboka',
+  ],
+  'Fruits': [
+    'Hass Avocado',
+    'Fuerte Avocado',
+    'Apple Mango',
+    'Ngowe Mango',
+    'Cavendish Banana',
+    'Tissue Culture Banana',
+    'Macadamia (Murang\'a)',
+    'Passion Fruit (Purple Grafted)',
+    'Watermelon (Sukari F1)',
+  ],
+  'Vegetables & Greens': [
+    'Sukuma Wiki (Collard Greens)',
+    'Managu (African Nightshade)',
+    'Terere (Amaranth)',
+    'Cabbage (Gloria F1)',
+    'Spinach (Fordhook Giant)',
+    'Red Onions (Red Bombay)',
+    'Carrots (Nantes)',
+  ],
+  'Other crops': [
+    'Boma Rhodes Hay',
+    'Brachiaria Hay',
+    'Lucerne (Alfalfa)',
+    'Maize Silage',
+    'Sorghum (Seredo)',
+    'Finger Millet',
+  ],
+
+  // Livestock
+  'Dairy cattle': [
+    'Friesian (High Yield Pedigree)',
+    'Ayrshire (High Butterfat)',
+    'Jersey',
+    'Guernsey',
+    'Fleckvieh',
+  ],
+  'Beef cattle': [
+    'Boran (Pedigree Beef)',
+    'Sahiwal Dual-Purpose',
+    'East African Zebu',
+    'Charolais Cross',
+  ],
+  'Goats': [
+    'Galla (White Boran Goat)',
+    'Toggenburg Dairy Goat',
+    'Boer Meat Goat',
+    'Saanen Dairy Goat',
+    'East African Dwarf',
+  ],
+  'Sheep': [
+    'Dorper Meat Sheep',
+    'Red Maasai (Parasite Resistant)',
+    'Blackhead Persian',
+    'Merino Wool Sheep',
+  ],
+  'Poultry & Chickens': [
+    'Improved Kienyeji (KALRO)',
+    'Kenbro Dual-Purpose',
+    'Kuroiler High-Yield',
+    'Rainbow Rooster',
+    'ISA Brown (Commercial Layers)',
+    'Cobb 500 (Fast Broilers)',
+  ],
+  'Pigs': [
+    'Large White',
+    'Landrace',
+    'Duroc (High Muscle)',
+    'Camborough F1 Hybrid',
+  ],
+  'Fish & Aquaculture': [
+    'Nile Tilapia (Fingerlings & Table-size)',
+    'African Catfish (Clarias)',
+  ],
+  'Bees & Apiculture': [
+    'Colonized Langstroth Hive',
+    'Kenya Top Bar Hive (KTB)',
+  ],
+
+  // Inputs
+  'Certified seeds': [
+    'Kenya Seed H614D (Maize)',
+    'Seed Co Duma 43 (Maize)',
+    'Simlaw Anna F1 (Tomato)',
+    'KALRO Certified Rosecoco Beans',
+    'Certified Shangi Seed Tubers',
+  ],
+  'Inorganic fertilizers': [
+    'DAP (18:46:0 Planting)',
+    'CAN (26% N Topdressing)',
+    'NPK 17:17:17 Balanced',
+    'Urea (46% High Nitrogen)',
+    'YaraMila Power (Fast Acting)',
+    'Mavuno Planting Fertilizer',
+  ],
+  'Organic fertilizers': [
+    'Fortified Earthworm Vermicompost',
+    'Mature Bovine Manure (Cured)',
+    'Bio-Organic Seaweed Foliar',
+    'Neem Kernel Organic Cake',
+  ],
+  'Crop protection & Agrochemicals': [
+    'Emamectin Benzoate (Armyworm)',
+    'Chlorantraniliprole (Coragen)',
+    'Mancozeb 80% WP (Fungicide)',
+    'Broad Spectrum Glyphosate Herbicide',
+  ],
+  'Animal feeds & Supplements': [
+    '16% Dairy Meal Concentrate',
+    'Chick Starter Crumbs',
+    'Growers Mash 18%',
+    'Layers Complete Mash',
+    'Mineral Lick Blocks (Macro/Micro)',
+  ],
+
+  // Equipment
+  'Irrigation systems': [
+    'Drip Kit (1/8 Acre Gravity Fed)',
+    'Drip Kit (1/4 Acre Button Emitter)',
+    'Drip Kit (1/2 Acre Commercial)',
+    'Overhead Rain Gun (1.5" Brass)',
+    'Micro-Sprinkler Overhead Kit',
+  ],
+  'Water pumps': [
+    'Submersible Solar Pump (DC 48V)',
+    'Surface Solar Water Pump',
+    '3-Inch Petrol High Pressure Pump',
+    '2-Inch Diesel Booster Pump',
+  ],
+  'Sprayers & Spraying equipment': [
+    'Knapsack Sprayer (16L Manual)',
+    'Battery Electric Knapsack (20L Rechargeable)',
+    'Motorized 2-Stroke Backpack Mistblower',
+  ],
+  'Harvest & Processing machinery': [
+    'Motorized Chaff Cutter (3-Blade 3HP)',
+    'Single Bucket Electric Milking Machine',
+    'Double Bucket Cow Milking Machine',
+    'Grain Thresher (Maize & Beans)',
+  ],
+  'Tillage & Walking tractors': [
+    'Walking Hand Tractor / Power Tiller (10HP Diesel)',
+    'Walk-Behind Rotary Weeder',
+  ],
 };
-
-// Cattle Production Purpose options
-export const CATTLE_PURPOSES = ['Dairy', 'Beef', 'Dual-purpose'];
-
-/**
- * Normalizes category mapping so that:
- * - crops, fodder, seedlings map to 'crops'
- * - livestock maps to 'livestock'
- * - inputs maps to 'inputs'
- * - equipment maps to 'equipment'
- */
-export function getNormalizedCategory(category: ProductCategory): MarketplaceCategoryFilter {
-  if (category === 'crops' || category === 'seedlings' || category === 'fodder') return 'crops';
-  if (category === 'livestock') return 'livestock';
-  if (category === 'inputs') return 'inputs';
-  if (category === 'equipment') return 'equipment';
-  return 'crops';
-}
-
-/**
- * Returns dynamic product types available from both taxonomy and actual catalog data
- */
-export function getProductTypesForCategory(category: MarketplaceCategoryFilter, actualProducts: Product[]): string[] {
-  if (category === 'all') {
-    const typesSet = new Set<string>();
-    Object.values(CATEGORY_PRODUCT_TYPES).forEach(list => list.forEach(t => typesSet.add(t)));
-    actualProducts.forEach(p => {
-      if (p.productType) typesSet.add(p.productType);
-    });
-    return Array.from(typesSet);
-  }
-
-  const baseTypes = CATEGORY_PRODUCT_TYPES[category] || [];
-  const dynamicSet = new Set<string>(baseTypes);
-
-  // Scan actual products for any seller-specified productTypes in this category
-  actualProducts.forEach(p => {
-    if (getNormalizedCategory(p.category) === category && p.productType) {
-      dynamicSet.add(p.productType);
-    }
-  });
-
-  return Array.from(dynamicSet);
-}
-
-/**
- * Returns dynamic varieties, breeds, or models for a selected category and productType.
- * Merges baseline Kenyan taxonomy with any actual variety/breed/model present in current products.
- */
-export function getVarietiesForType(
-  category: MarketplaceCategoryFilter,
-  productType: string,
-  actualProducts: Product[]
-): string[] {
-  const optionsSet = new Set<string>();
-
-  // 1. Add known taxonomy options
-  if (category !== 'all' && TAXONOMY_OPTIONS[category] && TAXONOMY_OPTIONS[category][productType]) {
-    TAXONOMY_OPTIONS[category][productType].forEach(opt => optionsSet.add(opt));
-  } else if (category === 'all') {
-    // Search across all categories for this productType
-    Object.keys(TAXONOMY_OPTIONS).forEach(catKey => {
-      if (TAXONOMY_OPTIONS[catKey][productType]) {
-        TAXONOMY_OPTIONS[catKey][productType].forEach(opt => optionsSet.add(opt));
-      }
-    });
-  }
-
-  // 2. Add actual varieties / breeds / models found in database/store for this category & productType
-  actualProducts.forEach(p => {
-    const matchesCat = category === 'all' || getNormalizedCategory(p.category) === category;
-    const matchesType = !productType || p.productType === productType || (
-      // For livestock animalType checks
-      p.livestockDetails && (
-        (productType === 'Cattle' && ['dairy_cow', 'beef_cattle', 'bull', 'heifer', 'calf'].includes(p.livestockDetails.animalType)) ||
-        (productType === 'Poultry' && p.livestockDetails.animalType === 'chicken') ||
-        (productType === 'Goats' && p.livestockDetails.animalType === 'goat') ||
-        (productType === 'Sheep' && p.livestockDetails.animalType === 'sheep') ||
-        (productType === 'Pigs' && p.livestockDetails.animalType === 'pig') ||
-        (productType === 'Rabbits' && p.livestockDetails.animalType === 'rabbit') ||
-        (productType === 'Fish' && p.livestockDetails.animalType === 'fish') ||
-        (productType === 'Other livestock' && ['bees', 'duck', 'turkey'].includes(p.livestockDetails.animalType))
-      )
-    );
-
-    if (matchesCat && matchesType) {
-      if (p.variety) optionsSet.add(p.variety);
-      if (p.breed) optionsSet.add(p.breed);
-      if (p.livestockDetails?.breed) optionsSet.add(p.livestockDetails.breed);
-      if (p.model) optionsSet.add(p.model);
-    }
-  });
-
-  return Array.from(optionsSet);
-}

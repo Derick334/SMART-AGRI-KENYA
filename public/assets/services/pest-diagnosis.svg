@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="100%" height="100%">
+  <defs>
+    <linearGradient id="skyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#EBF4EC"/>
+      <stop offset="40%" stop-color="#D8EAD9"/>
+      <stop offset="100%" stop-color="#C2DFC5"/>
+    </linearGradient>
+    <linearGradient id="fieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2D5A3A"/>
+      <stop offset="50%" stop-color="#214E34"/>
+      <stop offset="100%" stop-color="#153621"/>
+    </linearGradient>
+    <linearGradient id="leafGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#52A465"/>
+      <stop offset="60%" stop-color="#367C46"/>
+      <stop offset="100%" stop-color="#1F522C"/>
+    </linearGradient>
+    <linearGradient id="spotGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#B87333"/>
+      <stop offset="100%" stop-color="#6E3E17"/>
+    </linearGradient>
+    <radialGradient id="sunGlow" cx="50%" cy="30%" r="50%">
+      <stop offset="0%" stop-color="#FFFDF5" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#FFFDF5" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background Sky & Blurred Farm -->
+  <rect width="1600" height="900" fill="url(#skyGrad)"/>
+  <circle cx="800" cy="300" r="500" fill="url(#sunGlow)"/>
+
+  <!-- Distant Kenyan Farm Terraces -->
+  <path d="M0,520 Q400,470 800,510 T1600,480 L1600,900 L0,900 Z" fill="#4B8057" opacity="0.35"/>
+  <path d="M0,580 Q450,540 900,570 T1600,550 L1600,900 L0,900 Z" fill="#3D6E47" opacity="0.5"/>
+  <path d="M0,640 Q350,600 750,630 T1600,610 L1600,900 L0,900 Z" fill="url(#fieldGrad)"/>
+
+  <!-- Crop Field Canopy Details -->
+  <g opacity="0.6">
+    <path d="M100,680 Q140,590 190,650 Q240,710 300,640 Q350,580 410,650" stroke="#72B280" stroke-width="6" fill="none"/>
+    <path d="M1200,660 Q1260,570 1330,630 Q1400,690 1480,620" stroke="#72B280" stroke-width="6" fill="none"/>
+  </g>
+
+  <!-- Foreground Agricultural Inspection Subject -->
+  <!-- Scientist / Agronomist Arm & Hand -->
+  <g transform="translate(180, 50)">
+    <!-- Arm in professional field jacket -->
+    <path d="M0,750 C100,650 250,560 380,510 C410,500 450,530 430,570 C360,670 230,800 120,900 Z" fill="#2A4D38"/>
+    <!-- Wrist & Hand holding leaf -->
+    <path d="M370,515 C410,480 480,480 520,510 C540,525 540,550 510,565 C470,580 410,570 380,555 Z" fill="#7D4E30"/>
+    <circle cx="490" cy="515" r="22" fill="#8D5A3A"/>
+    <circle cx="525" cy="535" r="20" fill="#8D5A3A"/>
+  </g>
+
+  <!-- The Inspected Leaves (Focal Point) -->
+  <g transform="translate(680, 260)">
+    <!-- Primary Healthy Maize Leaf -->
+    <path d="M-60,400 C0,220 180,80 460,-20 C360,140 280,320 200,520 C90,490 -10,460 -60,400 Z" fill="url(#leafGrad)"/>
+    <!-- Leaf Central Vein -->
+    <path d="M-50,390 C80,240 240,110 450,-10" stroke="#84CC95" stroke-width="7" stroke-linecap="round" fill="none"/>
+
+    <!-- Secondary Affected Leaf with Pest & Disease Diagnostics -->
+    <path d="M-180,350 C-100,160 80,40 320,-80 C240,80 140,240 60,450 C-40,430 -130,400 -180,350 Z" fill="#5A9664"/>
+    <path d="M-170,340 C-30,180 110,60 310,-70" stroke="#71B27B" stroke-width="6" stroke-linecap="round" fill="none"/>
+
+    <!-- Realistic Leaf Spot & Insect Damage (Focal points) -->
+    <ellipse cx="60" cy="140" rx="28" ry="16" fill="url(#spotGrad)" transform="rotate(25 60 140)"/>
+    <ellipse cx="60" cy="140" rx="18" ry="9" fill="#3D1F08" transform="rotate(25 60 140)"/>
+    
+    <ellipse cx="140" cy="80" rx="34" ry="18" fill="url(#spotGrad)" transform="rotate(-15 140 80)"/>
+    <ellipse cx="140" cy="80" rx="20" ry="10" fill="#3D1F08" transform="rotate(-15 140 80)"/>
+
+    <ellipse cx="-20" cy="220" rx="24" ry="14" fill="url(#spotGrad)" transform="rotate(10 -20 220)"/>
+    <circle cx="-15" cy="220" r="7" fill="#E8B86D" opacity="0.8"/>
+
+    <ellipse cx="200" cy="30" rx="26" ry="15" fill="url(#spotGrad)" transform="rotate(40 200 30)"/>
+    <circle cx="205" cy="32" r="8" fill="#241408"/>
+  </g>
+
+  <!-- Magnifying Diagnostic Indicator Reticle (Subtle, professional) -->
+  <g transform="translate(820, 390)" opacity="0.4">
+    <circle cx="0" cy="0" r="110" stroke="#FFFFFF" stroke-width="3" stroke-dasharray="8 6" fill="none"/>
+    <line x1="-125" y1="0" x2="-95" y2="0" stroke="#FFFFFF" stroke-width="3"/>
+    <line x1="95" y1="0" x2="125" y2="0" stroke="#FFFFFF" stroke-width="3"/>
+    <line x1="0" y1="-125" x2="0" y2="-95" stroke="#FFFFFF" stroke-width="3"/>
+    <line x1="0" y1="95" x2="0" y2="125" stroke="#FFFFFF" stroke-width="3"/>
+  </g>
+
+  <!-- Soft Vignette & Depth Lighting -->
+  <rect width="1600" height="900" fill="none" stroke="#214E34" stroke-width="1" opacity="0.2"/>
+</svg>

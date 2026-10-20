@@ -4,13 +4,8 @@ import {
   Send, 
   Bot, 
   User, 
-  MapPin, 
-  Sprout, 
-  Beef, 
   Loader2, 
-  Languages, 
-  ShieldCheck, 
-  AlertCircle 
+  Languages
 } from 'lucide-react';
 import { api } from '../services/api';
 import { KENYA_COUNTIES } from '../data/kenyaCounties';
@@ -34,14 +29,12 @@ export const AiAssistantPage: React.FC<AiAssistantPageProps> = ({
   const [messages, setMessages] = useState<Message[]>([
     {
       sender: 'assistant',
-      text: `Habari! I am your SMART-AGRI KENYA Senior Agricultural Specialist.\n\nI can assist you with:\n• Crop husbandry, certified seeds, and fertilizer schedules (DAP, CAN, NPK)\n• Dairy cow management, pedigree genetics, and milk yield improvement\n• Tick-borne and Newcastle disease prevention\n• Soil acidity neutralization and lime application\n• Kenya wholesale market price trends\n\nHow can I help your farm in ${selectedCounty} today? (Unaweza kuuliza kwa Kiswahili au Kiingereza)`,
+      text: `Habari! I am your SMART-AGRI KENYA Agricultural Extension Specialist.\n\nI can assist you with:\n• Crop husbandry, certified seeds, and fertilizer schedules (DAP, CAN, NPK)\n• Dairy cow management, pedigree genetics, and milk yield improvement\n• Tick-borne and Newcastle disease prevention\n• Soil acidity neutralization and agricultural lime application\n• Kenya wholesale market price trends\n\nHow can I assist your farm in ${selectedCounty} today? (Unaweza kuuliza kwa Kiswahili au Kiingereza)`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     }
   ]);
 
   const [inputQuery, setInputQuery] = useState('');
-  const [selectedCrop, setSelectedCrop] = useState('');
-  const [selectedLivestock, setSelectedLivestock] = useState('');
   const [language, setLanguage] = useState<'English' | 'Swahili'>('English');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -71,8 +64,6 @@ export const AiAssistantPage: React.FC<AiAssistantPageProps> = ({
       const response = await api.askFarmingAssistant({
         message: textToSend,
         county: selectedCounty,
-        crop: selectedCrop || undefined,
-        livestock: selectedLivestock || undefined,
         language,
       });
 
@@ -89,7 +80,7 @@ export const AiAssistantPage: React.FC<AiAssistantPageProps> = ({
         ...prev,
         {
           sender: 'assistant',
-          text: 'Unable to reach the agricultural knowledge service. Please check your connection.',
+          text: 'Unable to reach the agricultural extension knowledge base. Please verify your connection.',
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         }
       ]);
@@ -99,20 +90,20 @@ export const AiAssistantPage: React.FC<AiAssistantPageProps> = ({
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-4">
-      {/* Header */}
-      <div className="bg-emerald-950 text-white rounded-3xl p-6 sm:p-7 border border-emerald-800 shadow-lg">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-4">
+      {/* Header Banner */}
+      <div className="bg-white rounded-xl p-6 sm:p-7 border border-[#E2E7DE] shadow-xs">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold uppercase tracking-wider mb-1">
-              <Sparkles className="w-4 h-4 fill-emerald-400" />
-              <span>AI Agricultural Extension Officer (Powered by Gemini)</span>
+            <div className="flex items-center gap-2 text-[#367C46] text-xs font-bold uppercase tracking-wider mb-1">
+              <Sparkles className="w-3.5 h-3.5 text-[#367C46]" />
+              <span>Agricultural Extension Advisory</span>
             </div>
-            <h1 className="text-xl sm:text-2xl font-black tracking-tight">
-              SMART-AGRI Farming & Agronomy Assistant
+            <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-[#214E34]">
+              SMART-AGRI Farming & Agronomy Specialist
             </h1>
-            <p className="text-xs text-emerald-200 mt-0.5">
-              Science-grounded agronomic and veterinary advice tailored to your Kenyan county's agro-ecological zone.
+            <p className="text-xs sm:text-sm text-[#68756A] mt-0.5">
+              Agronomic and veterinary advisories calibrated to your Kenyan agro-ecological zone.
             </p>
           </div>
 
@@ -121,10 +112,10 @@ export const AiAssistantPage: React.FC<AiAssistantPageProps> = ({
             <select
               value={selectedCounty}
               onChange={(e) => onSelectCounty(e.target.value)}
-              className="bg-emerald-900 text-white text-xs font-bold px-3 py-1.5 rounded-xl border border-emerald-700 cursor-pointer"
+              className="bg-[#F7F6F0] border border-[#E2E7DE] text-[#252D27] text-xs font-semibold px-3 py-1.5 rounded-lg focus:outline-none cursor-pointer"
             >
               {KENYA_COUNTIES.map((c) => (
-                <option key={c.code} value={c.name} className="text-stone-900 bg-white">
+                <option key={c.code} value={c.name}>
                   {c.name} County
                 </option>
               ))}
@@ -132,9 +123,9 @@ export const AiAssistantPage: React.FC<AiAssistantPageProps> = ({
 
             <button
               onClick={() => setLanguage(language === 'English' ? 'Swahili' : 'English')}
-              className="bg-emerald-800 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl border border-emerald-600 flex items-center gap-1 cursor-pointer"
+              className="bg-[#F7F6F0] hover:bg-[#EBF3ED] text-[#214E34] text-xs font-semibold px-3 py-1.5 rounded-lg border border-[#E2E7DE] flex items-center gap-1.5 cursor-pointer transition-colors"
             >
-              <Languages className="w-3.5 h-3.5" />
+              <Languages className="w-3.5 h-3.5 text-[#367C46]" />
               <span>{language === 'English' ? 'English (EN)' : 'Kiswahili (SW)'}</span>
             </button>
           </div>
@@ -142,7 +133,7 @@ export const AiAssistantPage: React.FC<AiAssistantPageProps> = ({
       </div>
 
       {/* Chat Display Box */}
-      <div className="bg-white rounded-3xl border border-stone-200 shadow-sm flex flex-col h-[520px]">
+      <div className="bg-white rounded-xl border border-[#E2E7DE] shadow-xs flex flex-col h-[520px] overflow-hidden">
         {/* Messages Stream */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
           {messages.map((m, idx) => (
@@ -151,26 +142,26 @@ export const AiAssistantPage: React.FC<AiAssistantPageProps> = ({
               className={`flex gap-3 ${m.sender === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               {m.sender === 'assistant' && (
-                <div className="w-8 h-8 rounded-full bg-emerald-700 text-white flex items-center justify-center shrink-0 shadow-xs">
+                <div className="w-7 h-7 rounded-lg bg-[#EBF3ED] border border-[#CFD7CA] text-[#214E34] flex items-center justify-center shrink-0 shadow-xs">
                   <Bot className="w-4 h-4" />
                 </div>
               )}
 
               <div
-                className={`max-w-[85%] sm:max-w-[75%] rounded-2xl p-4 text-xs leading-relaxed ${
+                className={`max-w-[85%] sm:max-w-[75%] rounded-lg p-3.5 text-xs leading-relaxed ${
                   m.sender === 'user'
-                    ? 'bg-emerald-700 text-white font-medium rounded-tr-none'
-                    : 'bg-stone-50 border border-stone-200 text-stone-900 rounded-tl-none whitespace-pre-line'
+                    ? 'bg-[#214E34] text-white font-medium'
+                    : 'bg-[#F7F6F0] border border-[#E2E7DE] text-[#252D27] whitespace-pre-line'
                 }`}
               >
                 {m.text}
-                <span className={`block text-[9px] mt-1.5 ${m.sender === 'user' ? 'text-emerald-200 text-right' : 'text-stone-400'}`}>
+                <span className={`block text-[10px] mt-1.5 ${m.sender === 'user' ? 'text-[#E2E7DE] text-right' : 'text-[#68756A]'}`}>
                   {m.timestamp}
                 </span>
               </div>
 
               {m.sender === 'user' && (
-                <div className="w-8 h-8 rounded-full bg-stone-900 text-white flex items-center justify-center shrink-0">
+                <div className="w-7 h-7 rounded-lg bg-[#367C46] text-white flex items-center justify-center shrink-0">
                   <User className="w-4 h-4" />
                 </div>
               )}
@@ -178,27 +169,27 @@ export const AiAssistantPage: React.FC<AiAssistantPageProps> = ({
           ))}
 
           {isLoading && (
-            <div className="flex gap-3 items-center text-xs text-stone-500">
-              <div className="w-8 h-8 rounded-full bg-emerald-700 text-white flex items-center justify-center shrink-0">
+            <div className="flex gap-3 items-center text-xs text-[#68756A]">
+              <div className="w-7 h-7 rounded-lg bg-[#EBF3ED] text-[#214E34] flex items-center justify-center shrink-0">
                 <Loader2 className="w-4 h-4 animate-spin" />
               </div>
-              <div className="bg-stone-100 p-3 rounded-2xl animate-pulse">
-                Consulting Kenyan agricultural agronomy database...
+              <div className="bg-[#F7F6F0] border border-[#E2E7DE] p-2.5 rounded-lg">
+                Consulting Kenyan agronomy recommendations...
               </div>
             </div>
           )}
         </div>
 
         {/* Quick Prompts Bar */}
-        <div className="px-4 py-2 bg-stone-50 border-t border-stone-100 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
-          <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider shrink-0">
+        <div className="px-4 py-2 bg-[#F7F6F0] border-t border-[#E2E7DE] flex items-center gap-2 overflow-x-auto no-scrollbar">
+          <span className="text-[10px] font-bold text-[#68756A] uppercase tracking-wider shrink-0">
             Suggested:
           </span>
           {quickPrompts.map((prompt, i) => (
             <button
               key={i}
               onClick={() => handleSendMessage(prompt)}
-              className="bg-white hover:bg-emerald-50 text-stone-700 hover:text-emerald-800 text-[11px] font-medium px-2.5 py-1 rounded-full border border-stone-200 transition shrink-0 cursor-pointer shadow-2xs"
+              className="bg-white hover:bg-[#EBF3ED] text-[#252D27] hover:text-[#214E34] text-[11px] font-medium px-2.5 py-1 rounded-md border border-[#E2E7DE] transition shrink-0 cursor-pointer shadow-xs"
             >
               {prompt}
             </button>
@@ -206,7 +197,7 @@ export const AiAssistantPage: React.FC<AiAssistantPageProps> = ({
         </div>
 
         {/* Input Bar */}
-        <div className="p-3 sm:p-4 border-t border-stone-200 bg-white">
+        <div className="p-3 sm:p-4 border-t border-[#E2E7DE] bg-white">
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -216,16 +207,16 @@ export const AiAssistantPage: React.FC<AiAssistantPageProps> = ({
           >
             <input
               type="text"
-              placeholder={`Ask about crops, pests, soil, or livestock in ${selectedCounty}...`}
+              placeholder={`Ask about crops, pests, soil fertility, or cattle in ${selectedCounty}...`}
               value={inputQuery}
               onChange={(e) => setInputQuery(e.target.value)}
-              className="flex-1 p-3 rounded-2xl bg-stone-50 border border-stone-200 text-xs text-stone-800 focus:border-emerald-600 focus:outline-hidden"
+              className="flex-1 p-2.5 rounded-lg bg-[#F7F6F0] border border-[#E2E7DE] text-xs text-[#252D27] placeholder:text-[#68756A] focus:border-[#367C46] focus:outline-none"
             />
 
             <button
               type="submit"
               disabled={isLoading || !inputQuery.trim()}
-              className="bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 text-white p-3 rounded-2xl font-bold transition shadow-xs flex items-center justify-center cursor-pointer"
+              className="bg-[#367C46] hover:bg-[#2B6437] disabled:opacity-50 text-white p-2.5 rounded-lg font-semibold transition shadow-xs flex items-center justify-center cursor-pointer"
             >
               <Send className="w-4 h-4" />
             </button>

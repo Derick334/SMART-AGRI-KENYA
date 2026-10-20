@@ -19,18 +19,20 @@ export const ContactPage: React.FC = () => {
   const [subject, setSubject] = useState('Marketplace inquiry');
   const [message, setMessage] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [ticketNotice, setTicketNotice] = useState<string | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
     setTimeout(() => {
+      const ticketNum = 'SA-TK-' + Math.floor(1000 + Math.random() * 9000);
       setName('');
       setEmail('');
       setPhone('');
       setMessage('');
-      alert('Thank you! Your ticket has been logged with the SMART-AGRI Kenya Support Desk (Ticket #SA-TK-' + Math.floor(1000 + Math.random() * 9000) + '). An agent will contact you shortly.');
       setSubmitted(false);
-    }, 1000);
+      setTicketNotice(`Thank you! Your ticket has been logged with the SMART-AGRI Kenya Support Desk (Ticket #${ticketNum}). An agricultural agent will contact you shortly via SMS/call.`);
+    }, 600);
   };
 
   const regionalOffices = [
@@ -66,8 +68,23 @@ export const ContactPage: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Support Form */}
-        <div className="lg:col-span-7 bg-white p-6 sm:p-8 rounded-3xl border border-stone-200 shadow-xs space-y-4">
-          <h2 className="text-base font-bold text-stone-900">Send an Inquiry or Complaint</h2>
+        <div className="lg:col-span-7 bg-white p-6 sm:p-8 rounded-xl border border-[#E2E7DE] shadow-xs space-y-4">
+          <h2 className="text-base font-bold text-[#252D27]">Send an Inquiry or Complaint</h2>
+          {ticketNotice && (
+            <div className="p-3.5 bg-[#EBF3ED] border border-[#CFD7CA] text-[#214E34] text-xs font-semibold rounded-lg flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-[#367C46] shrink-0" />
+                <span>{ticketNotice}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setTicketNotice(null)}
+                className="text-[#68756A] hover:text-[#252D27] cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+          )}
           <form onSubmit={handleSubmit} className="space-y-4 text-xs">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>

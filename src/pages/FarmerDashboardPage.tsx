@@ -24,6 +24,7 @@ export const FarmerDashboardPage: React.FC = () => {
   const [products, setProducts] = useState<Product[]>(agriStore.getProducts());
   const [currentUser] = useState(agriStore.getCurrentUser());
   const [showAddModal, setShowAddModal] = useState(false);
+  const [publishedNotice, setPublishedNotice] = useState<string | null>(null);
 
   // New Listing Form State
   const [title, setTitle] = useState('');
@@ -106,7 +107,8 @@ export const FarmerDashboardPage: React.FC = () => {
 
     setProducts(agriStore.getProducts());
     setShowAddModal(false);
-    alert(`Listing "${newProd.title}" successfully published to SMART-AGRI KENYA Marketplace!`);
+    setPublishedNotice(`Listing "${newProd.title}" successfully published to SMART-AGRI KENYA Marketplace!`);
+    setTimeout(() => setPublishedNotice(null), 6000);
   };
 
   const handleToggleStatus = (id: string, currentStatus: Product['status']) => {
@@ -123,25 +125,38 @@ export const FarmerDashboardPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      {/* Published Notice Banner */}
+      {publishedNotice && (
+        <div className="p-3.5 bg-[#EBF3ED] border border-[#CFD7CA] text-[#214E34] text-xs font-medium rounded-lg flex items-center justify-between shadow-xs animate-in fade-in">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-[#367C46] shrink-0" />
+            <span>{publishedNotice}</span>
+          </div>
+          <button onClick={() => setPublishedNotice(null)} className="text-[#214E34] hover:bg-[#DCECE0] rounded p-1 cursor-pointer">
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
       {/* Header Banner */}
-      <div className="bg-linear-to-r from-emerald-950 via-stone-900 to-emerald-900 text-white rounded-3xl p-6 sm:p-8 border border-emerald-800/40 shadow-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="bg-white rounded-xl p-6 sm:p-8 border border-[#E2E7DE] shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold uppercase tracking-wider mb-2">
-            <LayoutDashboard className="w-4 h-4" />
+          <div className="flex items-center gap-2 text-[#367C46] text-xs font-bold uppercase tracking-wider mb-2">
+            <LayoutDashboard className="w-4 h-4 text-[#367C46]" />
             <span>Farmer Seller Portal</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#214E34]">
             {currentUser.farmName || `${currentUser.name}'s Farm`}
           </h1>
-          <p className="text-xs text-stone-300 mt-1 max-w-xl">
+          <p className="text-xs sm:text-sm text-[#68756A] mt-1 max-w-xl">
             Manage your agricultural stock, create produce listings, view incoming orders, and track payouts via Safaricom M-Pesa.
           </p>
         </div>
 
         <button
           onClick={() => setShowAddModal(true)}
-          className="bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 text-stone-950 font-black text-xs px-5 py-3 rounded-2xl transition shadow-md flex items-center gap-2 shrink-0 cursor-pointer"
+          className="bg-[#367C46] hover:bg-[#2B6437] text-white font-semibold text-xs sm:text-sm px-4 py-2.5 rounded-lg transition-colors shadow-xs flex items-center gap-2 shrink-0 cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           <span>Publish New Listing</span>
@@ -150,49 +165,49 @@ export const FarmerDashboardPage: React.FC = () => {
 
       {/* KPI Stats Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="p-4 bg-white rounded-2xl border border-stone-200 shadow-xs">
-          <span className="text-[10px] uppercase font-bold text-stone-400 block">Total Active Listings</span>
-          <span className="text-2xl font-black text-stone-900 mt-1 block">{myProducts.length}</span>
-          <span className="text-[10px] text-emerald-600 font-semibold mt-0.5 block">Published & Live</span>
+        <div className="p-4 bg-white rounded-xl border border-[#E2E7DE] shadow-xs">
+          <span className="text-[10px] uppercase font-bold text-[#68756A] block">Total Active Listings</span>
+          <span className="text-2xl font-extrabold text-[#252D27] mt-1 block tabular-nums">{myProducts.length}</span>
+          <span className="text-[11px] text-[#367C46] font-semibold mt-0.5 block">Published & Live</span>
         </div>
 
-        <div className="p-4 bg-white rounded-2xl border border-stone-200 shadow-xs">
-          <span className="text-[10px] uppercase font-bold text-stone-400 block">Est. Revenue This Season</span>
-          <span className="text-2xl font-black text-emerald-950 mt-1 block">
+        <div className="p-4 bg-white rounded-xl border border-[#E2E7DE] shadow-xs">
+          <span className="text-[10px] uppercase font-bold text-[#68756A] block">Est. Revenue This Season</span>
+          <span className="text-2xl font-extrabold text-[#214E34] mt-1 block tabular-nums">
             KSh {totalSalesEstimate.toLocaleString()}
           </span>
-          <span className="text-[10px] text-stone-400 mt-0.5 block">Direct to M-Pesa {currentUser.phone}</span>
+          <span className="text-[11px] text-[#68756A] mt-0.5 block">Direct to M-Pesa {currentUser.phone}</span>
         </div>
 
-        <div className="p-4 bg-white rounded-2xl border border-stone-200 shadow-xs">
-          <span className="text-[10px] uppercase font-bold text-stone-400 block">Farm Verification</span>
-          <div className="flex items-center gap-1.5 mt-1 text-emerald-700 font-bold text-sm">
-            <ShieldCheck className="w-5 h-5 text-emerald-600" />
+        <div className="p-4 bg-white rounded-xl border border-[#E2E7DE] shadow-xs">
+          <span className="text-[10px] uppercase font-bold text-[#68756A] block">Farm Verification</span>
+          <div className="flex items-center gap-1.5 mt-1 text-[#214E34] font-bold text-sm">
+            <ShieldCheck className="w-4 h-4 text-[#367C46]" />
             <span>ID & Location Verified</span>
           </div>
-          <span className="text-[10px] text-stone-400 mt-0.5 block">{currentUser.county} County</span>
+          <span className="text-[11px] text-[#68756A] mt-0.5 block">{currentUser.county} County</span>
         </div>
 
-        <div className="p-4 bg-white rounded-2xl border border-stone-200 shadow-xs">
-          <span className="text-[10px] uppercase font-bold text-stone-400 block">Buyer Satisfaction</span>
-          <span className="text-2xl font-black text-amber-500 mt-1 block">4.9 / 5.0</span>
-          <span className="text-[10px] text-stone-400 mt-0.5 block">Over 48 verified customer reviews</span>
+        <div className="p-4 bg-white rounded-xl border border-[#E2E7DE] shadow-xs">
+          <span className="text-[10px] uppercase font-bold text-[#68756A] block">Buyer Satisfaction</span>
+          <span className="text-2xl font-extrabold text-[#D6A545] mt-1 block tabular-nums">4.9 / 5.0</span>
+          <span className="text-[11px] text-[#68756A] mt-0.5 block">Over 48 verified customer reviews</span>
         </div>
       </div>
 
       {/* Product Management Table */}
-      <div className="bg-white rounded-3xl border border-stone-200 shadow-sm p-6 space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-stone-100">
-          <h3 className="font-bold text-sm text-stone-900 uppercase tracking-wider">
+      <div className="bg-white rounded-xl border border-[#E2E7DE] shadow-xs p-5 sm:p-6 space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-[#E2E7DE]">
+          <h3 className="font-bold text-sm text-[#214E34] uppercase tracking-wider">
             Your Farm Catalogue & Inventory
           </h3>
-          <span className="text-xs text-stone-500">{myProducts.length} Products registered</span>
+          <span className="text-xs text-[#68756A]">{myProducts.length} Products registered</span>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-xs text-left border-collapse">
             <thead>
-              <tr className="border-b border-stone-200 text-stone-400 font-bold uppercase tracking-wider">
+              <tr className="bg-[#F7F6F0] border-b border-[#E2E7DE] text-[#68756A] font-bold uppercase tracking-wider">
                 <th className="p-3">Product / Livestock</th>
                 <th className="p-3">Category</th>
                 <th className="p-3">Asking Price</th>
@@ -201,38 +216,38 @@ export const FarmerDashboardPage: React.FC = () => {
                 <th className="p-3">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-stone-100">
+            <tbody className="divide-y divide-[#E2E7DE]">
               {myProducts.map((p) => (
-                <tr key={p.id} className="hover:bg-stone-50/70 transition">
+                <tr key={p.id} className="hover:bg-[#F7F6F0]/60 transition">
                   <td className="p-3 flex items-center gap-3">
                     <img
                       src={p.images[0]}
                       alt=""
-                      className="w-12 h-12 rounded-xl object-cover border border-stone-200 shrink-0"
+                      className="w-12 h-12 rounded-lg object-cover border border-[#E2E7DE] shrink-0"
                     />
                     <div>
-                      <span className="font-bold text-stone-900 block line-clamp-1">{p.title}</span>
-                      <span className="text-[11px] text-stone-500">
+                      <span className="font-bold text-[#252D27] block line-clamp-1">{p.title}</span>
+                      <span className="text-[11px] text-[#68756A]">
                         {p.variety || p.livestockDetails?.breed || p.subcategory}
                       </span>
                     </div>
                   </td>
 
-                  <td className="p-3 capitalize font-medium text-stone-700">
+                  <td className="p-3 capitalize font-medium text-[#252D27]">
                     {p.category}
                   </td>
 
-                  <td className="p-3 font-black text-stone-900 text-sm">
-                    KSh {p.priceKsh.toLocaleString()} <span className="text-xs font-normal text-stone-500">/ {p.unit}</span>
+                  <td className="p-3 font-extrabold text-[#214E34] text-sm tabular-nums">
+                    KSh {p.priceKsh.toLocaleString()} <span className="text-xs font-normal text-[#68756A]">/ {p.unit}</span>
                   </td>
 
-                  <td className="p-3 font-semibold text-stone-800">
+                  <td className="p-3 font-semibold text-[#252D27] tabular-nums">
                     {p.quantityAvailable} {p.unit}s
                   </td>
 
                   <td className="p-3">
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
-                      p.status === 'active' ? 'bg-emerald-100 text-emerald-800' : 'bg-stone-100 text-stone-600'
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${
+                      p.status === 'active' ? 'bg-[#EBF3ED] text-[#214E34] border border-[#CFD7CA]' : 'bg-[#F7F6F0] text-[#68756A] border border-[#E2E7DE]'
                     }`}>
                       {p.status}
                     </span>
@@ -242,19 +257,19 @@ export const FarmerDashboardPage: React.FC = () => {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleToggleStatus(p.id, p.status)}
-                        className="text-stone-500 hover:text-stone-800 p-1"
+                        className="text-[#68756A] hover:text-[#252D27] p-1 cursor-pointer"
                         title={p.status === 'active' ? 'Pause listing' : 'Activate listing'}
                       >
                         {p.status === 'active' ? (
-                          <PauseCircle className="w-4 h-4 text-amber-600" />
+                          <PauseCircle className="w-4 h-4 text-[#D6A545]" />
                         ) : (
-                          <PlayCircle className="w-4 h-4 text-emerald-600" />
+                          <PlayCircle className="w-4 h-4 text-[#367C46]" />
                         )}
                       </button>
 
                       <button
                         onClick={() => handleDelete(p.id)}
-                        className="text-stone-400 hover:text-rose-600 p-1"
+                        className="text-[#68756A] hover:text-[#79543A] p-1 cursor-pointer"
                         title="Delete listing"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -270,25 +285,28 @@ export const FarmerDashboardPage: React.FC = () => {
 
       {/* Publish Listing Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-stone-950/70 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 sm:p-8 shadow-2xl border border-stone-200 space-y-4">
-            <div className="flex items-center justify-between border-b border-stone-100 pb-3">
-              <h3 className="font-bold text-base text-stone-900">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 shadow-xl border border-[#E2E7DE] space-y-4">
+            <div className="flex items-center justify-between border-b border-[#E2E7DE] pb-3">
+              <h3 className="font-bold text-base text-[#214E34]">
                 Publish Produce or Livestock Listing
               </h3>
-              <button onClick={() => setShowAddModal(false)} className="text-stone-400 hover:text-stone-700">
-                <X className="w-5 h-5" />
+              <button 
+                onClick={() => setShowAddModal(false)} 
+                className="w-7 h-7 rounded-lg bg-[#F7F6F0] hover:bg-[#EBF3ED] text-[#252D27] flex items-center justify-center border border-[#E2E7DE] cursor-pointer"
+              >
+                <X className="w-4 h-4" />
               </button>
             </div>
 
             <form onSubmit={handleCreateListing} className="space-y-4 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-stone-700 mb-1">Catalog Section</label>
+                  <label className="block font-semibold text-[#252D27] mb-1">Catalog Section</label>
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value as any)}
-                    className="w-full p-2.5 rounded-xl border border-stone-300 font-semibold"
+                    className="w-full p-2.5 rounded-lg border border-[#E2E7DE] text-[#252D27] font-semibold bg-white focus:outline-none focus:border-[#367C46]"
                   >
                     <option value="crops">Crops & Plant Produce</option>
                     <option value="livestock">Livestock & Cattle</option>
@@ -299,39 +317,39 @@ export const FarmerDashboardPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block font-bold text-stone-700 mb-1">Subcategory</label>
+                  <label className="block font-semibold text-[#252D27] mb-1">Subcategory</label>
                   <input
                     type="text"
                     required
                     value={subcategory}
                     onChange={(e) => setSubcategory(e.target.value)}
                     placeholder="e.g. Dairy Cattle, Cereals, Roots"
-                    className="w-full p-2.5 rounded-xl border border-stone-300"
+                    className="w-full p-2.5 rounded-lg border border-[#E2E7DE] text-[#252D27] bg-white focus:outline-none focus:border-[#367C46]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-bold text-stone-700 mb-1">Listing Title</label>
+                <label className="block font-semibold text-[#252D27] mb-1">Listing Title</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. Pedigree Friesian Cow (28L/day) or Grade 1 Clean Maize"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-stone-300"
+                  className="w-full p-2.5 rounded-lg border border-[#E2E7DE] text-[#252D27] bg-white focus:outline-none focus:border-[#367C46]"
                 />
               </div>
 
               {/* Dynamic Product Type & Variety for Crops */}
               {category === 'crops' && (
-                <div className="p-3.5 bg-emerald-50/70 rounded-2xl border border-emerald-200 grid grid-cols-2 gap-3">
+                <div className="p-3.5 bg-[#EBF3ED] rounded-lg border border-[#CFD7CA] grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block font-bold text-stone-700 mb-1">Crop Product Type</label>
+                    <label className="block font-semibold text-[#214E34] mb-1">Crop Product Type</label>
                     <select
                       value={productType}
                       onChange={(e) => setProductType(e.target.value)}
-                      className="w-full p-2.5 rounded-xl border border-stone-300 bg-white"
+                      className="w-full p-2.5 rounded-lg border border-[#CFD7CA] bg-white text-[#252D27]"
                     >
                       <option value="Cereals">Cereals (Maize, Rice, Wheat)</option>
                       <option value="Legumes">Legumes (Beans, Peas, Grams)</option>
@@ -342,13 +360,13 @@ export const FarmerDashboardPage: React.FC = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block font-bold text-stone-700 mb-1">Crop Variety</label>
+                    <label className="block font-semibold text-[#214E34] mb-1">Crop Variety</label>
                     <input
                       type="text"
                       value={variety}
                       onChange={(e) => setVariety(e.target.value)}
                       placeholder="e.g. H614, Rosecoco, Anna F1, Shangi, Hass"
-                      className="w-full p-2.5 rounded-xl border border-stone-300 bg-white"
+                      className="w-full p-2.5 rounded-lg border border-[#CFD7CA] bg-white text-[#252D27]"
                     />
                   </div>
                 </div>
@@ -356,13 +374,13 @@ export const FarmerDashboardPage: React.FC = () => {
 
               {/* Dynamic Inputs Type for Certified Seeds & Fertilizers */}
               {category === 'inputs' && (
-                <div className="p-3.5 bg-blue-50/70 rounded-2xl border border-blue-200 grid grid-cols-2 gap-3">
+                <div className="p-3.5 bg-[#EBF3ED] rounded-lg border border-[#CFD7CA] grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block font-bold text-stone-700 mb-1">Input Product Type</label>
+                    <label className="block font-semibold text-[#214E34] mb-1">Input Product Type</label>
                     <select
                       value={productType}
                       onChange={(e) => setProductType(e.target.value)}
-                      className="w-full p-2.5 rounded-xl border border-stone-300 bg-white"
+                      className="w-full p-2.5 rounded-lg border border-[#CFD7CA] bg-white text-[#252D27]"
                     >
                       <option value="Certified crop seeds">Certified Crop Seeds</option>
                       <option value="Vegetable seeds">Vegetable Seeds</option>
@@ -374,13 +392,13 @@ export const FarmerDashboardPage: React.FC = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block font-bold text-stone-700 mb-1">Variety or Formulation</label>
+                    <label className="block font-semibold text-[#214E34] mb-1">Variety or Formulation</label>
                     <input
                       type="text"
                       value={variety}
                       onChange={(e) => setVariety(e.target.value)}
                       placeholder="e.g. H614D, DAP 18:46:0, Lime CaCO3"
-                      className="w-full p-2.5 rounded-xl border border-stone-300 bg-white"
+                      className="w-full p-2.5 rounded-lg border border-[#CFD7CA] bg-white text-[#252D27]"
                     />
                   </div>
                 </div>
@@ -388,13 +406,13 @@ export const FarmerDashboardPage: React.FC = () => {
 
               {/* Dynamic Equipment Type & Power Source */}
               {category === 'equipment' && (
-                <div className="p-3.5 bg-purple-50/70 rounded-2xl border border-purple-200 grid grid-cols-3 gap-3">
+                <div className="p-3.5 bg-[#F7F6F0] rounded-lg border border-[#E2E7DE] grid grid-cols-3 gap-3">
                   <div>
-                    <label className="block font-bold text-stone-700 mb-1">Equipment Type</label>
+                    <label className="block font-semibold text-[#252D27] mb-1">Equipment Type</label>
                     <select
                       value={productType}
                       onChange={(e) => setProductType(e.target.value)}
-                      className="w-full p-2 rounded-xl border border-stone-300 bg-white"
+                      className="w-full p-2 rounded-lg border border-[#E2E7DE] bg-white text-[#252D27]"
                     >
                       <option value="Irrigation systems">Irrigation Systems</option>
                       <option value="Water pumps">Water Pumps</option>
@@ -412,11 +430,11 @@ export const FarmerDashboardPage: React.FC = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block font-bold text-stone-700 mb-1">Power Source</label>
+                    <label className="block font-semibold text-[#252D27] mb-1">Power Source</label>
                     <select
                       value={powerSource}
                       onChange={(e) => setPowerSource(e.target.value as any)}
-                      className="w-full p-2 rounded-xl border border-stone-300 bg-white"
+                      className="w-full p-2 rounded-lg border border-[#E2E7DE] bg-white text-[#252D27]"
                     >
                       <option value="Manual">Manual</option>
                       <option value="Petrol">Petrol</option>
@@ -426,11 +444,11 @@ export const FarmerDashboardPage: React.FC = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block font-bold text-stone-700 mb-1">Condition</label>
+                    <label className="block font-semibold text-[#252D27] mb-1">Condition</label>
                     <select
                       value={equipmentCondition}
                       onChange={(e) => setEquipmentCondition(e.target.value as any)}
-                      className="w-full p-2 rounded-xl border border-stone-300 bg-white"
+                      className="w-full p-2 rounded-lg border border-[#E2E7DE] bg-white text-[#252D27]"
                     >
                       <option value="new">Brand New</option>
                       <option value="used">Used / Refurbished</option>
@@ -441,11 +459,11 @@ export const FarmerDashboardPage: React.FC = () => {
 
               {/* Livestock specific fields */}
               {category === 'livestock' && (
-                <div className="p-4 bg-amber-50/60 rounded-2xl border border-amber-200 space-y-3">
-                  <span className="font-bold text-amber-950 block">Animal Specifications & Verified Breed</span>
+                <div className="p-3.5 bg-[#FCF8EE] rounded-lg border border-[#D6A545]/40 space-y-3">
+                  <span className="font-bold text-[#79543A] block">Animal Specifications & Verified Breed</span>
                   <div className="grid grid-cols-3 gap-3">
                     <div>
-                      <label className="block font-bold text-stone-700 mb-1">Animal Type</label>
+                      <label className="block font-semibold text-[#252D27] mb-1">Animal Type</label>
                       <select
                         value={animalGroup}
                         onChange={(e) => {
@@ -477,7 +495,7 @@ export const FarmerDashboardPage: React.FC = () => {
                             setAnimalType('bees');
                           }
                         }}
-                        className="w-full p-2 rounded-lg border border-stone-300 bg-white"
+                        className="w-full p-2 rounded-lg border border-[#E2E7DE] bg-white text-[#252D27]"
                       >
                         <option value="Cattle">Cattle</option>
                         <option value="Goats">Goats</option>
@@ -492,11 +510,11 @@ export const FarmerDashboardPage: React.FC = () => {
 
                     {animalGroup === 'Cattle' ? (
                       <div>
-                        <label className="block font-bold text-stone-700 mb-1">Cattle Purpose</label>
+                        <label className="block font-semibold text-[#252D27] mb-1">Cattle Purpose</label>
                         <select
                           value={cattlePurpose}
                           onChange={(e) => setCattlePurpose(e.target.value as any)}
-                          className="w-full p-2 rounded-lg border border-stone-300 bg-white"
+                          className="w-full p-2 rounded-lg border border-[#E2E7DE] bg-white text-[#252D27]"
                         >
                           <option value="Dairy">Dairy</option>
                           <option value="Beef">Beef</option>
@@ -505,11 +523,11 @@ export const FarmerDashboardPage: React.FC = () => {
                       </div>
                     ) : (
                       <div>
-                        <label className="block font-bold text-stone-700 mb-1">Sex</label>
+                        <label className="block font-semibold text-[#252D27] mb-1">Sex</label>
                         <select
                           value={sex}
                           onChange={(e) => setSex(e.target.value as any)}
-                          className="w-full p-2 rounded-lg border border-stone-300 bg-white"
+                          className="w-full p-2 rounded-lg border border-[#E2E7DE] bg-white text-[#252D27]"
                         >
                           <option value="female">Female</option>
                           <option value="male">Male</option>
@@ -519,13 +537,13 @@ export const FarmerDashboardPage: React.FC = () => {
                     )}
 
                     <div>
-                      <label className="block font-bold text-stone-700 mb-1">Breed / Strain</label>
+                      <label className="block font-semibold text-[#252D27] mb-1">Breed / Strain</label>
                       <input
                         type="text"
                         value={breed}
                         onChange={(e) => setBreed(e.target.value)}
                         placeholder="e.g. Friesian, Galla, Dorper, Kienyeji"
-                        className="w-full p-2 rounded-lg border border-stone-300 bg-white"
+                        className="w-full p-2 rounded-lg border border-[#E2E7DE] bg-white text-[#252D27]"
                       />
                     </div>
                   </div>
@@ -534,74 +552,74 @@ export const FarmerDashboardPage: React.FC = () => {
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block font-bold text-stone-700 mb-1">Price in KSh</label>
+                  <label className="block font-semibold text-[#252D27] mb-1">Price in KSh</label>
                   <input
                     type="number"
                     required
                     value={priceKsh}
                     onChange={(e) => setPriceKsh(Number(e.target.value))}
-                    className="w-full p-2.5 rounded-xl border border-stone-300"
+                    className="w-full p-2.5 rounded-lg border border-[#E2E7DE] text-[#252D27] bg-white focus:outline-none focus:border-[#367C46]"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-stone-700 mb-1">Unit of Measurement</label>
+                  <label className="block font-semibold text-[#252D27] mb-1">Unit of Measurement</label>
                   <input
                     type="text"
                     required
                     value={unit}
                     onChange={(e) => setUnit(e.target.value)}
                     placeholder="e.g. 90kg bag, head, kg, crate"
-                    className="w-full p-2.5 rounded-xl border border-stone-300"
+                    className="w-full p-2.5 rounded-lg border border-[#E2E7DE] text-[#252D27] bg-white focus:outline-none focus:border-[#367C46]"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-stone-700 mb-1">Quantity Available</label>
+                  <label className="block font-semibold text-[#252D27] mb-1">Quantity Available</label>
                   <input
                     type="number"
                     required
                     value={quantityAvailable}
                     onChange={(e) => setQuantityAvailable(Number(e.target.value))}
-                    className="w-full p-2.5 rounded-xl border border-stone-300"
+                    className="w-full p-2.5 rounded-lg border border-[#E2E7DE] text-[#252D27] bg-white focus:outline-none focus:border-[#367C46]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-bold text-stone-700 mb-1">Description & Quality Details</label>
+                <label className="block font-semibold text-[#252D27] mb-1">Description & Quality Details</label>
                 <textarea
                   rows={3}
                   required
                   placeholder="Detail moisture content, feeding regime, vaccinations, minimum order requirements..."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-stone-300"
+                  className="w-full p-2.5 rounded-lg border border-[#E2E7DE] text-[#252D27] bg-white focus:outline-none focus:border-[#367C46]"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-stone-700 mb-1">Product Photograph URL</label>
+                <label className="block font-semibold text-[#252D27] mb-1">Product Photograph URL</label>
                 <input
                   type="url"
                   required
                   value={imageUrl}
                   onChange={(e) => setImageUrl(e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-stone-300"
+                  className="w-full p-2.5 rounded-lg border border-[#E2E7DE] text-[#252D27] bg-white focus:outline-none focus:border-[#367C46]"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-stone-100">
+              <div className="flex justify-end gap-2.5 pt-3 border-t border-[#E2E7DE]">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 rounded-xl border border-stone-300 text-stone-700 font-semibold cursor-pointer"
+                  className="px-4 py-2 rounded-lg border border-[#E2E7DE] text-[#252D27] text-xs font-semibold hover:bg-[#F7F6F0] cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-6 py-2 rounded-xl shadow-xs cursor-pointer"
+                  className="bg-[#367C46] hover:bg-[#2B6437] text-white font-semibold text-xs px-5 py-2 rounded-lg shadow-xs cursor-pointer transition"
                 >
                   Publish Listing to Kenya
                 </button>

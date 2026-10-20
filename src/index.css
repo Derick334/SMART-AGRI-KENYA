@@ -1,1 +1,154 @@
 @import "tailwindcss";
+
+@theme {
+  --font-sans: 'Manrope', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  
+  --color-forest: #214E34;
+  --color-forest-dark: #183C27;
+  --color-forest-light: #2C6443;
+  --color-forest-surface: #F0F5F2;
+
+  --color-agri: #367C46;
+  --color-agri-dark: #2B6437;
+  --color-agri-light: #469657;
+  --color-agri-surface: #EBF3ED;
+
+  --color-leaf: #78A65A;
+  --color-leaf-dark: #628A47;
+  --color-leaf-surface: #F2F7EF;
+
+  --color-harvest: #D6A545;
+  --color-harvest-dark: #B88930;
+  --color-harvest-surface: #FCF8EE;
+
+  --color-earth: #79543A;
+  --color-earth-dark: #60402A;
+  --color-earth-surface: #F7F2EE;
+
+  --color-ivory: #F7F6F0;
+  --color-white: #FFFFFF;
+  --color-charcoal: #252D27;
+  --color-charcoal-muted: #424D45;
+  --color-muted: #68756A;
+  --color-soft-border: #E2E7DE;
+  --color-soft-border-hover: #D0D8CB;
+}
+
+:root {
+  --brand-forest: #214E34;
+  --brand-agri: #367C46;
+  --brand-leaf: #78A65A;
+  --brand-harvest: #D6A545;
+  --brand-earth: #79543A;
+  --brand-ivory: #F7F6F0;
+  --brand-white: #FFFFFF;
+  --brand-charcoal: #252D27;
+  --brand-muted: #68756A;
+  --brand-border: #E2E7DE;
+}
+
+body {
+  background-color: #F7F6F0;
+  color: #252D27;
+  font-family: 'Manrope', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom scrollbar */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Reusable brand UI helpers */
+.agri-card {
+  background-color: #FFFFFF;
+  border: 1px solid #E2E7DE;
+  border-radius: 0.75rem; /* 12px moderate radius */
+  box-shadow: 0 1px 2px 0 rgba(33, 78, 52, 0.04);
+}
+
+.agri-card:hover {
+  border-color: #D0D8CB;
+}
+
+.agri-button-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: #367C46;
+  color: #FFFFFF;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  padding: 0.5625rem 1.125rem;
+  border-radius: 0.5rem;
+  transition: all 150ms ease;
+  box-shadow: 0 1px 2px 0 rgba(33, 78, 52, 0.08);
+  cursor: pointer;
+}
+
+.agri-button-primary:hover {
+  background-color: #2B6437;
+}
+
+.agri-button-forest {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: #214E34;
+  color: #FFFFFF;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  padding: 0.5625rem 1.125rem;
+  border-radius: 0.5rem;
+  transition: all 150ms ease;
+  cursor: pointer;
+}
+
+.agri-button-forest:hover {
+  background-color: #183C27;
+}
+
+.agri-button-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: #FFFFFF;
+  color: #252D27;
+  border: 1px solid #E2E7DE;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  padding: 0.5625rem 1.125rem;
+  border-radius: 0.5rem;
+  transition: all 150ms ease;
+  cursor: pointer;
+}
+
+.agri-button-secondary:hover {
+  background-color: #F7F6F0;
+  border-color: #D0D8CB;
+}
+
+.agri-input {
+  width: 100%;
+  background-color: #FFFFFF;
+  border: 1px solid #E2E7DE;
+  color: #252D27;
+  font-size: 0.8125rem;
+  padding: 0.5625rem 0.875rem;
+  border-radius: 0.5rem;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+  outline: none;
+}
+
+.agri-input:focus {
+  border-color: #367C46;
+  box-shadow: 0 0 0 3px rgba(54, 124, 70, 0.12);
+}

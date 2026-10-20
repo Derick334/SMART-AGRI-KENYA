@@ -1,0 +1,126 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="100%" height="100%">
+  <defs>
+    <linearGradient id="portalSky" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#E2F1E4"/>
+      <stop offset="40%" stop-color="#D0E7D3"/>
+      <stop offset="100%" stop-color="#B8DAC0"/>
+    </linearGradient>
+    <linearGradient id="shambaRidge" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3A7249"/>
+      <stop offset="50%" stop-color="#245431"/>
+      <stop offset="100%" stop-color="#183D22"/>
+    </linearGradient>
+    <linearGradient id="phoneBody" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E293B"/>
+      <stop offset="100%" stop-color="#0F172A"/>
+    </linearGradient>
+    <linearGradient id="screenGlow" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#EBF5ED"/>
+      <stop offset="60%" stop-color="#DCEEE0"/>
+      <stop offset="100%" stop-color="#CDE7D2"/>
+    </linearGradient>
+    <linearGradient id="shirtCheck" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#214E34"/>
+      <stop offset="50%" stop-color="#1B422B"/>
+      <stop offset="100%" stop-color="#133320"/>
+    </linearGradient>
+    <linearGradient id="skinTone" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#73472C"/>
+      <stop offset="100%" stop-color="#54301B"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Clear Shamba Morning Atmosphere -->
+  <rect width="1600" height="900" fill="url(#portalSky)"/>
+
+  <!-- Morning Sun Warmth -->
+  <circle cx="280" cy="200" r="160" fill="#FFFDF0" opacity="0.5"/>
+
+  <!-- Distant Kenyan Green Agricultural Terraces -->
+  <path d="M0,450 Q400,410 800,440 T1600,420 L1600,900 L0,900 Z" fill="#4B8258" opacity="0.4"/>
+  <path d="M0,510 Q450,470 950,500 T1600,480 L1600,900 L0,900 Z" fill="#3D7048" opacity="0.6"/>
+
+  <!-- Cultivated Rows of Crops (Maize & Veggie Shamba) -->
+  <path d="M0,570 Q350,540 750,565 T1600,550 L1600,900 L0,900 Z" fill="url(#shambaRidge)"/>
+
+  <!-- Neat Produce Harvest Crates in Background (Left) -->
+  <g transform="translate(180, 520)" opacity="0.8">
+    <rect x="0" y="40" width="160" height="90" rx="4" fill="#885E38"/>
+    <rect x="5" y="45" width="150" height="18" rx="2" fill="#A47547"/>
+    <rect x="5" y="70" width="150" height="18" rx="2" fill="#A47547"/>
+    <rect x="5" y="95" width="150" height="18" rx="2" fill="#A47547"/>
+    <!-- Stacked second crate -->
+    <rect x="30" y="-30" width="150" height="80" rx="4" fill="#754E2C"/>
+    <!-- Red tomatoes spilling out -->
+    <circle cx="65" cy="-20" r="14" fill="#D32F2F"/>
+    <circle cx="90" cy="-25" r="15" fill="#E53935"/>
+    <circle cx="115" cy="-18" r="14" fill="#C62828"/>
+  </g>
+
+  <!-- Kenyan Farmer Subject (Focal Point on Right/Center) -->
+  <g transform="translate(680, 100)">
+    <!-- Farmer Silhouette & Body in Field Vest / Work Clothes -->
+    <!-- Shoulders & Upper Body -->
+    <path d="M120,420 C60,450 -40,580 -80,800 L450,800 C420,580 320,450 260,420 Z" fill="url(#shirtCheck)"/>
+
+    <!-- Neck & Head -->
+    <path d="M150,420 L150,330 L230,330 L230,420 Z" fill="url(#skinTone)"/>
+    <!-- Confident Head / Face profile-angle -->
+    <ellipse cx="190" cy="240" rx="75" ry="95" fill="url(#skinTone)"/>
+
+    <!-- Farmer Brimmed Shamba Hat (Sun Protection) -->
+    <ellipse cx="190" cy="180" rx="145" ry="38" fill="#B08D57"/>
+    <path d="M110,180 C110,120 150,100 190,100 C230,100 270,120 270,180 Z" fill="#947442"/>
+    <rect x="110" y="170" width="160" height="14" fill="#694D25"/> <!-- Hat band -->
+
+    <!-- Smiling Profile & Facial Features -->
+    <path d="M225,230 Q240,245 225,260" stroke="#3D2010" stroke-width="4" fill="none"/> <!-- Nose curve -->
+    <ellipse cx="215" cy="225" rx="7" ry="5" fill="#201108"/> <!-- Eye -->
+    <path d="M205,275 Q225,295 240,275" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" fill="none"/> <!-- Warm smile -->
+
+    <!-- Arm & Hand Holding Smartphone (Focal Tech Interaction) -->
+    <g transform="translate(-160, 260)">
+      <!-- Forearm extending forward -->
+      <path d="M140,240 C190,260 270,290 320,330 C340,350 330,390 290,400 C230,410 160,370 110,330 Z" fill="url(#skinTone)"/>
+
+      <!-- Hand fingers holding phone sides naturally -->
+      <ellipse cx="325" cy="355" rx="18" ry="12" fill="url(#skinTone)"/>
+      <ellipse cx="335" cy="375" rx="18" ry="12" fill="url(#skinTone)"/>
+      <ellipse cx="330" cy="395" rx="18" ry="12" fill="url(#skinTone)"/>
+      <ellipse cx="280" cy="365" rx="20" ry="15" fill="url(#skinTone)"/> <!-- Thumb -->
+
+      <!-- Modern Smartphone (High-Tech Agricultural Portal) -->
+      <g transform="translate(290, 260) rotate(-12)">
+        <rect x="0" y="0" width="140" height="260" rx="20" fill="url(#phoneBody)" stroke="#475569" stroke-width="4"/>
+        <!-- Bezel & Camera Pin -->
+        <circle cx="70" cy="14" r="3" fill="#64748B"/>
+        <!-- Clear Screen with Digital Order Dashboard Elements -->
+        <rect x="10" y="28" width="120" height="216" rx="10" fill="url(#screenGlow)"/>
+
+        <!-- Clean Minimal Order Cards & Analytics (No unreadable text) -->
+        <rect x="20" y="44" width="100" height="22" rx="4" fill="#214E34"/>
+        <!-- Checkmark Badge -->
+        <circle cx="34" cy="55" r="5" fill="#D6A545"/>
+        <rect x="46" y="52" width="60" height="6" rx="3" fill="#FFFFFF"/>
+
+        <!-- Listing 1 (Produce order confirmed) -->
+        <rect x="20" y="76" width="100" height="42" rx="6" fill="#FFFFFF" stroke="#D1E7D5" stroke-width="2"/>
+        <circle cx="36" cy="97" r="10" fill="#367C46"/>
+        <rect x="54" y="88" width="54" height="6" rx="3" fill="#214E34"/>
+        <rect x="54" y="100" width="38" height="5" rx="2" fill="#849488"/>
+
+        <!-- Listing 2 (M-Pesa payment received) -->
+        <rect x="20" y="126" width="100" height="42" rx="6" fill="#FFFFFF" stroke="#D1E7D5" stroke-width="2"/>
+        <circle cx="36" cy="147" r="10" fill="#D6A545"/>
+        <rect x="54" y="138" width="50" height="6" rx="3" fill="#214E34"/>
+        <rect x="54" y="150" width="42" height="5" rx="2" fill="#849488"/>
+
+        <!-- Listing 3 (Truck transit scheduled) -->
+        <rect x="20" y="176" width="100" height="42" rx="6" fill="#FFFFFF" stroke="#D1E7D5" stroke-width="2"/>
+        <circle cx="36" cy="197" r="10" fill="#214E34"/>
+        <rect x="54" y="188" width="46" height="6" rx="3" fill="#214E34"/>
+        <rect x="54" y="200" width="32" height="5" rx="2" fill="#849488"/>
+      </g>
+    </g>
+  </g>
+</svg>

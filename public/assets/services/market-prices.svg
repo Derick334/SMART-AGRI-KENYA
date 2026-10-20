@@ -1,0 +1,140 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="100%" height="100%">
+  <defs>
+    <linearGradient id="mktSky" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#F5EFE6"/>
+      <stop offset="100%" stop-color="#E5D9C8"/>
+    </linearGradient>
+    <linearGradient id="crateWood" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#A67B4F"/>
+      <stop offset="50%" stop-color="#8C633C"/>
+      <stop offset="100%" stop-color="#6F4D2C"/>
+    </linearGradient>
+    <linearGradient id="crateWoodDark" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#7B5431"/>
+      <stop offset="100%" stop-color="#55371B"/>
+    </linearGradient>
+    <radialGradient id="tomatoRed" cx="35%" cy="30%" r="65%">
+      <stop offset="0%" stop-color="#FF5948"/>
+      <stop offset="40%" stop-color="#E82917"/>
+      <stop offset="90%" stop-color="#A81507"/>
+      <stop offset="100%" stop-color="#7A0B02"/>
+    </radialGradient>
+    <radialGradient id="onionGold" cx="35%" cy="30%" r="65%">
+      <stop offset="0%" stop-color="#E58B88"/>
+      <stop offset="50%" stop-color="#9C3A5A"/>
+      <stop offset="100%" stop-color="#5B1830"/>
+    </radialGradient>
+    <radialGradient id="potatoTan" cx="35%" cy="30%" r="65%">
+      <stop offset="0%" stop-color="#DFC49D"/>
+      <stop offset="50%" stop-color="#B89467"/>
+      <stop offset="100%" stop-color="#8A673E"/>
+    </radialGradient>
+    <linearGradient id="kaleGreen" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4E9652"/>
+      <stop offset="60%" stop-color="#2D6B32"/>
+      <stop offset="100%" stop-color="#184A1C"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Market Hall Background (Softly Blurred Wholesale Atmosphere) -->
+  <rect width="1600" height="900" fill="url(#mktSky)"/>
+
+  <!-- Timber Columns & Roof Structure -->
+  <g opacity="0.3">
+    <rect x="150" y="0" width="40" height="600" fill="#694C31"/>
+    <rect x="780" y="0" width="45" height="550" fill="#694C31"/>
+    <rect x="1420" y="0" width="40" height="600" fill="#694C31"/>
+    <line x1="0" y1="200" x2="1600" y2="180" stroke="#7A583A" stroke-width="12"/>
+    <line x1="0" y1="320" x2="1600" y2="290" stroke="#7A583A" stroke-width="8"/>
+  </g>
+
+  <!-- Blurred Silhouettes of Traders & Farmers in Background -->
+  <g opacity="0.45" transform="translate(680, 180)">
+    <!-- Trader 1 -->
+    <circle cx="80" cy="120" r="38" fill="#5C3D28"/>
+    <path d="M20,165 C40,150 120,150 140,165 L150,320 L10,320 Z" fill="#2A4836"/>
+    <!-- Trader 2 discussing -->
+    <circle cx="260" cy="130" r="36" fill="#6B442A"/>
+    <path d="M200,175 C220,160 300,160 320,175 L330,320 L190,320 Z" fill="#755239"/>
+    <!-- Distant produce piles -->
+    <ellipse cx="-150" cy="300" rx="160" ry="70" fill="#4B774E" opacity="0.6"/>
+    <ellipse cx="480" cy="290" rx="190" ry="80" fill="#D35400" opacity="0.5"/>
+  </g>
+
+  <!-- Foreground: Sturdy Wooden Produce Crates -->
+  <!-- Left Crate: Fresh Juicy Tomatoes -->
+  <g transform="translate(60, 420)">
+    <!-- Crate Base -->
+    <path d="M0,180 L440,180 L480,480 L-40,480 Z" fill="url(#crateWoodDark)"/>
+    <rect x="-20" y="240" width="480" height="45" rx="6" fill="url(#crateWood)"/>
+    <rect x="-30" y="320" width="500" height="45" rx="6" fill="url(#crateWood)"/>
+    <rect x="-40" y="400" width="520" height="45" rx="6" fill="url(#crateWood)"/>
+
+    <!-- Piled Fresh Farm Tomatoes -->
+    <g>
+      <circle cx="70" cy="150" r="54" fill="url(#tomatoRed)"/>
+      <circle cx="150" cy="135" r="58" fill="url(#tomatoRed)"/>
+      <circle cx="230" cy="145" r="55" fill="url(#tomatoRed)"/>
+      <circle cx="310" cy="140" r="56" fill="url(#tomatoRed)"/>
+      <circle cx="380" cy="155" r="50" fill="url(#tomatoRed)"/>
+      
+      <!-- Top layer -->
+      <circle cx="110" cy="75" r="56" fill="url(#tomatoRed)"/>
+      <circle cx="190" cy="65" r="60" fill="url(#tomatoRed)"/>
+      <circle cx="270" cy="70" r="58" fill="url(#tomatoRed)"/>
+      <circle cx="340" cy="90" r="52" fill="url(#tomatoRed)"/>
+      <circle cx="230" cy="5" r="55" fill="url(#tomatoRed)"/>
+
+      <!-- Tomato Green Calyx Stems -->
+      <path d="M190,5 L180,-10 M190,5 L200,-12 M190,5 L195,15" stroke="#378248" stroke-width="5" stroke-linecap="round"/>
+      <path d="M110,65 L105,50 M110,65 L120,52" stroke="#378248" stroke-width="4" stroke-linecap="round"/>
+      <path d="M270,60 L265,45 M270,60 L280,48" stroke="#378248" stroke-width="4" stroke-linecap="round"/>
+    </g>
+  </g>
+
+  <!-- Center Crate: Red Onions and Shangi Potatoes -->
+  <g transform="translate(560, 440)">
+    <rect x="0" y="220" width="480" height="45" rx="6" fill="url(#crateWood)"/>
+    <rect x="-10" y="300" width="500" height="45" rx="6" fill="url(#crateWood)"/>
+    <rect x="-20" y="380" width="520" height="45" rx="6" fill="url(#crateWood)"/>
+
+    <!-- Red Onions -->
+    <g>
+      <circle cx="80" cy="140" r="50" fill="url(#onionGold)"/>
+      <circle cx="160" cy="130" r="54" fill="url(#onionGold)"/>
+      <circle cx="230" cy="135" r="52" fill="url(#onionGold)"/>
+      <circle cx="120" cy="70" r="52" fill="url(#onionGold)"/>
+      <circle cx="190" cy="65" r="55" fill="url(#onionGold)"/>
+      <!-- Onion tip roots -->
+      <path d="M120,60 L120,40 M190,55 L190,35" stroke="#D1879B" stroke-width="4" stroke-linecap="round"/>
+    </g>
+
+    <!-- Clean Shangi Potatoes (Right half of crate) -->
+    <g>
+      <ellipse cx="320" cy="140" rx="60" ry="48" fill="url(#potatoTan)" transform="rotate(15 320 140)"/>
+      <ellipse cx="400" cy="150" rx="55" ry="46" fill="url(#potatoTan)" transform="rotate(-20 400 150)"/>
+      <ellipse cx="360" cy="80" rx="58" ry="48" fill="url(#potatoTan)" transform="rotate(10 360 80)"/>
+      <ellipse cx="280" cy="85" rx="54" ry="44" fill="url(#potatoTan)" transform="rotate(-10 280 85)"/>
+    </g>
+  </g>
+
+  <!-- Right Crate: Fresh Farm Greens / Sukuma Wiki & Cabbages -->
+  <g transform="translate(1080, 410)">
+    <rect x="0" y="240" width="480" height="45" rx="6" fill="url(#crateWood)"/>
+    <rect x="-10" y="320" width="500" height="45" rx="6" fill="url(#crateWood)"/>
+    <rect x="-20" y="400" width="520" height="45" rx="6" fill="url(#crateWood)"/>
+
+    <!-- Leafy Kales & Crisp Cabbages -->
+    <g>
+      <ellipse cx="140" cy="140" rx="90" ry="80" fill="url(#kaleGreen)"/>
+      <circle cx="140" cy="140" r="65" fill="#3D8244"/>
+      <ellipse cx="300" cy="130" rx="95" ry="85" fill="url(#kaleGreen)"/>
+      <circle cx="300" cy="130" r="70" fill="#47944E"/>
+      <ellipse cx="220" cy="60" rx="85" ry="75" fill="url(#kaleGreen)"/>
+      <circle cx="220" cy="60" r="60" fill="#58A85F"/>
+      <!-- Veins on greens -->
+      <path d="M220,10 C200,60 210,100 220,120" stroke="#87D68E" stroke-width="5" fill="none"/>
+      <path d="M140,90 C120,130 130,170 140,190" stroke="#87D68E" stroke-width="5" fill="none"/>
+    </g>
+  </g>
+</svg>

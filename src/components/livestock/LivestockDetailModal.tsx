@@ -6,12 +6,7 @@ import {
   Phone, 
   Truck, 
   ShoppingBag, 
-  Calendar, 
-  HeartHandshake, 
-  FileText, 
-  CheckCircle, 
-  Activity, 
-  Scale
+  CheckCircle
 } from 'lucide-react';
 import { Product } from '../../types';
 
@@ -26,7 +21,6 @@ export const LivestockDetailModal: React.FC<LivestockDetailModalProps> = ({
   product,
   onClose,
   onAddToCart,
-  userCounty = 'Nairobi',
 }) => {
   if (!product || !product.livestockDetails) return null;
 
@@ -37,25 +31,25 @@ export const LivestockDetailModal: React.FC<LivestockDetailModalProps> = ({
   const [showPhone, setShowPhone] = useState(false);
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-stone-950/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
-      <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[92vh] overflow-y-auto shadow-2xl border border-stone-200 relative animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+      <div className="bg-white rounded-xl max-w-4xl w-full max-h-[92vh] overflow-y-auto shadow-xl border border-[#E2E7DE] relative animate-in fade-in duration-200">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-10 w-9 h-9 rounded-full bg-stone-900/10 hover:bg-stone-900/20 text-stone-700 flex items-center justify-center transition cursor-pointer"
+          className="absolute top-4 right-4 z-10 w-8 h-8 rounded-lg bg-[#F7F6F0] hover:bg-[#EBF3ED] text-[#252D27] flex items-center justify-center transition cursor-pointer border border-[#E2E7DE]"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4" />
         </button>
 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-0">
           {/* Visual Column */}
-          <div className="md:col-span-5 p-6 bg-stone-50 border-r border-stone-200 flex flex-col gap-3">
-            <div className="aspect-4/3 w-full rounded-2xl overflow-hidden bg-white border border-stone-200 shadow-xs relative">
+          <div className="md:col-span-5 p-5 sm:p-6 bg-[#F7F6F0] border-r border-[#E2E7DE] flex flex-col gap-3">
+            <div className="aspect-4/3 w-full rounded-lg overflow-hidden bg-white border border-[#E2E7DE] shadow-xs relative">
               <img
                 src={selectedImage || product.images[0]}
                 alt={product.title}
                 className="w-full h-full object-cover"
               />
-              <span className="absolute top-3 left-3 bg-emerald-800 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
+              <span className="absolute top-3 left-3 bg-[#214E34]/90 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
                 {details.breed}
               </span>
             </div>
@@ -67,8 +61,8 @@ export const LivestockDetailModal: React.FC<LivestockDetailModalProps> = ({
                   <button
                     key={idx}
                     onClick={() => setSelectedImage(img)}
-                    className={`w-16 h-16 rounded-xl overflow-hidden border-2 transition ${
-                      selectedImage === img ? 'border-emerald-600 scale-105' : 'border-stone-200 opacity-70'
+                    className={`w-14 h-14 rounded-lg overflow-hidden border transition cursor-pointer ${
+                      selectedImage === img ? 'border-[#367C46] ring-1 ring-[#367C46]' : 'border-[#E2E7DE] opacity-75'
                     }`}
                   >
                     <img src={img} alt="" className="w-full h-full object-cover" />
@@ -78,31 +72,31 @@ export const LivestockDetailModal: React.FC<LivestockDetailModalProps> = ({
             )}
 
             {/* Seller Farm Card */}
-            <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-xs mt-auto">
-              <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider block mb-1">
+            <div className="bg-white p-3.5 rounded-lg border border-[#E2E7DE] shadow-xs mt-auto">
+              <span className="text-[10px] font-bold text-[#68756A] uppercase tracking-wider block mb-1">
                 Breeder & Rancher
               </span>
-              <p className="font-bold text-stone-900 text-sm">{product.sellerName}</p>
-              <p className="text-xs text-stone-600 flex items-center gap-1 mt-0.5">
-                <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+              <p className="font-bold text-[#252D27] text-sm">{product.sellerName}</p>
+              <p className="text-xs text-[#68756A] flex items-center gap-1 mt-0.5">
+                <MapPin className="w-3.5 h-3.5 text-[#367C46] shrink-0" />
                 {product.sellerCounty} County {product.sellerSubCounty ? `(${product.sellerSubCounty})` : ''}
               </p>
 
-              <div className="mt-3 pt-3 border-t border-stone-100">
+              <div className="mt-3 pt-2.5 border-t border-[#E2E7DE]">
                 {showPhone ? (
                   <a
                     href={`tel:${product.sellerPhone}`}
-                    className="w-full bg-emerald-100 text-emerald-900 font-bold text-xs py-2 px-3 rounded-xl flex items-center justify-center gap-2"
+                    className="w-full bg-[#EBF3ED] text-[#214E34] border border-[#CFD7CA] font-bold text-xs py-2 px-3 rounded-lg flex items-center justify-center gap-2"
                   >
-                    <Phone className="w-3.5 h-3.5" />
+                    <Phone className="w-3.5 h-3.5 text-[#367C46]" />
                     <span>{product.sellerPhone}</span>
                   </a>
                 ) : (
                   <button
                     onClick={() => setShowPhone(true)}
-                    className="w-full bg-stone-100 hover:bg-stone-200 text-stone-800 font-semibold text-xs py-2 px-3 rounded-xl flex items-center justify-center gap-2 cursor-pointer transition"
+                    className="w-full bg-[#F7F6F0] hover:bg-[#EBF3ED] text-[#252D27] font-semibold text-xs py-2 px-3 rounded-lg flex items-center justify-center gap-2 cursor-pointer transition border border-[#E2E7DE]"
                   >
-                    <Phone className="w-3.5 h-3.5" />
+                    <Phone className="w-3.5 h-3.5 text-[#68756A]" />
                     <span>Contact Breeder / Farm</span>
                   </button>
                 )}
@@ -111,45 +105,45 @@ export const LivestockDetailModal: React.FC<LivestockDetailModalProps> = ({
           </div>
 
           {/* Details Column */}
-          <div className="md:col-span-7 p-6 flex flex-col justify-between">
+          <div className="md:col-span-7 p-5 sm:p-6 flex flex-col justify-between">
             <div>
               <div className="flex flex-wrap items-center gap-2 mb-2 text-xs">
-                <span className="bg-emerald-100 text-emerald-800 font-bold px-2.5 py-0.5 rounded-full">
+                <span className="bg-[#EBF3ED] text-[#214E34] font-bold px-2 py-0.5 rounded border border-[#CFD7CA]">
                   {details.animalType.replace('_', ' ').toUpperCase()}
                 </span>
-                <span className="bg-stone-100 text-stone-700 font-semibold px-2.5 py-0.5 rounded-full">
+                <span className="bg-[#F7F6F0] text-[#252D27] font-semibold px-2 py-0.5 rounded border border-[#E2E7DE]">
                   Breed: {details.breed}
                 </span>
                 {details.earTagNumber && (
-                  <span className="bg-stone-100 text-stone-600 font-mono text-[11px] px-2 py-0.5 rounded-full">
+                  <span className="bg-[#F7F6F0] text-[#68756A] font-mono text-[11px] px-2 py-0.5 rounded border border-[#E2E7DE]">
                     Tag: {details.earTagNumber}
                   </span>
                 )}
               </div>
 
-              <h2 className="text-xl font-extrabold text-stone-950 mb-2 leading-tight">
+              <h2 className="text-lg sm:text-xl font-extrabold text-[#214E34] mb-2 leading-tight">
                 {product.title}
               </h2>
 
               {/* Price Banner */}
-              <div className="p-3.5 bg-emerald-50 rounded-2xl border border-emerald-100 mb-4 flex items-center justify-between">
+              <div className="p-3 bg-[#EBF3ED] rounded-lg border border-[#CFD7CA] mb-4 flex items-center justify-between">
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-emerald-800 tracking-wide block">
-                    Asking Price (Escrow Protected)
+                  <span className="text-[10px] uppercase font-bold text-[#214E34] tracking-wide block">
+                    Escrow Protected Price
                   </span>
                   <div className="flex items-baseline gap-1.5">
-                    <span className="text-2xl font-black text-emerald-950">
+                    <span className="text-xl sm:text-2xl font-black text-[#214E34] tabular-nums">
                       KSh {product.priceKsh.toLocaleString()}
                     </span>
-                    <span className="text-xs text-emerald-800 font-semibold">
+                    <span className="text-xs text-[#68756A] font-semibold">
                       / {product.unit}
                     </span>
                   </div>
                 </div>
 
                 <div className="text-right text-xs">
-                  <span className="block text-stone-500 font-medium">Available</span>
-                  <span className="font-bold text-emerald-900">
+                  <span className="block text-[#68756A] font-medium text-[11px]">Available</span>
+                  <span className="font-bold text-[#214E34]">
                     {product.quantityAvailable} {product.unit}(s)
                   </span>
                 </div>
@@ -157,28 +151,28 @@ export const LivestockDetailModal: React.FC<LivestockDetailModalProps> = ({
 
               {/* Pedigree & Biological Specifications Grid */}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs mb-4">
-                <div className="p-2.5 bg-stone-50 rounded-xl border border-stone-200">
-                  <span className="text-[10px] text-stone-500 block">Age & Stage</span>
-                  <span className="font-bold text-stone-800">
+                <div className="p-2.5 bg-[#F7F6F0] rounded-lg border border-[#E2E7DE]">
+                  <span className="text-[10px] text-[#68756A] block">Age & Stage</span>
+                  <span className="font-bold text-[#252D27]">
                     {details.ageValue} {details.ageUnit}
                   </span>
                   {details.lactationStage && (
-                    <span className="text-[10px] text-emerald-700 block mt-0.5 font-medium">
+                    <span className="text-[10px] text-[#367C46] block mt-0.5 font-medium">
                       {details.lactationStage}
                     </span>
                   )}
                 </div>
 
-                <div className="p-2.5 bg-stone-50 rounded-xl border border-stone-200">
-                  <span className="text-[10px] text-stone-500 block">Sex & Purpose</span>
-                  <span className="font-bold text-stone-800 capitalize">
+                <div className="p-2.5 bg-[#F7F6F0] rounded-lg border border-[#E2E7DE]">
+                  <span className="text-[10px] text-[#68756A] block">Sex & Purpose</span>
+                  <span className="font-bold text-[#252D27] capitalize">
                     {details.sex} • {details.purpose}
                   </span>
                 </div>
 
-                <div className="p-2.5 bg-emerald-50/70 rounded-xl border border-emerald-100">
-                  <span className="text-[10px] text-emerald-800 block">Yield / Output</span>
-                  <span className="font-black text-emerald-950">
+                <div className="p-2.5 bg-[#EBF3ED] rounded-lg border border-[#CFD7CA]">
+                  <span className="text-[10px] text-[#214E34] font-semibold block">Yield / Output</span>
+                  <span className="font-black text-[#214E34]">
                     {details.milkYieldLitersPerDay ? `${details.milkYieldLitersPerDay} Litres/day` :
                      details.eggYieldPerWeek ? `${details.eggYieldPerWeek} eggs/week` :
                      details.weightKg ? `${details.weightKg} kg weight` : 'Prime Genetics'}
@@ -188,20 +182,20 @@ export const LivestockDetailModal: React.FC<LivestockDetailModalProps> = ({
 
               {/* Feed & Management Notes */}
               {details.feedRegime && (
-                <div className="p-3 bg-stone-50 rounded-xl border border-stone-200 text-xs text-stone-700 mb-4">
-                  <span className="font-bold text-stone-900 block mb-1">
+                <div className="p-3 bg-[#F7F6F0] rounded-lg border border-[#E2E7DE] text-xs text-[#252D27] mb-4">
+                  <span className="font-bold text-[#214E34] block mb-1">
                     Feed Regime & Management:
                   </span>
-                  <span>{details.feedRegime}</span>
+                  <span className="text-[#68756A]">{details.feedRegime}</span>
                 </div>
               )}
 
               {/* Vaccination & Veterinary History */}
               <div className="mb-4">
-                <h4 className="text-xs font-bold text-stone-900 uppercase tracking-wider mb-2 flex items-center justify-between">
+                <h4 className="text-xs font-bold text-[#252D27] uppercase tracking-wider mb-2 flex items-center justify-between">
                   <span>Veterinary Health & Vaccination Records</span>
-                  <span className="text-emerald-700 text-[11px] font-semibold flex items-center gap-1">
-                    <ShieldCheck className="w-3.5 h-3.5" /> {details.healthStatus}
+                  <span className="text-[#214E34] text-[11px] font-semibold flex items-center gap-1 bg-[#EBF3ED] px-2 py-0.5 rounded border border-[#CFD7CA]">
+                    <ShieldCheck className="w-3.5 h-3.5 text-[#367C46]" /> {details.healthStatus}
                   </span>
                 </h4>
 
@@ -209,16 +203,16 @@ export const LivestockDetailModal: React.FC<LivestockDetailModalProps> = ({
                   {details.vaccinations.map((vac, idx) => (
                     <div 
                       key={idx} 
-                      className="p-2 rounded-lg bg-emerald-50/50 border border-emerald-100 text-xs flex items-center justify-between"
+                      className="p-2 rounded-lg bg-[#EBF3ED]/60 border border-[#CFD7CA] text-xs flex items-center justify-between"
                     >
                       <div className="flex items-center gap-2">
-                        <CheckCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        <CheckCircle className="w-3.5 h-3.5 text-[#367C46] shrink-0" />
                         <div>
-                          <span className="font-semibold text-emerald-950 block">{vac.vaccineName}</span>
-                          {vac.vetName && <span className="text-[10px] text-stone-500">Certified by: {vac.vetName}</span>}
+                          <span className="font-semibold text-[#214E34] block">{vac.vaccineName}</span>
+                          {vac.vetName && <span className="text-[10px] text-[#68756A]">Certified by: {vac.vetName}</span>}
                         </div>
                       </div>
-                      <span className="text-[11px] text-stone-500 font-mono">
+                      <span className="text-[11px] text-[#68756A] font-mono">
                         {vac.dateAdministered}
                       </span>
                     </div>
@@ -227,22 +221,22 @@ export const LivestockDetailModal: React.FC<LivestockDetailModalProps> = ({
               </div>
 
               {/* Transport Compliance Note */}
-              <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-900 mb-4">
+              <div className="p-3 bg-[#FCF8EE] rounded-lg border border-[#D6A545]/40 text-xs text-[#79543A] mb-4">
                 <p className="font-bold flex items-center gap-1.5">
-                  <Truck className="w-4 h-4 text-amber-700" />
+                  <Truck className="w-4 h-4 text-[#79543A]" />
                   Specialized Livestock Transport Available
                 </p>
-                <p className="text-[11px] text-amber-800 mt-0.5">
+                <p className="text-[11px] text-[#68756A] mt-0.5">
                   We provide specialized animal transport trucks with dividers, straw bedding, and Kenya Veterinary Movement Permits between counties.
                 </p>
               </div>
             </div>
 
             {/* Bottom Actions */}
-            <div className="pt-4 border-t border-stone-200 flex items-center justify-between gap-3">
+            <div className="pt-3 border-t border-[#E2E7DE] flex items-center justify-between gap-3">
               <div>
-                <span className="text-[10px] text-stone-500 block">Total Payable</span>
-                <span className="text-lg font-black text-emerald-950">
+                <span className="text-[10px] text-[#68756A] block">Total Payable</span>
+                <span className="text-base sm:text-lg font-black text-[#214E34] tabular-nums">
                   KSh {(product.priceKsh * quantity).toLocaleString()}
                 </span>
               </div>
@@ -252,9 +246,9 @@ export const LivestockDetailModal: React.FC<LivestockDetailModalProps> = ({
                   onAddToCart(product, quantity, deliveryType);
                   onClose();
                 }}
-                className="flex-1 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 shadow-md shadow-emerald-800/20 transition cursor-pointer"
+                className="flex-1 bg-[#367C46] hover:bg-[#2B6437] text-white font-semibold text-xs py-2.5 px-4 rounded-lg flex items-center justify-center gap-1.5 shadow-xs transition cursor-pointer"
               >
-                <ShoppingBag className="w-4 h-4 text-emerald-300" />
+                <ShoppingBag className="w-3.5 h-3.5" />
                 <span>Add Livestock to Cart</span>
               </button>
             </div>
