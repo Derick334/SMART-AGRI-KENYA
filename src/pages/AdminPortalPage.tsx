@@ -1,317 +1,520 @@
-import React, { useState } from 'react';
-import { 
-  ShieldAlert, 
-  CheckCircle2, 
+
+import React, { useEffect, useState } from 'react';
+import {
+  ShieldAlert,
+  CheckCircle2,
   Lock,
-  Activity
+  Activity,
+  RefreshCw,
+  LogOut,
+  Users,
+  Truck,
+  CreditCard,
+  ClipboardCheck,
+  AlertTriangle,
 } from 'lucide-react';
+
 import { agriStore } from '../services/store';
 import { KENYA_VEHICLES } from '../services/distanceCalculator';
 import { SmartAgriLogo } from '../components/common/SmartAgriLogo';
 
+type AdminTab =
+  | 'overview'
+  | 'verifications'
+  | 'shipping_rates'
+  | 'transactions';
+
+type PendingFarmer = {
+  id: string;
+  name: string;
+  farmName: string;
+  county: string;
+  crops: string;
+  appliedAt: string;
+};
+
 export const AdminPortalPage: React.FC = () => {
-  const currentUser = agriStore.getCurrentUser();
+  const [activeTab, setActiveTab] = useState<AdminTab>('overview');
+  const [notice, setNotice] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  // Re-read the current user when the page mounts.
+  const [currentUser, setCurrentUser] = useState(
+    () => agriStore.getCurrentUser()
+  );
+
+  const [pendingFarmers, setPendingFarmers] = useState<PendingFarmer[]>([]);
+  const [vehicleRates, setVehicleRates] = useState(() =>
+    KENYA_VEHICLES.map((vehicle) => ({ ...vehicle }))
+  );
+
   const stats = agriStore.getAdminStats();
-  const [activeAdminTab, setActiveAdminTab] = useState<'overview' | 'verifications' | 'listings' | 'transactions' | 'shipping_rates' | 'logs'>('overview');
-  const [adminNotice, setAdminNotice] = useState<string | null>(null);
 
-  // Pending Verifications Mock
-  const [pendingFarmers, setPendingFarmers] = useState([
-    { id: 'kyc-1', name: 'Kiprotich Koech', farmName: 'Molo High Potato Ranch', idNumber: '29841029', county: 'Nakuru', crops: 'Shangi Potatoes, Pyrethrum', appliedAt: '2026-10-16' },
-    { id: 'kyc-2', name: 'Agnes Mutheu', farmName: 'Yatta Mango Orchards', idNumber: '24910283', county: 'Machakos', crops: 'Apple Mangoes, Citrus', appliedAt: '2026-10-15' },
-    { id: 'kyc-3', name: 'Hussein Hassan', farmName: 'Garissa Boran Feedlot', idNumber: '31092841', county: 'Garissa', crops: 'Boran Beef Bulls', appliedAt: '2026-10-14' },
-  ]);
+  useEffect(() => {
+    setCurrentUser(agriStore.getCurrentUser());
+  }, []);
 
-  // Shipping Rates Configuration State
-  const [vehicleRates] = useState(KENYA_VEHICLES);
-
-  const handleApproveFarmer = (id: string) => {
-    setPendingFarmers(pendingFarmers.filter(f => f.id !== id));
-    setAdminNotice('Farmer profile and KYC credentials verified! Approved seller badge issued.');
-    setTimeout(() => setAdminNotice(null), 5000);
+  const showNotice = (message: string) => {
+    setNotice(message);
+    setError('');
   };
 
-  const handleRejectFarmer = (id: string) => {
-    setPendingFarmers(pendingFarmers.filter(f => f.id !== id));
-    setAdminNotice('Farmer application flagged for resubmission of clear ID documents.');
-    setTimeout(() => setAdminNotice(null), 5000);
+  const showError = (message: string) => {
+    setError(message);
+    setNotice('');
   };
 
-  // If not logged in as admin, show security authentication prompt
-  if (currentUser.role !== 'admin') {
+  const refreshPage = () => {
+    setCurrentUser(agriStore.getCurrentUser());
+    window.location.reload();
+  };
+
+  // Frontend check improves navigation only.
+  // Real administrator access MUST also be enforced by the backend.
+  if (!currentUser || currentUser.role !== 'admin') {
     return (
-      <div className="max-w-md mx-auto px-4 py-16 text-center space-y-4">
-        <div className="flex justify-center mb-1">
-          <SmartAgriLogo variant="full" size="md" />
-        </div>
-        <div className="w-14 h-14 rounded-xl bg-[#FCF8EE] border border-[#E2E7DE] text-[#D6A545] flex items-center justify-center mx-auto shadow-xs">
-          <ShieldAlert className="w-7 h-7" />
-        </div>
-        <h2 className="text-xl font-extrabold text-[#214E34]">
-          Administrator Security Checkpoint
-        </h2>
-        <p className="text-xs text-[#68756A] leading-relaxed">
-          Access to <strong>/admin</strong> requires authorized administrative security credentials. You are currently logged in as <strong>{currentUser.name}</strong> ({currentUser.role}).
-        </p>
-
-        <div className="p-4 bg-white rounded-xl border border-[#E2E7DE] text-xs text-[#252D27]">
-          <p className="font-semibold text-[#214E34] mb-1">Administrative Operations Include:</p>
-          <ul className="text-[11px] space-y-1 text-[#68756A]">
-            <li>· National seller KYC identity approvals</li>
-            <li>· M-Pesa Daraja payment reconciliation</li>
-            <li>· KeNHA highway freight fee configurations</li>
-          </ul>
-        </div>
-
-        <button
-          onClick={() => agriStore.switchRole('admin')}
-          className="w-full bg-[#214E34] hover:bg-[#183C27] text-white font-semibold text-xs py-2.5 rounded-lg transition flex items-center justify-center gap-2 cursor-pointer shadow-xs"
-        >
-          <Lock className="w-4 h-4 text-[#D6A545]" />
-          <span>Switch to Administrator Persona</span>
-        </button>
-      </div>
-    );
-  }
-
-  return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      {adminNotice && (
-        <div className="p-3.5 bg-[#EBF3ED] border border-[#CFD7CA] text-[#214E34] text-xs font-semibold rounded-lg flex items-center justify-between shadow-xs">
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-[#367C46] shrink-0" />
-            <span>{adminNotice}</span>
+      <main className="min-h-[70vh] flex items-center justify-center px-4 py-12 bg-[#F7F6F0]">
+        <section className="w-full max-w-md bg-white rounded-2xl border border-[#E2E7DE] shadow-sm p-7 text-center space-y-5">
+          <div className="flex justify-center">
+            <SmartAgriLogo variant="full" size="md" />
           </div>
-          <button onClick={() => setAdminNotice(null)} className="text-[#214E34] p-1 cursor-pointer">✕</button>
-        </div>
-      )}
 
-      {/* Admin Header */}
-      <div className="bg-white rounded-xl p-6 sm:p-8 border border-[#E2E7DE] shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 text-[#367C46] text-xs font-bold uppercase tracking-wider mb-2">
-            <ShieldAlert className="w-4 h-4 text-[#D6A545]" />
-            <span>Central Operations & Governance Portal</span>
+          <div className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-200 text-amber-700 flex items-center justify-center mx-auto">
+            <ShieldAlert className="w-8 h-8" />
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#214E34]">
-            SMART-AGRI KENYA Administration Dashboard
-          </h1>
-          <p className="text-xs sm:text-sm text-[#68756A] mt-1 max-w-xl">
-            Logged in as Super Administrator: <strong>{currentUser.email}</strong>. Manage KYC approvals, payment transactions, shipping rates, and system audit logs.
-          </p>
-        </div>
 
-        <div className="flex items-center gap-2 bg-[#F7F6F0] px-3.5 py-2 rounded-lg border border-[#E2E7DE]">
-          <Activity className="w-4 h-4 text-[#367C46]" />
-          <span className="text-xs font-mono font-semibold text-[#252D27]">System Status: All Services Operational</span>
-        </div>
-      </div>
-
-      {/* Admin KPI Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="p-4 bg-white rounded-xl border border-[#E2E7DE] shadow-xs">
-          <span className="text-[10px] uppercase font-bold text-[#68756A] block">Registered Users</span>
-          <span className="text-2xl font-extrabold text-[#252D27] mt-1 block tabular-nums">
-            {stats.totalUsers.toLocaleString()}
-          </span>
-          <span className="text-[11px] text-[#367C46] font-semibold mt-0.5 block">
-            {stats.verifiedFarmers.toLocaleString()} Verified Farmers
-          </span>
-        </div>
-
-        <div className="p-4 bg-white rounded-xl border border-[#E2E7DE] shadow-xs">
-          <span className="text-[10px] uppercase font-bold text-[#68756A] block">Marketplace Volume</span>
-          <span className="text-2xl font-extrabold text-[#214E34] mt-1 block tabular-nums">
-            KSh {stats.totalVolumeKsh.toLocaleString()}
-          </span>
-          <span className="text-[11px] text-[#68756A] mt-0.5 block">Total M-Pesa Throughput</span>
-        </div>
-
-        <div className="p-4 bg-white rounded-xl border border-[#E2E7DE] shadow-xs">
-          <span className="text-[10px] uppercase font-bold text-[#68756A] block">Pending KYC Approvals</span>
-          <span className="text-2xl font-extrabold text-[#79543A] mt-1 block tabular-nums">
-            {pendingFarmers.length}
-          </span>
-          <span className="text-[11px] text-[#68756A] mt-0.5 block">Awaiting ID Verification</span>
-        </div>
-
-        <div className="p-4 bg-white rounded-xl border border-[#E2E7DE] shadow-xs">
-          <span className="text-[10px] uppercase font-bold text-[#68756A] block">Soil Tests Processed</span>
-          <span className="text-2xl font-extrabold text-[#367C46] mt-1 block tabular-nums">
-            {stats.soilTestsCompleted}
-          </span>
-          <span className="text-[11px] text-[#68756A] mt-0.5 block">KALRO / CropNuts Network</span>
-        </div>
-      </div>
-
-      {/* Admin Navigation Tabs */}
-      <div className="flex flex-wrap gap-2 text-xs font-semibold border-b border-[#E2E7DE] pb-2">
-        <button
-          onClick={() => setActiveAdminTab('overview')}
-          className={`px-3.5 py-1.5 rounded-lg transition cursor-pointer ${
-            activeAdminTab === 'overview' ? 'bg-[#214E34] text-white' : 'bg-white text-[#252D27] border border-[#E2E7DE] hover:bg-[#F7F6F0]'
-          }`}
-        >
-          Operations Overview
-        </button>
-        <button
-          onClick={() => setActiveAdminTab('verifications')}
-          className={`px-3.5 py-1.5 rounded-lg transition cursor-pointer flex items-center gap-1.5 ${
-            activeAdminTab === 'verifications' ? 'bg-[#214E34] text-white' : 'bg-white text-[#252D27] border border-[#E2E7DE] hover:bg-[#F7F6F0]'
-          }`}
-        >
-          <span>Farmer KYC Approvals</span>
-          <span className="bg-[#D6A545] text-[#252D27] text-[10px] font-bold px-1.5 rounded">{pendingFarmers.length}</span>
-        </button>
-        <button
-          onClick={() => setActiveAdminTab('shipping_rates')}
-          className={`px-3.5 py-1.5 rounded-lg transition cursor-pointer ${
-            activeAdminTab === 'shipping_rates' ? 'bg-[#214E34] text-white' : 'bg-white text-[#252D27] border border-[#E2E7DE] hover:bg-[#F7F6F0]'
-          }`}
-        >
-          Freight & Road Rates Config
-        </button>
-        <button
-          onClick={() => setActiveAdminTab('transactions')}
-          className={`px-3.5 py-1.5 rounded-lg transition cursor-pointer ${
-            activeAdminTab === 'transactions' ? 'bg-[#214E34] text-white' : 'bg-white text-[#252D27] border border-[#E2E7DE] hover:bg-[#F7F6F0]'
-          }`}
-        >
-          M-Pesa Escrow Ledger
-        </button>
-      </div>
-
-      {/* Tab Panels */}
-      {activeAdminTab === 'verifications' && (
-        <div className="bg-white rounded-xl border border-[#E2E7DE] p-6 shadow-xs space-y-4">
-          <h3 className="font-bold text-xs text-[#214E34] uppercase tracking-wider">
-            Pending Farmer Identity & Farm Ownership Reviews
-          </h3>
-
-          <div className="divide-y divide-[#E2E7DE] border border-[#E2E7DE] rounded-lg overflow-hidden">
-            {pendingFarmers.map((farmer) => (
-              <div key={farmer.id} className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs bg-white">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-[#252D27] text-sm">{farmer.name}</span>
-                    <span className="bg-[#F7F6F0] text-[#252D27] font-mono text-[10px] px-2 py-0.5 rounded border border-[#E2E7DE]">
-                      ID: {farmer.idNumber}
-                    </span>
-                  </div>
-                  <p className="text-[#252D27] font-medium mt-0.5">{farmer.farmName} · {farmer.county} County</p>
-                  <p className="text-[11px] text-[#68756A]">Produce: {farmer.crops} · Applied: {farmer.appliedAt}</p>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => handleApproveFarmer(farmer.id)}
-                    className="bg-[#367C46] hover:bg-[#2B6437] text-white font-semibold text-xs px-3.5 py-1.5 rounded-lg transition flex items-center gap-1 cursor-pointer"
-                  >
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Approve & Verify</span>
-                  </button>
-
-                  <button
-                    onClick={() => handleRejectFarmer(farmer.id)}
-                    className="bg-[#F7F6F0] hover:bg-white text-[#79543A] border border-[#E2E7DE] font-semibold text-xs px-3 py-1.5 rounded-lg transition cursor-pointer"
-                  >
-                    Flag Docs
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {activeAdminTab === 'shipping_rates' && (
-        <div className="bg-white rounded-xl border border-[#E2E7DE] p-6 shadow-xs space-y-4">
           <div>
-            <h3 className="font-bold text-xs text-[#214E34] uppercase tracking-wider">
-              KeNHA Highway Logistics Rates Configuration
-            </h3>
-            <p className="text-xs text-[#68756A] mt-0.5">
-              Adjust base charges and per-kilometer tariffs used by the delivery calculator across Kenya
+            <h1 className="text-2xl font-extrabold text-[#214E34]">
+              Administrator Access Required
+            </h1>
+            <p className="text-sm text-[#68756A] mt-2 leading-6">
+              This area is restricted to authorized SMART-AGRI KENYA administrators.
+              Sign in with an authorized account to continue.
             </p>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs text-left border-collapse">
-              <thead>
-                <tr className="border-b border-[#E2E7DE] bg-[#F7F6F0] text-[#68756A] font-bold uppercase tracking-wider">
-                  <th className="p-3">Vehicle / Carrier Type</th>
-                  <th className="p-3">Base Fare (KSh)</th>
-                  <th className="p-3">Rate per KM (KSh)</th>
-                  <th className="p-3">Max Capacity (kg)</th>
-                  <th className="p-3">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#E2E7DE]">
-                {vehicleRates.map((v) => (
-                  <tr key={v.type}>
-                    <td className="p-3 font-bold text-[#252D27]">
-                      <span>{v.label}</span>
-                      <p className="text-[10px] text-[#68756A] font-normal">{v.description}</p>
-                    </td>
-                    <td className="p-3 font-semibold text-[#252D27] tabular-nums">
-                      KSh {v.baseFareKsh.toLocaleString()}
-                    </td>
-                    <td className="p-3 font-semibold text-[#214E34] tabular-nums">
-                      KSh {v.ratePerKmKsh}/km
-                    </td>
-                    <td className="p-3 font-mono text-[#68756A] tabular-nums">
-                      {v.maxWeightKg.toLocaleString()} kg
-                    </td>
-                    <td className="p-3">
+          <div className="bg-[#F7F6F0] border border-[#E2E7DE] rounded-xl p-4 text-left">
+            <div className="flex gap-3 items-start">
+              <Lock className="w-5 h-5 text-[#214E34] shrink-0" />
+              <div>
+                <p className="font-bold text-sm text-[#214E34]">
+                  Protected administration
+                </p>
+                <p className="text-xs text-[#68756A] mt-1 leading-5">
+                  Role changes made in the browser are not accepted as proof of
+                  administrator authorization. Access must be verified by the
+                  authentication provider and backend.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <button
+            onClick={() => {
+              window.location.assign('/login');
+            }}
+            className="w-full bg-[#214E34] hover:bg-[#183C27] text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2"
+          >
+            <Lock className="w-4 h-4" />
+            Go to Secure Login
+          </button>
+
+          <button
+            onClick={refreshPage}
+            className="text-sm text-[#367C46] font-semibold flex items-center justify-center gap-2 mx-auto"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Refresh authorization status
+          </button>
+        </section>
+      </main>
+    );
+  }
+
+  // Do not display fabricated personal or payment information.
+  // Connect these actions to authenticated backend endpoints before use.
+  const performAdminAction = async (
+    action: 'approve' | 'reject' | 'save-rate',
+    id: string
+  ) => {
+    setLoading(true);
+    setNotice('');
+    setError('');
+
+    try {
+      // No fake success: this component has no verified admin API.
+      // Add your authenticated backend request here.
+      void action;
+      void id;
+
+      throw new Error(
+        'Administrative backend is not configured. No changes were saved.'
+      );
+    } catch (err) {
+      showError(
+        err instanceof Error
+          ? err.message
+          : 'The operation could not be completed.'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const tabs: { id: AdminTab; label: string; icon: React.ReactNode }[] = [
+    { id: 'overview', label: 'Overview', icon: <Activity className="w-4 h-4" /> },
+    {
+      id: 'verifications',
+      label: 'Farmer Verifications',
+      icon: <ClipboardCheck className="w-4 h-4" />,
+    },
+    {
+      id: 'shipping_rates',
+      label: 'Shipping Rates',
+      icon: <Truck className="w-4 h-4" />,
+    },
+    {
+      id: 'transactions',
+      label: 'Transactions',
+      icon: <CreditCard className="w-4 h-4" />,
+    },
+  ];
+
+  return (
+    <main className="min-h-screen bg-[#F7F6F0]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        {notice && (
+          <div
+            role="status"
+            className="p-4 bg-green-50 border border-green-200 text-green-900 rounded-xl flex items-center gap-3"
+          >
+            <CheckCircle2 className="w-5 h-5 shrink-0" />
+            <span className="text-sm font-medium">{notice}</span>
+            <button
+              onClick={() => setNotice('')}
+              className="ml-auto"
+              aria-label="Dismiss notification"
+            >
+              ×
+            </button>
+          </div>
+        )}
+
+        {error && (
+          <div
+            role="alert"
+            className="p-4 bg-red-50 border border-red-200 text-red-800 rounded-xl flex items-start gap-3"
+          >
+            <AlertTriangle className="w-5 h-5 shrink-0" />
+            <div className="text-sm">{error}</div>
+            <button
+              onClick={() => setError('')}
+              className="ml-auto"
+              aria-label="Dismiss error"
+            >
+              ×
+            </button>
+          </div>
+        )}
+
+        <header className="bg-white rounded-2xl border border-[#E2E7DE] p-6 sm:p-8 shadow-sm">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+            <div>
+              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[#367C46] mb-3">
+                <ShieldAlert className="w-4 h-4" />
+                Central Operations
+              </div>
+
+              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#214E34]">
+                SMART-AGRI KENYA
+              </h1>
+
+              <h2 className="text-lg font-semibold text-[#252D27] mt-1">
+                Administration Dashboard
+              </h2>
+
+              <p className="text-sm text-[#68756A] mt-2">
+                Signed-in account: {currentUser.email || currentUser.name}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 px-4 py-3 rounded-xl border border-amber-200 bg-amber-50">
+                <Activity className="w-4 h-4 text-amber-700" />
+                <div>
+                  <p className="text-xs font-bold text-amber-900">
+                    Backend verification required
+                  </p>
+                  <p className="text-[11px] text-amber-800">
+                    Live health status unavailable
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => {
+                  window.location.assign('/login');
+                }}
+                className="p-3 rounded-xl border border-[#E2E7DE] bg-white hover:bg-gray-50"
+                aria-label="Return to login"
+                title="Return to login"
+              >
+                <LogOut className="w-5 h-5 text-[#214E34]" />
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          {[
+            {
+              label: 'Registered Users',
+              value: stats.totalUsers,
+              detail: `${stats.verifiedFarmers} verified farmers`,
+              icon: <Users className="w-5 h-5" />,
+            },
+            {
+              label: 'Marketplace Volume',
+              value: `KSh ${stats.totalVolumeKsh.toLocaleString()}`,
+              detail: 'Store-reported volume',
+              icon: <CreditCard className="w-5 h-5" />,
+            },
+            {
+              label: 'Pending Verifications',
+              value: pendingFarmers.length,
+              detail: 'Live data requires backend',
+              icon: <ClipboardCheck className="w-5 h-5" />,
+            },
+            {
+              label: 'Soil Tests Processed',
+              value: stats.soilTestsCompleted,
+              detail: 'Store-reported total',
+              icon: <Activity className="w-5 h-5" />,
+            },
+          ].map((item) => (
+            <article
+              key={item.label}
+              className="bg-white border border-[#E2E7DE] rounded-2xl p-5 shadow-sm"
+            >
+              <div className="flex justify-between items-start">
+                <p className="text-xs font-bold uppercase tracking-wide text-[#68756A]">
+                  {item.label}
+                </p>
+                <span className="text-[#367C46]">{item.icon}</span>
+              </div>
+
+              <p className="text-2xl font-extrabold text-[#214E34] mt-4 break-words">
+                {item.value.toLocaleString()}
+              </p>
+
+              <p className="text-xs text-[#68756A] mt-2">{item.detail}</p>
+            </article>
+          ))}
+        </section>
+
+        <nav className="flex gap-2 overflow-x-auto pb-2" aria-label="Admin navigation">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => {
+                setActiveTab(tab.id);
+                setError('');
+                setNotice('');
+              }}
+              className={`flex items-center gap-2 whitespace-nowrap px-4 py-3 rounded-xl border text-sm font-semibold transition ${
+                activeTab === tab.id
+                  ? 'bg-[#214E34] text-white border-[#214E34]'
+                  : 'bg-white text-[#252D27] border-[#E2E7DE] hover:bg-gray-50'
+              }`}
+            >
+              {tab.icon}
+              {tab.label}
+            </button>
+          ))}
+        </nav>
+
+        {activeTab === 'overview' && (
+          <section className="bg-white rounded-2xl border border-[#E2E7DE] p-6 sm:p-8">
+            <h3 className="text-lg font-bold text-[#214E34]">
+              Operations Overview
+            </h3>
+
+            <p className="text-sm text-[#68756A] mt-2 leading-6">
+              Review platform statistics and use the navigation above to access
+              administrative sections. Approval actions, payment records, and
+              configuration changes must be connected to a protected backend
+              before they can modify production data.
+            </p>
+
+            <div className="mt-6 grid sm:grid-cols-2 gap-4">
+              <div className="rounded-xl bg-[#F7F6F0] border border-[#E2E7DE] p-5">
+                <ClipboardCheck className="w-6 h-6 text-[#367C46]" />
+                <h4 className="font-bold mt-3">Farmer verification</h4>
+                <p className="text-sm text-[#68756A] mt-1">
+                  Review real applications after connecting the verification API.
+                </p>
+                <button
+                  onClick={() => setActiveTab('verifications')}
+                  className="mt-4 text-sm font-bold text-[#367C46]"
+                >
+                  Open verifications →
+                </button>
+              </div>
+
+              <div className="rounded-xl bg-[#F7F6F0] border border-[#E2E7DE] p-5">
+                <Truck className="w-6 h-6 text-[#367C46]" />
+                <h4 className="font-bold mt-3">Shipping configuration</h4>
+                <p className="text-sm text-[#68756A] mt-1">
+                  Review current vehicle tariffs. Changes are not saved by this
+                  demonstration component.
+                </p>
+                <button
+                  onClick={() => setActiveTab('shipping_rates')}
+                  className="mt-4 text-sm font-bold text-[#367C46]"
+                >
+                  Open shipping rates →
+                </button>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {activeTab === 'verifications' && (
+          <section className="bg-white rounded-2xl border border-[#E2E7DE] p-6">
+            <h3 className="text-lg font-bold text-[#214E34]">
+              Farmer Verification Queue
+            </h3>
+
+            <p className="text-sm text-[#68756A] mt-2">
+              Connect this panel to your protected database endpoint to retrieve
+              real applications. No invented identity records are displayed.
+            </p>
+
+            {pendingFarmers.length === 0 ? (
+              <div className="text-center py-12">
+                <ClipboardCheck className="w-10 h-10 text-[#367C46] mx-auto" />
+                <p className="font-semibold mt-3">No application records loaded</p>
+                <p className="text-sm text-[#68756A] mt-1">
+                  This does not mean there are no pending applications.
+                </p>
+              </div>
+            ) : (
+              <div className="mt-5 divide-y divide-[#E2E7DE]">
+                {pendingFarmers.map((farmer) => (
+                  <article key={farmer.id} className="py-4">
+                    <h4 className="font-bold">{farmer.name}</h4>
+                    <p className="text-sm text-[#68756A]">
+                      {farmer.farmName} · {farmer.county}
+                    </p>
+                    <p className="text-xs text-[#68756A] mt-1">
+                      {farmer.crops} · Applied {farmer.appliedAt}
+                    </p>
+
+                    <div className="flex gap-2 mt-4">
                       <button
-                        onClick={() => {
-                          setAdminNotice(`Configured road freight rate for ${v.label} updated across platform calculators.`);
-                          setTimeout(() => setAdminNotice(null), 4000);
-                        }}
-                        className="bg-[#F7F6F0] hover:bg-white text-[#252D27] font-semibold px-3 py-1.5 rounded-lg border border-[#E2E7DE] cursor-pointer"
+                        disabled={loading}
+                        onClick={() => performAdminAction('approve', farmer.id)}
+                        className="bg-[#214E34] text-white rounded-lg px-4 py-2 text-sm disabled:opacity-50"
                       >
-                        Edit Tariff
+                        Approve
                       </button>
-                    </td>
-                  </tr>
+                      <button
+                        disabled={loading}
+                        onClick={() => performAdminAction('reject', farmer.id)}
+                        className="border border-[#E2E7DE] rounded-lg px-4 py-2 text-sm disabled:opacity-50"
+                      >
+                        Reject
+                      </button>
+                    </div>
+                  </article>
                 ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {(activeAdminTab === 'overview' || activeAdminTab === 'transactions') && (
-        <div className="bg-white rounded-xl border border-[#E2E7DE] p-6 shadow-xs space-y-4">
-          <h3 className="font-bold text-xs text-[#214E34] uppercase tracking-wider">
-            Live M-Pesa Daraja STK Escrow Settlements
-          </h3>
-
-          <div className="space-y-2 text-xs">
-            <div className="p-3.5 bg-[#F7F6F0] rounded-lg border border-[#E2E7DE] flex items-center justify-between">
-              <div>
-                <span className="font-bold text-[#252D27] block">Checkout ws_CO_20261017_94012 (Lipa na M-Pesa)</span>
-                <span className="text-[11px] text-[#68756A]">Phone: 254722104523 · Order #SA-KE-2026-9041</span>
               </div>
-              <div className="text-right">
-                <span className="font-extrabold text-sm text-[#214E34] block tabular-nums">KSh 6,650</span>
-                <span className="text-[10px] font-mono text-[#367C46] font-bold">SETTLED (SK72910M4)</span>
-              </div>
+            )}
+          </section>
+        )}
+
+        {activeTab === 'shipping_rates' && (
+          <section className="bg-white rounded-2xl border border-[#E2E7DE] p-6">
+            <h3 className="text-lg font-bold text-[#214E34]">
+              Shipping Rates
+            </h3>
+            <p className="text-sm text-[#68756A] mt-2 mb-5">
+              Current values from KENYA_VEHICLES. Persistent editing requires a
+              protected backend endpoint.
+            </p>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left">
+                <thead>
+                  <tr className="bg-[#F7F6F0] text-[#68756A]">
+                    <th className="p-3">Vehicle</th>
+                    <th className="p-3">Base fare</th>
+                    <th className="p-3">Per km</th>
+                    <th className="p-3">Capacity</th>
+                    <th className="p-3">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {vehicleRates.map((vehicle) => (
+                    <tr key={vehicle.type} className="border-t border-[#E2E7DE]">
+                      <td className="p-3 font-semibold">
+                        {vehicle.label}
+                        <p className="text-xs text-[#68756A] font-normal mt-1">
+                          {vehicle.description}
+                        </p>
+                      </td>
+                      <td className="p-3">
+                        KSh {vehicle.baseFareKsh.toLocaleString()}
+                      </td>
+                      <td className="p-3">
+                        KSh {vehicle.ratePerKmKsh}/km
+                      </td>
+                      <td className="p-3">
+                        {vehicle.maxWeightKg.toLocaleString()} kg
+                      </td>
+                      <td className="p-3">
+                        <button
+                          disabled={loading}
+                          onClick={() =>
+                            performAdminAction('save-rate', String(vehicle.type))
+                          }
+                          className="border border-[#E2E7DE] rounded-lg px-3 py-2 text-xs font-semibold disabled:opacity-50"
+                        >
+                          Configure
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
+          </section>
+        )}
 
-            <div className="p-3.5 bg-[#F7F6F0] rounded-lg border border-[#E2E7DE] flex items-center justify-between">
-              <div>
-                <span className="font-bold text-[#252D27] block">Checkout ws_CO_20261017_81920 (Cattle Escrow)</span>
-                <span className="text-[11px] text-[#68756A]">Phone: 254714982301 · Friesian Dairy Cow</span>
-              </div>
-              <div className="text-right">
-                <span className="font-extrabold text-sm text-[#214E34] block tabular-nums">KSh 165,000</span>
-                <span className="text-[10px] font-mono text-[#79543A] font-bold">HELD IN ESCROW (SK88910Q1)</span>
-              </div>
+        {activeTab === 'transactions' && (
+          <section className="bg-white rounded-2xl border border-[#E2E7DE] p-6">
+            <h3 className="text-lg font-bold text-[#214E34]">
+              Payment Transactions
+            </h3>
+
+            <p className="text-sm text-[#68756A] mt-2 leading-6">
+              No live M-Pesa transactions are shown because this component has
+              no verified payment API connection. Connect the Daraja callback
+              and transaction database before displaying payment status,
+              settlement references, or escrow balances.
+            </p>
+
+            <div className="mt-5 p-4 rounded-xl bg-amber-50 border border-amber-200 flex gap-3">
+              <AlertTriangle className="w-5 h-5 text-amber-700 shrink-0" />
+              <p className="text-sm text-amber-900">
+                Never mark a payment as settled based only on frontend state.
+                Verify payment results through your trusted backend.
+              </p>
             </div>
-          </div>
-        </div>
-      )}
-    </div>
+          </section>
+        )}
+      </div>
+    </main>
   );
 };
