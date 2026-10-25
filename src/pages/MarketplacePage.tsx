@@ -4,29 +4,33 @@ import {
   X, 
   Store, 
   Plus, 
-  Sparkles, 
   ShieldCheck, 
   RotateCcw, 
-  ShoppingBag,
-  SlidersHorizontal,
-  PackageOpen,
-  CheckCircle2,
-  Phone,
-  HelpCircle,
-  TrendingUp
+  PackageOpen, 
+  CheckCircle2, 
+  TrendingUp, 
+  Sprout, 
+  Beef, 
+  Package, 
+  MessageSquare, 
+  Flag, 
+  UserCheck, 
+  Edit2, 
+  Trash2, 
+  Check,
+  ArrowRight,
+  Sparkles
 } from 'lucide-react';
-import { Product, ProductCategory } from '../types';
+import { Product } from '../types';
 import { agriStore } from '../services/store';
-import { KENYA_COUNTIES } from '../data/kenyaCounties';
-import { 
-  MarketplaceCategory, 
-  CATEGORY_PRODUCT_TYPES, 
-  VARIETIES_BY_PRODUCT_TYPE 
-} from '../data/marketplaceTaxonomy';
+import { MarketplaceCategory } from '../data/marketplaceTaxonomy';
 import { useMarketplaceFilters } from '../hooks/useMarketplaceFilters';
 import { MarketplaceFilterBar } from '../components/marketplace/MarketplaceFilterBar';
 import { ProductCard } from '../components/marketplace/ProductCard';
 import { ProductDetailModal } from '../components/marketplace/ProductDetailModal';
+import { MarketplacePostModal } from '../components/marketplace/MarketplacePostModal';
+import { ProductInquiryModal } from '../components/marketplace/ProductInquiryModal';
+import { ProductReportModal } from '../components/marketplace/ProductReportModal';
 
 interface MarketplacePageProps {
   products?: Product[];
@@ -35,6 +39,7 @@ interface MarketplacePageProps {
   initialSearchQuery?: string;
   initialCategory?: MarketplaceCategory;
   userCounty?: string;
+  onNavigateTab?: (tab: string) => void;
 }
 
 export const MarketplacePage: React.FC<MarketplacePageProps> = ({
@@ -44,9 +49,11 @@ export const MarketplacePage: React.FC<MarketplacePageProps> = ({
   initialSearchQuery = '',
   initialCategory = 'all',
   userCounty = 'Nakuru',
+  onNavigateTab,
 }) => {
-  // Store products fallback if not provided via props
+  // Store products fallback
   const [storeProducts, setStoreProducts] = useState<Product[]>(() => agriStore.getProducts());
+  const currentUser = agriStore.getCurrentUser();
 
   useEffect(() => {
     if (!propProducts) {
@@ -59,7 +66,12 @@ export const MarketplacePage: React.FC<MarketplacePageProps> = ({
 
   const allProducts = propProducts || storeProducts;
 
-  // useMarketplaceFilters hook managing all filter, category, variety, location & price states
+  // Counts for each dedicated category
+  const cropsCount = allProducts.filter(p => p.category === 'crops').length;
+  const livestockCount = allProducts.filter(p => p.category === 'livestock').length;
+  const inputsCount = allProducts.filter(p => p.category === 'inputs' || p.category === 'equipment' || p.category === 'fodder').length;
+
+  // useMarketplaceFilters managing search, filters, location, variety and prices
   const {
     category,
     productType,
@@ -69,6 +81,11 @@ export const MarketplacePage: React.FC<MarketplacePageProps> = ({
     maxPrice,
     searchQuery,
     sortBy,
+    maxAgeMonths,
+    livestockPurpose,
+    livestockSex,
+    deliveryOption,
+    qualityGrade,
     setCategory,
     setProductType,
     setVarietyOrBreed,
@@ -77,37 +94,34 @@ export const MarketplacePage: React.FC<MarketplacePageProps> = ({
     setMaxPrice,
     setSearchQuery,
     setSortBy,
+    setMaxAgeMonths,
+    setLivestockPurpose,
+    setLivestockSex,
+    setDeliveryOption,
+    setQualityGrade,
     resetFilters,
     clearFilter,
     availableProductTypes,
     availableVarieties,
     isVarietyEnabled,
     activeFilterCount,
-    isAnyFilterActive,
     activeFilterTags,
     filteredProducts,
     totalCount,
   } = useMarketplaceFilters(allProducts, initialCategory, initialSearchQuery);
 
-  // Modal states
+  // Modals state
   const [modalProduct, setModalProduct] = useState<Product | null>(null);
   const [isSellModalOpen, setIsSellModalOpen] = useState(false);
-  const [sellSuccessNotice, setSellSuccessNotice] = useState<string | null>(null);
+  const [inquiryProduct, setInquiryProduct] = useState<Product | null>(null);
+  const [reportProduct, setReportProduct] = useState<Product | null>(null);
+  const [successNotice, setSuccessNotice] = useState<string | null>(null);
 
-  // New product form state for "Sell Your Products" modal
-  const [newTitle, setNewTitle] = useState('');
-  const [newCategory, setNewCategory] = useState<ProductCategory>('crops');
-  const [newProductType, setNewProductType] = useState('Maize');
-  const [newVariety, setNewVariety] = useState('');
-  const [newCounty, setNewCounty] = useState(userCounty || 'Nakuru');
-  const [newPrice, setNewPrice] = useState('');
-  const [newUnit, setNewUnit] = useState('90kg bag');
-  const [newQuantity, setNewQuantity] = useState('20');
-  const [newDescription, setNewDescription] = useState('');
-  const [newSellerName, setNewSellerName] = useState('Rongai Valley Mixed Farm');
-  const [newSellerPhone, setNewSellerPhone] = useState('0722123456');
+  // Seller Management Drawer / Tab
+  const [showMyListingsOnly, setShowMyListingsOnly] = useState(false);
+  const [editingPriceId, setEditingPriceId] = useState<string | null>(null);
+  const [editPriceValue, setEditPriceValue] = useState<string>('');
 
-  // Handle viewing product
   const handleViewProduct = (product: Product) => {
     if (propOnViewProduct) {
       propOnViewProduct(product);
@@ -116,7 +130,6 @@ export const MarketplacePage: React.FC<MarketplacePageProps> = ({
     }
   };
 
-  // Handle add to cart
   const handleAddToCart = (product: Product, quantity = 1, delivery: 'pickup' | 'delivery' = 'delivery') => {
     if (propOnAddToCart) {
       propOnAddToCart(product, quantity, delivery);
@@ -125,63 +138,56 @@ export const MarketplacePage: React.FC<MarketplacePageProps> = ({
     }
   };
 
-  // Handle product listing submission
-  const handleCreateListing = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newTitle.trim() || !newPrice) return;
+  // Safe navigation handler to open dedicated category pages
+  const handleOpenDedicatedPage = (tabId: string) => {
+    if (onNavigateTab) {
+      onNavigateTab(tabId);
+    } else if (typeof window !== 'undefined') {
+      window.location.hash = tabId;
+    }
+  };
 
-    const created = agriStore.addProduct({
-      title: newTitle.trim(),
-      description: newDescription.trim() || `High quality ${newVariety || newProductType} from verified farm in ${newCounty}. Ready for immediate dispatch.`,
-      category: newCategory,
-      subcategory: newCategory === 'crops' ? 'Cereals & Produce' : newCategory === 'livestock' ? 'Livestock' : 'Farm Inputs',
-      productType: newProductType,
-      variety: newVariety.trim() || undefined,
-      priceKsh: Number(newPrice),
-      unit: newUnit,
-      quantityAvailable: Number(newQuantity) || 1,
-      minimumOrder: 1,
-      sellerId: 'usr-farmer-01',
-      sellerName: newSellerName.trim() || 'Verified Kenyan Farmer',
-      sellerPhone: newSellerPhone.trim() || '0722123456',
-      sellerCounty: newCounty,
-      sellerSubCounty: 'Central',
-      images: [
-        newCategory === 'crops' 
-          ? 'https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&w=800&q=80'
-          : newCategory === 'livestock'
-          ? 'https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&w=800&q=80'
-          : 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?auto=format&fit=crop&w=800&q=80'
-      ],
-      isVerifiedSeller: true,
-      rating: 5.0,
-      reviewsCount: 1,
-      deliveryOptions: ['pickup', 'carrier_dispatch'],
-      status: 'active',
+  const myListings = allProducts.filter(p => p.sellerId === currentUser?.id || p.sellerName === currentUser?.name);
+  const displayedProducts = showMyListingsOnly ? myListings : filteredProducts;
+
+  const handleUpdateListingPrice = (productId: string) => {
+    if (!editPriceValue || Number(editPriceValue) <= 0) return;
+    agriStore.updateProduct(productId, { priceKsh: Number(editPriceValue) });
+    setEditingPriceId(null);
+    setSuccessNotice('Listing price updated successfully.');
+    setTimeout(() => setSuccessNotice(null), 4000);
+  };
+
+  const handleToggleListingStatus = (product: Product) => {
+    const nextStatus = product.status === 'active' ? 'sold_out' : 'active';
+    agriStore.updateProduct(product.id, { 
+      status: nextStatus,
+      quantityAvailable: nextStatus === 'sold_out' ? 0 : 10
     });
+    setSuccessNotice(`Listing marked as ${nextStatus === 'sold_out' ? 'Sold Out' : 'Active'}.`);
+    setTimeout(() => setSuccessNotice(null), 4000);
+  };
 
-    setIsSellModalOpen(false);
-    setSellSuccessNotice(`"${created.title}" successfully listed on SMART-AGRI Kenya Marketplace!`);
-    setTimeout(() => setSellSuccessNotice(null), 5000);
-
-    // Reset form fields
-    setNewTitle('');
-    setNewPrice('');
-    setNewDescription('');
-    setNewVariety('');
+  const handleDeleteListing = (productId: string) => {
+    if (window.confirm('Are you sure you want to remove this product listing?')) {
+      agriStore.deleteProduct(productId);
+      setSuccessNotice('Product listing removed.');
+      setTimeout(() => setSuccessNotice(null), 4000);
+    }
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-[70vh]">
-      {/* Listing success alert */}
-      {sellSuccessNotice && (
-        <div className="mb-6 bg-[#EBF3ED] border border-[#CFD7CA] text-[#214E34] rounded-lg p-3.5 flex items-center justify-between shadow-xs animate-in fade-in duration-200">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 min-h-[75vh] space-y-6">
+      
+      {/* Success notification banner */}
+      {successNotice && (
+        <div className="bg-[#EBF3ED] border border-[#CFD7CA] text-[#214E34] rounded-lg p-3.5 flex items-center justify-between shadow-xs animate-in fade-in duration-200">
           <div className="flex items-center gap-2.5">
-            <CheckCircle2 className="w-4 h-4 text-[#367C46] shrink-0" />
-            <p className="text-xs sm:text-sm font-semibold">{sellSuccessNotice}</p>
+            <CheckCircle2 className="w-4 h-4 text-[#367C46]" />
+            <p className="text-xs sm:text-sm font-semibold">{successNotice}</p>
           </div>
           <button 
-            onClick={() => setSellSuccessNotice(null)}
+            onClick={() => setSuccessNotice(null)}
             className="text-[#214E34] hover:bg-[#DCECE0] rounded p-1 transition cursor-pointer"
           >
             <X className="w-4 h-4" />
@@ -190,136 +196,424 @@ export const MarketplacePage: React.FC<MarketplacePageProps> = ({
       )}
 
       {/* Main Marketplace Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded bg-[#EBF3ED] text-[#214E34] text-xs font-semibold uppercase tracking-wider mb-2 border border-[#CFD7CA]">
             <ShieldCheck className="w-3.5 h-3.5 text-[#367C46]" />
-            <span>Verified Agri-Trading Platform</span>
+            <span>National Agricultural Marketplace Hub</span>
           </div>
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-[#214E34] tracking-tight">
-            Kenya Agricultural Marketplace
+            SMART-AGRI KENYA Marketplace
           </h1>
-          <p className="mt-1.5 text-xs sm:text-sm text-[#68756A] max-w-2xl leading-relaxed">
-            Discover quality farm produce, livestock, seeds, fertilizers and equipment from farmers and agricultural suppliers across Kenya.
+          <p className="mt-1 text-xs sm:text-sm text-[#68756A] max-w-2xl leading-relaxed">
+            Direct agricultural trade connecting farmers, buyers, breeders, agrovets, and cooperatives across all 47 counties in Kenya.
           </p>
         </div>
 
-        {/* Sell Button CTA */}
-        <div className="shrink-0">
+        {/* Action Buttons: Sell on Marketplace & My Listings */}
+        <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+          <button
+            type="button"
+            onClick={() => setShowMyListingsOnly(!showMyListingsOnly)}
+            className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold border transition cursor-pointer ${
+              showMyListingsOnly 
+                ? 'bg-[#214E34] text-white border-[#214E34]' 
+                : 'bg-white hover:bg-[#F7F6F0] text-[#252D27] border-[#E2E7DE]'
+            }`}
+          >
+            <UserCheck className="w-3.5 h-3.5 text-[#367C46]" />
+            <span>{showMyListingsOnly ? 'Show All Listings' : 'My Listings'} ({myListings.length})</span>
+          </button>
+
           <button
             type="button"
             onClick={() => setIsSellModalOpen(true)}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[#367C46] hover:bg-[#2B6437] text-white font-semibold text-xs sm:text-sm px-4 py-2.5 rounded-lg shadow-xs transition-colors cursor-pointer"
+            className="inline-flex items-center justify-center gap-2 bg-[#367C46] hover:bg-[#2B6437] text-white font-semibold text-xs sm:text-sm px-4 py-2 rounded-lg shadow-xs transition-colors cursor-pointer"
           >
             <Plus className="w-4 h-4 stroke-[2.5]" />
-            <span>Sell Your Products</span>
+            <span>Sell on Marketplace</span>
           </button>
         </div>
       </div>
 
-      {/* Prominent Search Bar */}
-      <div className="mb-6">
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-            <Search className="w-4 h-4 text-[#68756A]" />
+      {/* DEDICATED CATEGORY GATEWAY PORTAL CARDS */}
+      {/* Enables users to open the dedicated pages for each category without a four-tab row */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm sm:text-base font-bold text-[#214E34] flex items-center gap-2">
+            <span>Explore Dedicated Marketplaces</span>
+            <span className="text-xs font-normal text-[#68756A]">(Click to open dedicated category page)</span>
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          
+          {/* Card 1: Crops & Produce */}
+          <div
+            onClick={() => handleOpenDedicatedPage('crops')}
+            className="bg-white rounded-2xl border border-[#E2E7DE] hover:border-[#367C46] shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer overflow-hidden flex flex-col justify-between group"
+          >
+            <div>
+              <div className="relative h-36 w-full overflow-hidden bg-[#F7F6F0]">
+                <img
+                  src="https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&w=600&q=80"
+                  alt="Harvested Kenyan Crops and Produce"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                <div className="absolute top-2.5 left-2.5 w-8 h-8 rounded-lg bg-white/90 backdrop-blur-xs text-[#214E34] flex items-center justify-center shadow-xs">
+                  <Sprout className="w-4 h-4 text-[#367C46]" />
+                </div>
+                <span className="absolute bottom-2.5 left-2.5 text-[11px] font-bold text-white bg-[#214E34]/90 px-2.5 py-0.5 rounded shadow-xs">
+                  {cropsCount} Crop Listings
+                </span>
+              </div>
+
+              <div className="p-4 sm:p-5">
+                <h3 className="font-extrabold text-base text-[#214E34] group-hover:text-[#183C27] mb-1.5 flex items-center justify-between">
+                  <span>Crops & Produce</span>
+                  <span className="text-xs text-[#367C46] font-semibold">Dedicated Page →</span>
+                </h3>
+                <p className="text-xs text-[#68756A] leading-relaxed">
+                  Organized by crop type: browse all varieties of Beans (Rosecoco, Nyayo), Maize (H614, H6213), Potatoes (Shangi, Tigoni), Tomatoes (Anna F1, Kilele F1), and Rice.
+                </p>
+              </div>
+            </div>
+
+            <div className="p-4 sm:p-5 pt-0">
+              <div className="pt-3 border-t border-[#E2E7DE] flex items-center justify-between text-xs font-bold text-[#367C46] group-hover:text-[#214E34]">
+                <span>Explore Crops & Varieties</span>
+                <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
+              </div>
+            </div>
           </div>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by crop, livestock breed, seeds, equipment or county (e.g. H614 Maize, Friesian, Shangi, Drip Kit)..."
-            className="w-full pl-10 pr-10 py-2.5 sm:py-3 bg-white border border-[#E2E7DE] text-[#252D27] placeholder:text-[#68756A] text-xs sm:text-sm rounded-lg focus:outline-none focus:border-[#367C46] focus:ring-1 focus:ring-[#367C46] shadow-xs transition"
-          />
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => setSearchQuery('')}
-              className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[#68756A] hover:text-[#252D27] cursor-pointer"
-              aria-label="Clear search query"
-            >
-              <X className="w-4 h-4" />
-            </button>
+
+          {/* Card 2: Livestock & Cattle */}
+          <div
+            onClick={() => handleOpenDedicatedPage('livestock')}
+            className="bg-white rounded-2xl border border-[#E2E7DE] hover:border-[#367C46] shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer overflow-hidden flex flex-col justify-between group"
+          >
+            <div>
+              <div className="relative h-36 w-full overflow-hidden bg-[#F7F6F0]">
+                <img
+                  src="https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&w=600&q=80"
+                  alt="Kenyan Pedigree Dairy Cattle & Livestock"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                <div className="absolute top-2.5 left-2.5 w-8 h-8 rounded-lg bg-white/90 backdrop-blur-xs text-[#214E34] flex items-center justify-center shadow-xs">
+                  <Beef className="w-4 h-4 text-[#367C46]" />
+                </div>
+                <span className="absolute bottom-2.5 left-2.5 text-[11px] font-bold text-white bg-[#214E34]/90 px-2.5 py-0.5 rounded shadow-xs">
+                  {livestockCount} Animals
+                </span>
+              </div>
+
+              <div className="p-4 sm:p-5">
+                <h3 className="font-extrabold text-base text-[#214E34] group-hover:text-[#183C27] mb-1.5 flex items-center justify-between">
+                  <span>Livestock & Cattle</span>
+                  <span className="text-xs text-[#367C46] font-semibold">Dedicated Page →</span>
+                </h3>
+                <p className="text-xs text-[#68756A] leading-relaxed">
+                  Verified dairy cows (Friesian, Ayrshire), beef bulls, improved KALRO Kienyeji chickens, Dorper sheep, Boer goats, pigs, and fingerlings with veterinary cards.
+                </p>
+              </div>
+            </div>
+
+            <div className="p-4 sm:p-5 pt-0">
+              <div className="pt-3 border-t border-[#E2E7DE] flex items-center justify-between text-xs font-bold text-[#367C46] group-hover:text-[#214E34]">
+                <span>Explore Livestock Marketplace</span>
+                <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
+              </div>
+            </div>
+          </div>
+
+          {/* Card 3: Farm Inputs & Tools */}
+          <div
+            onClick={() => handleOpenDedicatedPage('inputs')}
+            className="bg-white rounded-2xl border border-[#E2E7DE] hover:border-[#367C46] shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer overflow-hidden flex flex-col justify-between group"
+          >
+            <div>
+              <div className="relative h-36 w-full overflow-hidden bg-[#F7F6F0]">
+                <img
+                  src="https://images.unsplash.com/photo-1574943320219-553eb213f72d?auto=format&fit=crop&w=600&q=80"
+                  alt="Certified Farm Inputs and Supplies"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                <div className="absolute top-2.5 left-2.5 w-8 h-8 rounded-lg bg-white/90 backdrop-blur-xs text-[#214E34] flex items-center justify-center shadow-xs">
+                  <Package className="w-4 h-4 text-[#367C46]" />
+                </div>
+                <span className="absolute bottom-2.5 left-2.5 text-[11px] font-bold text-white bg-[#214E34]/90 px-2.5 py-0.5 rounded shadow-xs">
+                  {inputsCount} Supplies
+                </span>
+              </div>
+
+              <div className="p-4 sm:p-5">
+                <h3 className="font-extrabold text-base text-[#214E34] group-hover:text-[#183C27] mb-1.5 flex items-center justify-between">
+                  <span>Farm Inputs & Tools</span>
+                  <span className="text-xs text-[#367C46] font-semibold">Dedicated Page →</span>
+                </h3>
+                <p className="text-xs text-[#68756A] leading-relaxed">
+                  KEPHIS certified seed maize, DAP and CAN fertilizers, PCPB crop protection, animal feeds, solar borehole pumps, knapsack sprayers, and drip irrigation kits.
+                </p>
+              </div>
+            </div>
+
+            <div className="p-4 sm:p-5 pt-0">
+              <div className="pt-3 border-t border-[#E2E7DE] flex items-center justify-between text-xs font-bold text-[#367C46] group-hover:text-[#214E34]">
+                <span>Explore Inputs & Tools</span>
+                <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
+              </div>
+            </div>
+          </div>
+
+          {/* Card 4: Market Prices */}
+          <div
+            onClick={() => handleOpenDedicatedPage('market-prices')}
+            className="bg-white rounded-2xl border border-[#E2E7DE] hover:border-[#367C46] shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer overflow-hidden flex flex-col justify-between group"
+          >
+            <div>
+              <div className="relative h-36 w-full overflow-hidden bg-[#F7F6F0]">
+                <img
+                  src="https://images.unsplash.com/photo-1488459716781-31db52582fe9?auto=format&fit=crop&w=600&q=80"
+                  alt="Agricultural Wholesale Commodity Market"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                <div className="absolute top-2.5 left-2.5 w-8 h-8 rounded-lg bg-white/90 backdrop-blur-xs text-[#214E34] flex items-center justify-center shadow-xs">
+                  <TrendingUp className="w-4 h-4 text-[#367C46]" />
+                </div>
+                <span className="absolute bottom-2.5 left-2.5 text-[11px] font-bold text-white bg-[#D6A545] px-2.5 py-0.5 rounded shadow-xs">
+                  Live Commodity Trends
+                </span>
+              </div>
+
+              <div className="p-4 sm:p-5">
+                <h3 className="font-extrabold text-base text-[#214E34] group-hover:text-[#183C27] mb-1.5 flex items-center justify-between">
+                  <span>Market Prices Intelligence</span>
+                  <span className="text-xs text-[#367C46] font-semibold">Dedicated Page →</span>
+                </h3>
+                <p className="text-xs text-[#68756A] leading-relaxed">
+                  Price intelligence distinguishing verified market observations, seller asking prices, and historical trends across Wakulima, Kongowea, and county markets.
+                </p>
+              </div>
+            </div>
+
+            <div className="p-4 sm:p-5 pt-0">
+              <div className="pt-3 border-t border-[#E2E7DE] flex items-center justify-between text-xs font-bold text-[#367C46] group-hover:text-[#214E34]">
+                <span>View Price Intelligence</span>
+                <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      {/* ALL AGRICULTURAL LISTINGS & DISCOVERY SECTION */}
+      <div className="space-y-6 pt-2">
+        <div className="flex items-center justify-between">
+          <h2 className="text-base sm:text-lg font-extrabold text-[#214E34]">
+            Browse All Marketplace Listings ({displayedProducts.length})
+          </h2>
+          <span className="text-xs text-[#68756A]">Direct Farmer Gate & Wholesale Delivery</span>
+        </div>
+
+        {/* Search Bar */}
+        <div>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+              <Search className="w-4 h-4 text-[#68756A]" />
+            </div>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search across all categories (e.g. Dry Maize, Kienyeji Chickens, DAP Fertilizer, Solar Pump, Nakuru)..."
+              className="w-full pl-10 pr-10 py-2.5 sm:py-3 bg-white border border-[#E2E7DE] text-[#252D27] placeholder:text-[#68756A] text-xs sm:text-sm rounded-lg focus:outline-none focus:border-[#367C46] focus:ring-1 focus:ring-[#367C46] shadow-xs transition"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[#68756A] hover:text-[#252D27] cursor-pointer"
+                aria-label="Clear search query"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Dedicated Filter Panel */}
+        <MarketplaceFilterBar
+          category={category}
+          productType={productType}
+          varietyOrBreed={varietyOrBreed}
+          location={location}
+          minPrice={minPrice}
+          maxPrice={maxPrice}
+          sortBy={sortBy}
+          maxAgeMonths={maxAgeMonths}
+          livestockPurpose={livestockPurpose}
+          livestockSex={livestockSex}
+          deliveryOption={deliveryOption}
+          qualityGrade={qualityGrade}
+          availableProductTypes={availableProductTypes}
+          availableVarieties={availableVarieties}
+          isVarietyEnabled={isVarietyEnabled}
+          activeFilterCount={activeFilterCount}
+          activeFilterTags={activeFilterTags}
+          totalCount={displayedProducts.length}
+          onSelectCategory={setCategory}
+          onSelectProductType={setProductType}
+          onSelectVarietyOrBreed={setVarietyOrBreed}
+          onSelectLocation={setLocation}
+          onMinPriceChange={setMinPrice}
+          onMaxPriceChange={setMaxPrice}
+          onSortChange={setSortBy}
+          onMaxAgeMonthsChange={setMaxAgeMonths}
+          onLivestockPurposeChange={setLivestockPurpose}
+          onLivestockSexChange={setLivestockSex}
+          onDeliveryOptionChange={setDeliveryOption}
+          onQualityGradeChange={setQualityGrade}
+          onResetFilters={resetFilters}
+          onClearFilter={clearFilter}
+        />
+
+        {/* Product Listings Display */}
+        <div>
+          {displayedProducts.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {displayedProducts.map((product) => (
+                <div key={product.id} className="relative group flex flex-col justify-between">
+                  <ProductCard
+                    product={product}
+                    onViewDetails={handleViewProduct}
+                    onAddToCart={(p) => handleAddToCart(p, 1, 'delivery')}
+                    onContactSeller={(p) => setInquiryProduct(p)}
+                  />
+
+                  {/* Quick Inquire & Report action row */}
+                  <div className="mt-2 flex items-center justify-between text-[11px] text-[#68756A] px-1">
+                    <button
+                      type="button"
+                      onClick={() => setInquiryProduct(product)}
+                      className="hover:text-[#367C46] flex items-center gap-1 font-semibold cursor-pointer"
+                    >
+                      <MessageSquare className="w-3 h-3 text-[#367C46]" />
+                      <span>Send Inquiry</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setReportProduct(product)}
+                      className="hover:text-red-600 flex items-center gap-1 text-[10px] cursor-pointer"
+                    >
+                      <Flag className="w-2.5 h-2.5" />
+                      <span>Report</span>
+                    </button>
+                  </div>
+
+                  {/* Seller Quick Management controls if viewing My Listings */}
+                  {showMyListingsOnly && (
+                    <div className="mt-2 p-2 bg-[#F7F6F0] rounded-lg border border-[#E2E7DE] text-xs space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold text-[#252D27]">Manage Listing</span>
+                        <button
+                          onClick={() => handleToggleListingStatus(product)}
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded cursor-pointer ${
+                            product.status === 'active' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'
+                          }`}
+                        >
+                          {product.status === 'active' ? 'Mark Sold Out' : 'Mark In Stock'}
+                        </button>
+                      </div>
+
+                      {editingPriceId === product.id ? (
+                        <div className="flex items-center gap-1">
+                          <input
+                            type="number"
+                            value={editPriceValue}
+                            onChange={(e) => setEditPriceValue(e.target.value)}
+                            className="w-20 bg-white border border-[#E2E7DE] px-1.5 py-0.5 rounded text-xs"
+                          />
+                          <button
+                            onClick={() => handleUpdateListingPrice(product.id)}
+                            className="bg-[#367C46] text-white p-1 rounded hover:bg-[#2B6437]"
+                          >
+                            <Check className="w-3 h-3" />
+                          </button>
+                          <button
+                            onClick={() => setEditingPriceId(null)}
+                            className="text-[#68756A] p-1"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-between">
+                          <span className="text-[#68756A]">Price: KSh {product.priceKsh}</span>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => {
+                                setEditingPriceId(product.id);
+                                setEditPriceValue(String(product.priceKsh));
+                              }}
+                              className="text-[#367C46] hover:underline flex items-center gap-0.5 text-[11px]"
+                            >
+                              <Edit2 className="w-3 h-3" /> Edit
+                            </button>
+                            <button
+                              onClick={() => handleDeleteListing(product.id)}
+                              className="text-red-600 hover:underline flex items-center gap-0.5 text-[11px]"
+                            >
+                              <Trash2 className="w-3 h-3" /> Delete
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-white rounded-xl border border-[#E2E7DE] p-8 sm:p-10 text-center max-w-xl mx-auto shadow-xs my-6">
+              <div className="w-12 h-12 rounded-lg bg-[#FCF8EE] text-[#D6A545] mx-auto flex items-center justify-center mb-3 border border-[#E2E7DE]">
+                <PackageOpen className="w-6 h-6 stroke-[1.75]" />
+              </div>
+              <h3 className="text-lg font-bold text-[#214E34] mb-1.5">
+                No matching agricultural listings found
+              </h3>
+              <p className="text-[#68756A] text-xs sm:text-sm mb-5 max-w-md mx-auto">
+                We couldn't find any products matching your active filters. Try broadening the price or location filter, or clearing filters.
+              </p>
+              <div className="flex flex-wrap justify-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={resetFilters}
+                  className="inline-flex items-center gap-2 bg-[#367C46] hover:bg-[#2B6437] text-white font-semibold text-xs px-4 py-2 rounded-lg transition shadow-xs cursor-pointer"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>Reset All Filters</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsSellModalOpen(true)}
+                  className="inline-flex items-center gap-2 bg-[#F7F6F0] hover:bg-white text-[#252D27] border border-[#E2E7DE] font-semibold text-xs px-4 py-2 rounded-lg transition cursor-pointer"
+                >
+                  <Store className="w-3.5 h-3.5 text-[#367C46]" />
+                  <span>List Product for Sale</span>
+                </button>
+              </div>
+            </div>
           )}
         </div>
       </div>
 
-      {/* Dedicated Filter Panel immediately below heading & search bar and above product listings */}
-      <MarketplaceFilterBar
-        category={category}
-        productType={productType}
-        varietyOrBreed={varietyOrBreed}
-        location={location}
-        minPrice={minPrice}
-        maxPrice={maxPrice}
-        sortBy={sortBy}
-        availableProductTypes={availableProductTypes}
-        availableVarieties={availableVarieties}
-        isVarietyEnabled={isVarietyEnabled}
-        activeFilterCount={activeFilterCount}
-        activeFilterTags={activeFilterTags}
-        totalCount={totalCount}
-        onSelectCategory={setCategory}
-        onSelectProductType={setProductType}
-        onSelectVarietyOrBreed={setVarietyOrBreed}
-        onSelectLocation={setLocation}
-        onMinPriceChange={setMinPrice}
-        onMaxPriceChange={setMaxPrice}
-        onSortChange={setSortBy}
-        onResetFilters={resetFilters}
-        onClearFilter={clearFilter}
-      />
-
-      {/* Products Display Section */}
-      <div className="mt-6">
-        {totalCount > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredProducts.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onViewDetails={handleViewProduct}
-                onAddToCart={(p) => handleAddToCart(p, 1, 'delivery')}
-                onContactSeller={(p) => {
-                  window.location.href = `tel:${p.sellerPhone}`;
-                }}
-              />
-            ))}
-          </div>
-        ) : (
-          /* Clean Empty Results State */
-          <div className="bg-white rounded-xl border border-[#E2E7DE] p-8 sm:p-10 text-center max-w-xl mx-auto shadow-xs my-6">
-            <div className="w-12 h-12 rounded-lg bg-[#FCF8EE] text-[#D6A545] mx-auto flex items-center justify-center mb-3 border border-[#E2E7DE]">
-              <PackageOpen className="w-6 h-6 stroke-[1.75]" />
-            </div>
-            <h3 className="text-lg font-bold text-[#214E34] mb-1.5">
-              No matching agricultural products found
-            </h3>
-            <p className="text-[#68756A] text-xs sm:text-sm mb-5 max-w-md mx-auto">
-              We couldn't find any listings matching your active filters. Try adjusting your search query, broadening the price range, or clearing filters.
-            </p>
-            <div className="flex flex-wrap justify-center gap-2.5">
-              <button
-                type="button"
-                onClick={resetFilters}
-                className="inline-flex items-center gap-2 bg-[#367C46] hover:bg-[#2B6437] text-white font-semibold text-xs px-4 py-2 rounded-lg transition shadow-xs cursor-pointer"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span>Reset All Filters</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsSellModalOpen(true)}
-                className="inline-flex items-center gap-2 bg-[#F7F6F0] hover:bg-white text-[#252D27] border border-[#E2E7DE] font-semibold text-xs px-4 py-2 rounded-lg transition cursor-pointer"
-              >
-                <Store className="w-3.5 h-3.5 text-[#367C46]" />
-                <span>List Product for Sale</span>
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Internal Product Detail Modal if not opened in global App state */}
+      {/* Internal Product Detail Modal */}
       {modalProduct && !propOnViewProduct && (
         <ProductDetailModal
           product={modalProduct}
@@ -329,197 +623,45 @@ export const MarketplacePage: React.FC<MarketplacePageProps> = ({
             setModalProduct(null);
           }}
           userCounty={userCounty}
+          onInquire={(p) => {
+            setModalProduct(null);
+            setInquiryProduct(p);
+          }}
+          onReport={(p) => {
+            setModalProduct(null);
+            setReportProduct(p);
+          }}
         />
       )}
 
-      {/* Sell Your Products Modal */}
-      {isSellModalOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl max-w-lg w-full p-6 shadow-xl border border-[#E2E7DE] relative animate-in fade-in duration-200">
-            <button
-              onClick={() => setIsSellModalOpen(false)}
-              className="absolute top-4 right-4 w-7 h-7 rounded-lg bg-[#F7F6F0] hover:bg-[#EBF3ED] text-[#252D27] flex items-center justify-center transition cursor-pointer border border-[#E2E7DE]"
-              aria-label="Close modal"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
+      {/* Category-Specific Multi-step Product Posting Modal with Live Preview */}
+      <MarketplacePostModal
+        isOpen={isSellModalOpen}
+        onClose={() => setIsSellModalOpen(false)}
+        defaultCounty={userCounty}
+        onSuccess={(product) => {
+          setSuccessNotice(`"${product.title}" has been successfully listed on SMART-AGRI Kenya!`);
+          setTimeout(() => setSuccessNotice(null), 6000);
+        }}
+      />
 
-            <div className="flex items-center gap-3 mb-5">
-              <div className="w-9 h-9 rounded-lg bg-[#EBF3ED] text-[#214E34] flex items-center justify-center border border-[#CFD7CA]">
-                <Store className="w-4 h-4" />
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-[#214E34]">List Your Agricultural Product</h3>
-                <p className="text-xs text-[#68756A]">Direct trade with verified buyers across Kenya</p>
-              </div>
-            </div>
+      {/* Product Inquiry / Contact Seller Modal */}
+      <ProductInquiryModal
+        product={inquiryProduct}
+        isOpen={!!inquiryProduct}
+        onClose={() => setInquiryProduct(null)}
+        onSuccess={() => {
+          setSuccessNotice('Inquiry submitted to seller.');
+          setTimeout(() => setSuccessNotice(null), 4000);
+        }}
+      />
 
-            <form onSubmit={handleCreateListing} className="space-y-3.5">
-              <div>
-                <label className="block text-xs font-semibold text-[#252D27] mb-1">Product Title</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Certified Seed Maize H614 or Grade 1 Rosecoco Beans"
-                  value={newTitle}
-                  onChange={(e) => setNewTitle(e.target.value)}
-                  className="w-full bg-white border border-[#E2E7DE] text-[#252D27] text-xs sm:text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-[#367C46]"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-[#252D27] mb-1">Category</label>
-                  <select
-                    value={newCategory}
-                    onChange={(e) => {
-                      const cat = e.target.value as ProductCategory;
-                      setNewCategory(cat);
-                      if (cat === 'crops') setNewProductType('Maize');
-                      else if (cat === 'livestock') setNewProductType('Dairy cattle');
-                      else setNewProductType('Certified seeds');
-                    }}
-                    className="w-full bg-white border border-[#E2E7DE] text-[#252D27] text-xs sm:text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-[#367C46]"
-                  >
-                    <option value="crops">Crops & Produce</option>
-                    <option value="livestock">Livestock & Cattle</option>
-                    <option value="inputs">Seeds & Fertilizers</option>
-                    <option value="equipment">Farm Equipment</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#252D27] mb-1">Product Type</label>
-                  <input
-                    type="text"
-                    required
-                    value={newProductType}
-                    onChange={(e) => setNewProductType(e.target.value)}
-                    placeholder="e.g. Maize, Beans, Dairy cow"
-                    className="w-full bg-white border border-[#E2E7DE] text-[#252D27] text-xs sm:text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-[#367C46]"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-[#252D27] mb-1">Variety or Breed</label>
-                  <input
-                    type="text"
-                    value={newVariety}
-                    onChange={(e) => setNewVariety(e.target.value)}
-                    placeholder="e.g. H614, Friesian, Shangi"
-                    className="w-full bg-white border border-[#E2E7DE] text-[#252D27] text-xs sm:text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-[#367C46]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#252D27] mb-1">County Location</label>
-                  <select
-                    value={newCounty}
-                    onChange={(e) => setNewCounty(e.target.value)}
-                    className="w-full bg-white border border-[#E2E7DE] text-[#252D27] text-xs sm:text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-[#367C46]"
-                  >
-                    {KENYA_COUNTIES.map((c) => (
-                      <option key={c.code} value={c.name}>{c.name} County</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-[#252D27] mb-1">Price (KSh)</label>
-                  <input
-                    type="number"
-                    required
-                    min="1"
-                    placeholder="e.g. 3600"
-                    value={newPrice}
-                    onChange={(e) => setNewPrice(e.target.value)}
-                    className="w-full bg-white border border-[#E2E7DE] text-[#252D27] text-xs sm:text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-[#367C46]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#252D27] mb-1">Unit</label>
-                  <input
-                    type="text"
-                    required
-                    value={newUnit}
-                    onChange={(e) => setNewUnit(e.target.value)}
-                    placeholder="90kg bag, kg, head"
-                    className="w-full bg-white border border-[#E2E7DE] text-[#252D27] text-xs sm:text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-[#367C46]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#252D27] mb-1">Quantity</label>
-                  <input
-                    type="number"
-                    required
-                    min="1"
-                    value={newQuantity}
-                    onChange={(e) => setNewQuantity(e.target.value)}
-                    className="w-full bg-white border border-[#E2E7DE] text-[#252D27] text-xs sm:text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-[#367C46]"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-[#252D27] mb-1">Description</label>
-                <textarea
-                  rows={2}
-                  placeholder="Details on quality, grade, moisture content, packaging or health status..."
-                  value={newDescription}
-                  onChange={(e) => setNewDescription(e.target.value)}
-                  className="w-full bg-white border border-[#E2E7DE] text-[#252D27] text-xs sm:text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-[#367C46] resize-none"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-[#252D27] mb-1">Seller Name</label>
-                  <input
-                    type="text"
-                    required
-                    value={newSellerName}
-                    onChange={(e) => setNewSellerName(e.target.value)}
-                    className="w-full bg-white border border-[#E2E7DE] text-[#252D27] text-xs sm:text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-[#367C46]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#252D27] mb-1">Seller Phone</label>
-                  <input
-                    type="tel"
-                    required
-                    value={newSellerPhone}
-                    onChange={(e) => setNewSellerPhone(e.target.value)}
-                    className="w-full bg-white border border-[#E2E7DE] text-[#252D27] text-xs sm:text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-[#367C46]"
-                  />
-                </div>
-              </div>
-
-              <div className="pt-2 flex justify-end gap-2.5">
-                <button
-                  type="button"
-                  onClick={() => setIsSellModalOpen(false)}
-                  className="px-4 py-2 rounded-lg border border-[#E2E7DE] text-[#252D27] text-xs sm:text-sm font-semibold hover:bg-[#F7F6F0] transition cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 rounded-lg bg-[#367C46] hover:bg-[#2B6437] text-white text-xs sm:text-sm font-semibold shadow-xs transition cursor-pointer"
-                >
-                  Publish Listing
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* Product Report Modal */}
+      <ProductReportModal
+        product={reportProduct}
+        isOpen={!!reportProduct}
+        onClose={() => setReportProduct(null)}
+      />
     </div>
   );
 };

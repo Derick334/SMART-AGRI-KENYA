@@ -2,7 +2,16 @@
  * SMART-AGRI KENYA - Core Data Types & Interfaces
  */
 
-export type UserRole = 'farmer' | 'buyer' | 'transporter' | 'expert' | 'lab' | 'admin';
+export type UserRole = 
+  | 'farmer' 
+  | 'buyer' 
+  | 'seller' 
+  | 'consultant' 
+  | 'veterinarian' 
+  | 'transporter' 
+  | 'lab' 
+  | 'admin'
+  | 'expert'; // backwards-compatibility alias for consultant
 
 export interface UserProfile {
   id: string;
@@ -13,12 +22,36 @@ export interface UserProfile {
   county: string;
   subCounty?: string;
   ward?: string;
+  town?: string;
   farmName?: string;
   farmSizeAcres?: number;
-  idNumber?: string;
+  organizationName?: string;
+  businessType?: string;
+  licenseNumber?: string;
+  nationalIdNumber?: string;
+  kraPin?: string;
+  verifiedBadges?: string[];
+  status?: 'active' | 'pending_verification' | 'suspended';
+  lastLogin?: string;
   isVerified: boolean;
   avatarUrl?: string;
   joinedDate: string;
+  membershipCode?: string;
+  memberId?: string;
+  membershipTier?: 'Standard' | 'Silver' | 'Gold' | 'Platinum' | 'Cooperative';
+  cooperativeAffiliation?: string;
+  qrCodeData?: string;
+}
+
+export interface MembershipVerificationResult {
+  code: string;
+  isValid: boolean;
+  status?: 'active' | 'pending_verification' | 'suspended';
+  role?: UserRole;
+  county?: string;
+  membershipTier?: string;
+  verifiedAt: string;
+  notes?: string;
 }
 
 export type ProductCategory = 
@@ -48,6 +81,10 @@ export interface Product {
   formulation?: string; // e.g. DAP 18:46:0, CAN 26% N, 16% Crude Protein
   packageSize?: string; // e.g. 2kg packet, 50kg bag, 70kg bag
   certificationInfo?: string; // e.g. KEPHIS Certified, KEBS Standard
+  regulatoryApproval?: string; // e.g. KEPHIS Certified, PCPB Registration #, KEBS Standard
+  qualityGrade?: string; // e.g. Grade 1, Grade 2, Organic, Export
+  packagingType?: string; // e.g. 90kg gunny bag, net bag, wooden crate
+  harvestDate?: string; // e.g. 2026-10-15
   priceKsh: number;
   unit: string; // 'kg', '90kg bag', 'crate', 'litre', 'bunch', 'piece', 'head'
   quantityAvailable: number;
@@ -246,10 +283,16 @@ export interface PestProblemReference {
   vetAlertNote?: string;
 }
 
+export type MarketPriceType = 
+  | 'verified_observation' 
+  | 'seller_asking_price' 
+  | 'historical_price' 
+  | 'estimated_price';
+
 export interface MarketPriceRecord {
   id: string;
   commodityName: string;
-  category: 'Cereals' | 'Legumes' | 'Vegetables' | 'Fruits' | 'Roots & Tubers' | 'Livestock & Meat' | 'Dairy & Poultry';
+  category: 'Cereals' | 'Legumes' | 'Vegetables' | 'Fruits' | 'Roots & Tubers' | 'Livestock & Meat' | 'Dairy & Poultry' | 'Farm Inputs';
   variety: string;
   marketName: string;
   county: string;
@@ -261,6 +304,38 @@ export interface MarketPriceRecord {
   source: string;
   verifiedAt: string;
   isIndicative: boolean;
+  priceType?: MarketPriceType;
+  previousPriceKsh?: number;
+  observationDate?: string;
+  notes?: string;
+}
+
+export interface ProductInquiry {
+  id: string;
+  productId: string;
+  productTitle: string;
+  sellerId: string;
+  buyerId: string;
+  buyerName: string;
+  buyerPhone: string;
+  buyerEmail?: string;
+  message: string;
+  requestedQuantity?: number;
+  deliveryPreference?: 'pickup' | 'delivery';
+  status: 'pending' | 'replied' | 'closed';
+  createdAt: string;
+}
+
+export interface ProductReport {
+  id: string;
+  productId: string;
+  productTitle: string;
+  reporterId: string;
+  reporterName: string;
+  reason: 'counterfeit' | 'wrong_price' | 'unverified_claims' | 'unresponsive_seller' | 'offensive_content' | 'other';
+  details: string;
+  status: 'pending_review' | 'resolved' | 'dismissed';
+  createdAt: string;
 }
 
 export interface ForumPost {
@@ -317,3 +392,31 @@ export interface AdminStats {
   openDisputes: number;
   soilTestsCompleted: number;
 }
+
+export interface AuditLogEntry {
+  id: string;
+  timestamp: string;
+  actorEmail: string;
+  actorRole: UserRole;
+  action: string;
+  target: string;
+  status: 'SUCCESS' | 'WARNING' | 'FAILED';
+  ipAddress?: string;
+}
+
+export interface ConsultationBooking {
+  id: string;
+  expertId: string;
+  expertName: string;
+  expertType: 'Agronomist' | 'Veterinarian';
+  clientName: string;
+  clientPhone: string;
+  clientCounty: string;
+  topic: string;
+  scheduledDate: string;
+  status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
+  feeKsh: number;
+  notes?: string;
+  prescriptionOrAdvice?: string;
+}
+

@@ -36,6 +36,12 @@ interface MarketplaceFilterBarProps {
   activeFilterTags: ActiveFilterTag[];
   totalCount: number;
 
+  maxAgeMonths?: number | undefined;
+  livestockPurpose?: string;
+  livestockSex?: string;
+  deliveryOption?: string;
+  qualityGrade?: string;
+
   onSelectCategory: (category: MarketplaceCategory) => void;
   onSelectProductType: (productType: string) => void;
   onSelectVarietyOrBreed: (varietyOrBreed: string) => void;
@@ -45,6 +51,11 @@ interface MarketplaceFilterBarProps {
   onSortChange: (sortBy: SortOption) => void;
   onResetFilters: () => void;
   onClearFilter?: (key: keyof MarketplaceFilterState | 'price') => void;
+  onMaxAgeMonthsChange?: (maxAge: number | undefined) => void;
+  onLivestockPurposeChange?: (purpose: string) => void;
+  onLivestockSexChange?: (sex: string) => void;
+  onDeliveryOptionChange?: (delivery: string) => void;
+  onQualityGradeChange?: (grade: string) => void;
 }
 
 export const MarketplaceFilterBar: React.FC<MarketplaceFilterBarProps> = ({
@@ -62,6 +73,12 @@ export const MarketplaceFilterBar: React.FC<MarketplaceFilterBarProps> = ({
   activeFilterTags,
   totalCount,
 
+  maxAgeMonths,
+  livestockPurpose = 'all',
+  livestockSex = 'all',
+  deliveryOption = 'all',
+  qualityGrade = 'all',
+
   onSelectCategory,
   onSelectProductType,
   onSelectVarietyOrBreed,
@@ -70,6 +87,11 @@ export const MarketplaceFilterBar: React.FC<MarketplaceFilterBarProps> = ({
   onMaxPriceChange,
   onSortChange,
   onResetFilters,
+  onMaxAgeMonthsChange,
+  onLivestockPurposeChange,
+  onLivestockSexChange,
+  onDeliveryOptionChange,
+  onQualityGradeChange,
 }) => {
   return (
     <div className="bg-white rounded-xl border border-[#E2E7DE] shadow-xs p-4 sm:p-5 mb-6 space-y-4">
@@ -218,6 +240,106 @@ export const MarketplaceFilterBar: React.FC<MarketplaceFilterBarProps> = ({
           </div>
         </div>
       </div>
+
+      {/* 2B. Category-Specific Filters (Livestock Age/Breed/Purpose, Crop Grade, Input Certification) */}
+      {category === 'livestock' && (
+        <div className="pt-3 border-t border-[#E2E7DE] grid grid-cols-1 sm:grid-cols-3 gap-3 bg-[#FCF8EE]/60 p-3 rounded-lg border border-[#D6A545]/20">
+          {/* Max Age Selector */}
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-[#79543A] flex items-center justify-between">
+              <span>Maximum Animal Age</span>
+              {maxAgeMonths !== undefined && (
+                <span className="text-[10px] text-[#367C46] font-semibold">{maxAgeMonths} months max</span>
+              )}
+            </label>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {[
+                { label: 'Any Age', value: undefined },
+                { label: '≤ 3 Mo', value: 3 },
+                { label: '≤ 6 Mo (Chickens)', value: 6 },
+                { label: '≤ 12 Mo', value: 12 },
+                { label: '≤ 24 Mo', value: 24 },
+              ].map((opt) => (
+                <button
+                  key={String(opt.value)}
+                  type="button"
+                  onClick={() => onMaxAgeMonthsChange && onMaxAgeMonthsChange(opt.value)}
+                  className={`text-xs px-2.5 py-1 rounded border transition font-medium cursor-pointer ${
+                    maxAgeMonths === opt.value
+                      ? 'bg-[#214E34] text-white border-[#214E34] font-bold shadow-xs'
+                      : 'bg-white text-[#252D27] border-[#E2E7DE] hover:bg-[#F7F6F0]'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Livestock Purpose */}
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-[#79543A]">Animal Purpose</label>
+            <select
+              value={livestockPurpose}
+              onChange={(e) => onLivestockPurposeChange && onLivestockPurposeChange(e.target.value)}
+              className="w-full bg-white border border-[#E2E7DE] text-[#252D27] text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-[#367C46]"
+            >
+              <option value="all">All Purposes (Dairy, Beef, Eggs, Breeding)</option>
+              <option value="dairy">Dairy & Milk Production</option>
+              <option value="beef">Beef & Meat Slaughter</option>
+              <option value="breeding">Purebred Breeding Stock</option>
+              <option value="eggs">Egg Production / Layers</option>
+              <option value="dual_purpose">Dual-Purpose (Meat & Eggs/Milk)</option>
+            </select>
+          </div>
+
+          {/* Livestock Sex */}
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-[#79543A]">Animal Sex</label>
+            <select
+              value={livestockSex}
+              onChange={(e) => onLivestockSexChange && onLivestockSexChange(e.target.value)}
+              className="w-full bg-white border border-[#E2E7DE] text-[#252D27] text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-[#367C46]"
+            >
+              <option value="all">All (Female, Male, Mixed Flock)</option>
+              <option value="female">Female (Cows, Hens, Does, Gilts)</option>
+              <option value="male">Male (Bulls, Cocks, Bucks, Boars)</option>
+              <option value="mixed_batch">Mixed Batch / Flock</option>
+            </select>
+          </div>
+        </div>
+      )}
+
+      {category === 'crops' && (
+        <div className="pt-3 border-t border-[#E2E7DE] grid grid-cols-1 sm:grid-cols-2 gap-3 bg-[#EBF3ED]/60 p-3 rounded-lg border border-[#CFD7CA]">
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-[#214E34]">Produce Quality & Grade</label>
+            <select
+              value={qualityGrade}
+              onChange={(e) => onQualityGradeChange && onQualityGradeChange(e.target.value)}
+              className="w-full bg-white border border-[#E2E7DE] text-[#252D27] text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-[#367C46]"
+            >
+              <option value="all">All Grades & Certifications</option>
+              <option value="grade1">Grade 1 Export / Premium Clean</option>
+              <option value="certified">Certified Seed & Tested Produce</option>
+            </select>
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-[#214E34]">Delivery Options</label>
+            <select
+              value={deliveryOption}
+              onChange={(e) => onDeliveryOptionChange && onDeliveryOptionChange(e.target.value)}
+              className="w-full bg-white border border-[#E2E7DE] text-[#252D27] text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-[#367C46]"
+            >
+              <option value="all">All Delivery Modes</option>
+              <option value="pickup">Farmgate Collection / Pickup</option>
+              <option value="carrier_dispatch">Transporter Dispatch</option>
+              <option value="direct_delivery">Direct Farmer Delivery</option>
+            </select>
+          </div>
+        </div>
+      )}
 
       {/* 3. Price Filter (KSh) & Summary Row */}
       <div className="pt-2 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 border-t border-[#E2E7DE]">

@@ -7,7 +7,9 @@ import {
   MapPin, 
   Calendar, 
   Loader2,
-  RefreshCw
+  RefreshCw,
+  WifiOff,
+  Database
 } from 'lucide-react';
 import { KENYA_COUNTIES } from '../data/kenyaCounties';
 import { api, WeatherResponse } from '../services/api';
@@ -83,6 +85,20 @@ export const WeatherPage: React.FC<WeatherPageProps> = ({
           </div>
         </div>
       </div>
+
+      {weatherData?.isOfflineCached && (
+        <div className="p-3.5 bg-[#EBF3ED] border border-[#CFD7CA] text-[#214E34] text-xs font-semibold rounded-xl flex items-center justify-between shadow-xs">
+          <div className="flex items-center gap-2">
+            <Database className="w-4 h-4 text-[#367C46] shrink-0" />
+            <span>
+              <strong>Offline Mode Cache:</strong> Displaying saved synoptic weather and rainfall guidance for {weatherData.county} County.
+            </span>
+          </div>
+          <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-mono text-[#367C46] bg-white px-2 py-0.5 rounded border border-[#CFD7CA]">
+            PWA Workbox Cached
+          </span>
+        </div>
+      )}
 
       {loading || !weatherData ? (
         <div className="bg-white rounded-xl p-16 text-center border border-[#E2E7DE]">

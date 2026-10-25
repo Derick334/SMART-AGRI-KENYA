@@ -17,6 +17,11 @@ export interface MarketplaceFilterState {
   maxPrice: number | undefined;
   searchQuery: string;
   sortBy: SortOption;
+  maxAgeMonths: number | undefined;
+  livestockPurpose: string;
+  livestockSex: string;
+  deliveryOption: string;
+  qualityGrade: string;
 }
 
 export const DEFAULT_FILTER_STATE: MarketplaceFilterState = {
@@ -28,6 +33,11 @@ export const DEFAULT_FILTER_STATE: MarketplaceFilterState = {
   maxPrice: undefined,
   searchQuery: '',
   sortBy: 'featured',
+  maxAgeMonths: undefined,
+  livestockPurpose: 'all',
+  livestockSex: 'all',
+  deliveryOption: 'all',
+  qualityGrade: 'all',
 };
 
 export interface ActiveFilterTag {
@@ -48,6 +58,11 @@ export interface UseMarketplaceFiltersReturn {
   maxPrice: number | undefined;
   searchQuery: string;
   sortBy: SortOption;
+  maxAgeMonths: number | undefined;
+  livestockPurpose: string;
+  livestockSex: string;
+  deliveryOption: string;
+  qualityGrade: string;
 
   // Setters
   setCategory: (category: MarketplaceCategory) => void;
@@ -59,6 +74,11 @@ export interface UseMarketplaceFiltersReturn {
   setPriceRange: (min: number | undefined, max: number | undefined) => void;
   setSearchQuery: (query: string) => void;
   setSortBy: (sort: SortOption) => void;
+  setMaxAgeMonths: (maxAge: number | undefined) => void;
+  setLivestockPurpose: (purpose: string) => void;
+  setLivestockSex: (sex: string) => void;
+  setDeliveryOption: (delivery: string) => void;
+  setQualityGrade: (grade: string) => void;
 
   // Actions
   resetFilters: () => void;
@@ -159,6 +179,26 @@ export function useMarketplaceFilters(
     setFilters((prev) => ({ ...prev, sortBy }));
   }, []);
 
+  const setMaxAgeMonths = useCallback((maxAgeMonths: number | undefined) => {
+    setFilters((prev) => ({ ...prev, maxAgeMonths }));
+  }, []);
+
+  const setLivestockPurpose = useCallback((livestockPurpose: string) => {
+    setFilters((prev) => ({ ...prev, livestockPurpose }));
+  }, []);
+
+  const setLivestockSex = useCallback((livestockSex: string) => {
+    setFilters((prev) => ({ ...prev, livestockSex }));
+  }, []);
+
+  const setDeliveryOption = useCallback((deliveryOption: string) => {
+    setFilters((prev) => ({ ...prev, deliveryOption }));
+  }, []);
+
+  const setQualityGrade = useCallback((qualityGrade: string) => {
+    setFilters((prev) => ({ ...prev, qualityGrade }));
+  }, []);
+
   const resetFilters = useCallback(() => {
     setFilters(DEFAULT_FILTER_STATE);
   }, []);
@@ -223,6 +263,11 @@ export function useMarketplaceFilters(
     if (filters.location !== 'all') count++;
     if (filters.minPrice !== undefined || filters.maxPrice !== undefined) count++;
     if (filters.searchQuery.trim() !== '') count++;
+    if (filters.maxAgeMonths !== undefined) count++;
+    if (filters.livestockPurpose !== 'all') count++;
+    if (filters.livestockSex !== 'all') count++;
+    if (filters.deliveryOption !== 'all') count++;
+    if (filters.qualityGrade !== 'all') count++;
     return count;
   }, [filters]);
 
@@ -301,8 +346,53 @@ export function useMarketplaceFilters(
       });
     }
 
+    if (filters.maxAgeMonths !== undefined) {
+      tags.push({
+        key: 'maxAgeMonths',
+        label: 'Max Age',
+        displayValue: `≤ ${filters.maxAgeMonths} months`,
+        onRemove: () => setMaxAgeMonths(undefined),
+      });
+    }
+
+    if (filters.livestockPurpose !== 'all') {
+      tags.push({
+        key: 'livestockPurpose',
+        label: 'Purpose',
+        displayValue: filters.livestockPurpose.toUpperCase(),
+        onRemove: () => setLivestockPurpose('all'),
+      });
+    }
+
+    if (filters.livestockSex !== 'all') {
+      tags.push({
+        key: 'livestockSex',
+        label: 'Sex',
+        displayValue: filters.livestockSex,
+        onRemove: () => setLivestockSex('all'),
+      });
+    }
+
+    if (filters.deliveryOption !== 'all') {
+      tags.push({
+        key: 'deliveryOption',
+        label: 'Delivery',
+        displayValue: filters.deliveryOption === 'pickup' ? 'Farmgate Pickup' : 'Carrier Dispatch',
+        onRemove: () => setDeliveryOption('all'),
+      });
+    }
+
+    if (filters.qualityGrade !== 'all') {
+      tags.push({
+        key: 'qualityGrade',
+        label: 'Quality / Grade',
+        displayValue: filters.qualityGrade === 'certified' ? 'Certified Only' : 'Grade 1 Quality',
+        onRemove: () => setQualityGrade('all'),
+      });
+    }
+
     return tags;
-  }, [filters, setCategory, setProductType, setVarietyOrBreed, setLocation, setPriceRange, setSearchQuery]);
+  }, [filters, setCategory, setProductType, setVarietyOrBreed, setLocation, setPriceRange, setSearchQuery, setMaxAgeMonths, setLivestockPurpose, setLivestockSex, setDeliveryOption, setQualityGrade]);
 
   // Main filtering and sorting function
   const filterAndSortProducts = useCallback((items: Product[]): Product[] => {
@@ -368,7 +458,6 @@ export function useMarketplaceFilters(
     // 4. Variety or Breed
     if (filters.varietyOrBreed !== 'all') {
       const targetVar = filters.varietyOrBreed.toLowerCase();
-      // Extract clean keywords if variety has parenthetical note (e.g. "H614" from "H614 (Highland Maize)")
       const cleanKeyword = targetVar.split('(')[0].trim();
 
       result = result.filter((p) => {
@@ -405,7 +494,58 @@ export function useMarketplaceFilters(
       result = result.filter((p) => p.priceKsh <= (filters.maxPrice as number));
     }
 
-    // 7. Sorting
+    // 7. Livestock: Max Age in Months (e.g. Kienyeji chickens max age 6 months)
+    if (filters.maxAgeMonths !== undefined) {
+      result = result.filter((p) => {
+        const details = p.livestockDetails;
+        if (!details) return false;
+        let ageInMonths = 0;
+        if (details.ageUnit === 'days') ageInMonths = details.ageValue / 30;
+        else if ((details.ageUnit as string) === 'weeks') ageInMonths = details.ageValue / 4.3;
+        else if (details.ageUnit === 'months') ageInMonths = details.ageValue;
+        else if (details.ageUnit === 'years') ageInMonths = details.ageValue * 12;
+        return ageInMonths <= (filters.maxAgeMonths as number);
+      });
+    }
+
+    // 8. Livestock: Purpose
+    if (filters.livestockPurpose !== 'all') {
+      const targetPurpose = filters.livestockPurpose.toLowerCase();
+      result = result.filter((p) => {
+        const purpose = (p.livestockDetails?.purpose || p.cattlePurpose || '').toLowerCase();
+        return purpose.includes(targetPurpose);
+      });
+    }
+
+    // 9. Livestock: Sex
+    if (filters.livestockSex !== 'all') {
+      result = result.filter((p) => {
+        const sex = (p.livestockDetails?.sex || '').toLowerCase();
+        return sex === filters.livestockSex.toLowerCase();
+      });
+    }
+
+    // 10. Delivery Option
+    if (filters.deliveryOption !== 'all') {
+      result = result.filter((p) => {
+        return (p.deliveryOptions || []).includes(filters.deliveryOption as any);
+      });
+    }
+
+    // 11. Quality / Grade
+    if (filters.qualityGrade !== 'all') {
+      result = result.filter((p) => {
+        if (filters.qualityGrade === 'certified') {
+          return p.condition === 'certified' || Boolean(p.certificationInfo);
+        }
+        if (filters.qualityGrade === 'grade1') {
+          return p.title.toLowerCase().includes('grade 1') || (p.description || '').toLowerCase().includes('grade 1');
+        }
+        return true;
+      });
+    }
+
+    // 12. Sorting
     switch (filters.sortBy) {
       case 'newest':
         result.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
@@ -451,6 +591,11 @@ export function useMarketplaceFilters(
     maxPrice: filters.maxPrice,
     searchQuery: filters.searchQuery,
     sortBy: filters.sortBy,
+    maxAgeMonths: filters.maxAgeMonths,
+    livestockPurpose: filters.livestockPurpose,
+    livestockSex: filters.livestockSex,
+    deliveryOption: filters.deliveryOption,
+    qualityGrade: filters.qualityGrade,
 
     setCategory,
     setProductType,
@@ -461,6 +606,11 @@ export function useMarketplaceFilters(
     setPriceRange,
     setSearchQuery,
     setSortBy,
+    setMaxAgeMonths,
+    setLivestockPurpose,
+    setLivestockSex,
+    setDeliveryOption,
+    setQualityGrade,
 
     resetFilters,
     clearFilter,

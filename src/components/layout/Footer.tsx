@@ -58,7 +58,7 @@ export const Footer: React.FC<FooterProps> = ({ onSelectTab }) => {
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="w-3.5 h-3.5 text-[#78A65A] shrink-0" />
-                <span>Farmer Hotline:· +254 708107641</span>
+                <span>Farmer Hotline: 0800 721 000 (Toll-Free) · +254 700 000 000</span>
               </div>
               <div className="flex items-center gap-2">
                 <Mail className="w-3.5 h-3.5 text-[#78A65A] shrink-0" />

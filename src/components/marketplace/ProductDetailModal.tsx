@@ -6,7 +6,9 @@ import {
   Phone, 
   Truck, 
   ShoppingBag, 
-  PackageCheck
+  PackageCheck,
+  MessageSquare,
+  Flag
 } from 'lucide-react';
 import { Product } from '../../types';
 
@@ -15,6 +17,8 @@ interface ProductDetailModalProps {
   onClose: () => void;
   onAddToCart: (product: Product, quantity: number, delivery: 'pickup' | 'delivery') => void;
   userCounty?: string;
+  onInquire?: (product: Product) => void;
+  onReport?: (product: Product) => void;
 }
 
 export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
@@ -22,6 +26,8 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   onClose,
   onAddToCart,
   userCounty = 'Nairobi',
+  onInquire,
+  onReport,
 }) => {
   if (!product) return null;
 
@@ -91,22 +97,46 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                 {product.sellerSubCounty ? `${product.sellerSubCounty}, ` : ''}{product.sellerCounty} County
               </p>
 
-              <div className="mt-3 pt-2.5 border-t border-[#E2E7DE] flex items-center gap-2">
-                {showPhone ? (
-                  <a
-                    href={`tel:${product.sellerPhone}`}
-                    className="flex-1 bg-[#EBF3ED] hover:bg-[#DCECE0] text-[#214E34] font-bold text-xs py-2 px-3 rounded-lg flex items-center justify-center gap-2 transition border border-[#CFD7CA]"
-                  >
-                    <Phone className="w-3.5 h-3.5 text-[#367C46]" />
-                    <span>{product.sellerPhone}</span>
-                  </a>
-                ) : (
+              <div className="mt-3 pt-2.5 border-t border-[#E2E7DE] flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  {showPhone ? (
+                    <a
+                      href={`tel:${product.sellerPhone}`}
+                      className="flex-1 bg-[#EBF3ED] hover:bg-[#DCECE0] text-[#214E34] font-bold text-xs py-2 px-3 rounded-lg flex items-center justify-center gap-2 transition border border-[#CFD7CA]"
+                    >
+                      <Phone className="w-3.5 h-3.5 text-[#367C46]" />
+                      <span>{product.sellerPhone}</span>
+                    </a>
+                  ) : (
+                    <button
+                      onClick={() => setShowPhone(true)}
+                      className="flex-1 bg-[#F7F6F0] hover:bg-[#EBF3ED] text-[#252D27] font-semibold text-xs py-2 px-3 rounded-lg flex items-center justify-center gap-2 transition cursor-pointer border border-[#E2E7DE]"
+                    >
+                      <Phone className="w-3.5 h-3.5 text-[#68756A]" />
+                      <span>Show Phone</span>
+                    </button>
+                  )}
+
+                  {onInquire && (
+                    <button
+                      type="button"
+                      onClick={() => onInquire(product)}
+                      className="flex-1 bg-[#367C46] hover:bg-[#2B6437] text-white font-semibold text-xs py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition cursor-pointer shadow-xs"
+                    >
+                      <MessageSquare className="w-3.5 h-3.5" />
+                      <span>Inquire</span>
+                    </button>
+                  )}
+                </div>
+
+                {onReport && (
                   <button
-                    onClick={() => setShowPhone(true)}
-                    className="flex-1 bg-[#F7F6F0] hover:bg-[#EBF3ED] text-[#252D27] font-semibold text-xs py-2 px-3 rounded-lg flex items-center justify-center gap-2 transition cursor-pointer border border-[#E2E7DE]"
+                    type="button"
+                    onClick={() => onReport(product)}
+                    className="text-[11px] text-[#68756A] hover:text-red-600 transition flex items-center justify-center gap-1 pt-1"
                   >
-                    <Phone className="w-3.5 h-3.5 text-[#68756A]" />
-                    <span>Show Farmer Phone</span>
+                    <Flag className="w-3 h-3" />
+                    <span>Report suspicious listing</span>
                   </button>
                 )}
               </div>

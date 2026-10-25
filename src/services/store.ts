@@ -7,38 +7,222 @@ import {
   ForumPost, 
   MarketPriceRecord, 
   UserRole,
-  AdminStats 
+  AdminStats,
+  AuditLogEntry,
+  MembershipVerificationResult,
+  ProductInquiry,
+  ProductReport
 } from '../types';
 import { SAMPLE_PRODUCTS } from '../data/sampleProducts';
 import { SAMPLE_LIVESTOCK } from '../data/sampleLivestock';
 import { SAMPLE_MARKET_PRICES } from '../data/sampleMarketPrices';
+import { apiService } from './api';
 
-const LOCAL_STORAGE_KEY_PRODUCTS = 'smart_agri_products_v4';
+const LOCAL_STORAGE_KEY_PRODUCTS = 'smart_agri_products_v6';
 const LOCAL_STORAGE_KEY_ORDERS = 'smart_agri_orders_v1';
 const LOCAL_STORAGE_KEY_CART = 'smart_agri_cart_v1';
 const LOCAL_STORAGE_KEY_USER = 'smart_agri_user_v1';
+const LOCAL_STORAGE_KEY_AUTH = 'smart_agri_is_auth_v3';
 const LOCAL_STORAGE_KEY_SOIL = 'smart_agri_soil_v1';
 const LOCAL_STORAGE_KEY_FORUM = 'smart_agri_forum_v1';
+const LOCAL_STORAGE_KEY_USERS = 'smart_agri_users_v2';
+const LOCAL_STORAGE_KEY_AUDIT = 'smart_agri_audit_v1';
+const LOCAL_STORAGE_KEY_INQUIRIES = 'smart_agri_inquiries_v1';
+const LOCAL_STORAGE_KEY_REPORTS = 'smart_agri_reports_v1';
+const LOCAL_STORAGE_KEY_PRICES = 'smart_agri_prices_v2';
+const LOCAL_STORAGE_KEY_CONSULTATIONS = 'smart_agri_consultations_v2';
 
-// Default mock user: verified farmer in Kenya
-export const DEFAULT_USER: UserProfile = {
+export function getCountyAbbr(countyName: string): string {
+  const map: Record<string, string> = {
+    'Nakuru': 'NKR', 'Nairobi': 'NBI', 'Mombasa': 'MSA', 'Kiambu': 'KBU',
+    'Uasin Gishu': 'UG', 'Kisumu': 'KSM', 'Machakos': 'MCK', 'Meru': 'MRU',
+    'Nyeri': 'NYR', 'Kakamega': 'KKM', 'Kericho': 'KRC', 'Kilifi': 'KLF',
+    'Bungoma': 'BGM', 'Trans Nzoia': 'TNZ', 'Narok': 'NRK', 'Kajiado': 'KJD',
+    'Murang\'a': 'MRG', 'Kirinyaga': 'KRN', 'Embu': 'EBU', 'Kitui': 'KTU',
+    'Makueni': 'MKN', 'Nyandarua': 'NDR', 'Laikipia': 'LKP', 'Baringo': 'BRG',
+    'Nandi': 'NND', 'Bomet': 'BMT', 'Vihiga': 'VHG', 'Busia': 'BSA',
+    'Siaya': 'SYA', 'Homa Bay': 'HMB', 'Migori': 'MGR', 'Kisii': 'KSI',
+    'Nyamira': 'NMR', 'Garissa': 'GRS', 'Wajir': 'WJR', 'Mandera': 'MND',
+    'Marsabit': 'MBT', 'Isiolo': 'ISL', 'Turkana': 'TRK', 'West Pokot': 'WPK',
+    'Samburu': 'SBR', 'Elgeyo Marakwet': 'EMK', 'Lamu': 'LMU', 'Taita Taveta': 'TTA',
+    'Tana River': 'TNR', 'Kwale': 'KWL'
+  };
+  return map[countyName] || (countyName.length >= 3 ? countyName.slice(0, 3).toUpperCase() : 'NKR');
+}
+
+export function generateMembershipCode(county: string, role: UserRole): string {
+  const cCode = getCountyAbbr(county);
+  const roleCodeMap: Record<string, string> = {
+    farmer: 'F',
+    buyer: 'B',
+    seller: 'S',
+    consultant: 'C',
+    expert: 'C',
+    veterinarian: 'V',
+    transporter: 'T',
+    lab: 'L',
+    admin: 'A'
+  };
+  const rCode = roleCodeMap[role] || 'F';
+  const randNum = Math.floor(1000 + Math.random() * 9000);
+  return `SAK-${cCode}-2026-${rCode}${randNum}`;
+}
+
+// 8 Complete Demo Personas for Kenyan Agriculture Platform
+export const DEMO_FARMER: UserProfile = {
   id: 'usr-farmer-01',
   name: 'Samuel Kiprop Kimani',
-  email: 'samuel.kimani@agri.co.ke',
+  email: 'farmer@smart-agri.ke',
   phone: '0722123456',
   role: 'farmer',
   county: 'Nakuru',
   subCounty: 'Njoro',
+  town: 'Njoro',
   ward: 'Nessuit',
   farmName: 'Rongai Valley Mixed Farm',
   farmSizeAcres: 12.5,
-  idNumber: '28475921',
+  nationalIdNumber: '28475921',
+  membershipCode: 'SAK-NKR-2024-F4829',
+  membershipTier: 'Gold',
+  cooperativeAffiliation: 'Rongai Dairy & Cereal SACCO',
+  status: 'active',
   isVerified: true,
   avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
   joinedDate: '2024-03-12',
 };
 
-export const ADMIN_USER: UserProfile = {
+export const DEMO_BUYER: UserProfile = {
+  id: 'usr-buyer-01',
+  name: 'Grace Njeri Mwangi',
+  email: 'buyer@smart-agri.ke',
+  phone: '0711987654',
+  role: 'buyer',
+  county: 'Mombasa',
+  subCounty: 'Mvita',
+  town: 'Mombasa',
+  organizationName: 'Coastal Fresh Produce Wholesalers',
+  businessType: 'Bulk Food Broker & Supermarket Distributor',
+  nationalIdNumber: '24910283',
+  membershipCode: 'SAK-MSA-2024-B1092',
+  membershipTier: 'Platinum',
+  cooperativeAffiliation: 'Coast Horticultural Traders Association',
+  status: 'active',
+  isVerified: true,
+  avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&q=80',
+  joinedDate: '2024-05-18',
+};
+
+export const DEMO_SELLER: UserProfile = {
+  id: 'usr-seller-01',
+  name: 'James Mworia Githinji',
+  email: 'seller@smart-agri.ke',
+  phone: '0722334455',
+  role: 'seller',
+  county: 'Uasin Gishu',
+  subCounty: 'Eldoret East',
+  town: 'Eldoret',
+  organizationName: 'Rift Valley Agrovet Wholesalers',
+  businessType: 'Certified Farm Inputs & Machinery',
+  licenseNumber: 'KEPHIS-AGR-8821',
+  nationalIdNumber: '21094832',
+  membershipCode: 'SAK-UG-2023-S7714',
+  membershipTier: 'Platinum',
+  cooperativeAffiliation: 'Kenya Agro-Dealers Association (KADA)',
+  status: 'active',
+  isVerified: true,
+  avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80',
+  joinedDate: '2023-11-04',
+};
+
+export const DEMO_CONSULTANT: UserProfile = {
+  id: 'usr-consultant-01',
+  name: 'Dr. Evans Mwangi, PhD',
+  email: 'consultant@smart-agri.ke',
+  phone: '0722889900',
+  role: 'consultant',
+  county: 'Kiambu',
+  subCounty: 'Kikuyu',
+  town: 'Kikuyu',
+  organizationName: 'Kenya Precision Agronomy & Extension Ltd',
+  businessType: 'Senior Agronomist & Soil Chemist',
+  licenseNumber: 'KASP-AGR-4920',
+  nationalIdNumber: '19842109',
+  membershipCode: 'SAK-KBU-2023-C3910',
+  membershipTier: 'Platinum',
+  cooperativeAffiliation: 'Kenya Society of Agricultural Professionals (KSAP)',
+  status: 'active',
+  isVerified: true,
+  avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+  joinedDate: '2023-08-15',
+};
+
+export const DEMO_VETERINARIAN: UserProfile = {
+  id: 'usr-vet-01',
+  name: 'Dr. Faith Cherono, BVM',
+  email: 'vet@smart-agri.ke',
+  phone: '0712554433',
+  role: 'veterinarian',
+  county: 'Nakuru',
+  subCounty: 'Naivasha',
+  town: 'Naivasha',
+  organizationName: 'Great Rift Mobile Livestock & Dairy Clinic',
+  businessType: 'Licensed Veterinary Surgeon (KVB Registered)',
+  licenseNumber: 'KVB-VS-2940',
+  nationalIdNumber: '27194028',
+  membershipCode: 'SAK-NKR-2024-V8201',
+  membershipTier: 'Platinum',
+  cooperativeAffiliation: 'Kenya Veterinary Association (KVA)',
+  status: 'active',
+  isVerified: true,
+  avatarUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=200&q=80',
+  joinedDate: '2023-09-01',
+};
+
+export const DEMO_TRANSPORTER: UserProfile = {
+  id: 'usr-transporter-01',
+  name: 'Joseph Waweru Kinyua',
+  email: 'transporter@smart-agri.ke',
+  phone: '0722883311',
+  role: 'transporter',
+  county: 'Nakuru',
+  subCounty: 'Nakuru West',
+  town: 'Nakuru',
+  organizationName: 'Rift Transporters SACCO & Agricultural Logistics',
+  businessType: 'Inter-County Agricultural Freight Fleet',
+  licenseNumber: 'NTSA-COM-7712',
+  nationalIdNumber: '23091845',
+  membershipCode: 'SAK-NKR-2024-T5193',
+  membershipTier: 'Silver',
+  cooperativeAffiliation: 'Agricultural Transporters SACCO',
+  status: 'active',
+  isVerified: true,
+  avatarUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=200&q=80',
+  joinedDate: '2024-01-10',
+};
+
+export const DEMO_LAB: UserProfile = {
+  id: 'usr-lab-01',
+  name: 'Dr. Anne Mwende',
+  email: 'lab@smart-agri.ke',
+  phone: '0722206986',
+  role: 'lab',
+  county: 'Nairobi',
+  subCounty: 'Westlands',
+  town: 'Kabete',
+  organizationName: 'KALRO National Agricultural Research Laboratories (NARL)',
+  businessType: 'National Soil, Plant Tissue & Water Testing Lab',
+  licenseNumber: 'KENAS-ISO-17025-TL-014',
+  nationalIdNumber: '20194821',
+  membershipCode: 'SAK-NBI-2023-L6402',
+  membershipTier: 'Platinum',
+  cooperativeAffiliation: 'Kenya National Laboratory Accreditation Service',
+  status: 'active',
+  isVerified: true,
+  avatarUrl: 'https://images.unsplash.com/photo-1594744803329-e58b31de8bf5?auto=format&fit=crop&w=200&q=80',
+  joinedDate: '2023-04-20',
+};
+
+export const DEMO_ADMIN: UserProfile = {
   id: 'usr-admin-01',
   name: 'Admin Derick Onyango',
   email: 'admin@smart-agri.ke',
@@ -46,10 +230,65 @@ export const ADMIN_USER: UserProfile = {
   role: 'admin',
   county: 'Nairobi',
   subCounty: 'Westlands',
+  town: 'Nairobi CBD',
+  organizationName: 'SMART-AGRI KENYA Headquarters',
+  businessType: 'Central Operations, KYC & Governance',
+  nationalIdNumber: '29104821',
+  membershipCode: 'SAK-HQ-2023-A0001',
+  membershipTier: 'Platinum',
+  cooperativeAffiliation: 'Ministry of Agriculture Operations',
+  status: 'active',
   isVerified: true,
   avatarUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=200&q=80',
   joinedDate: '2023-01-01',
 };
+
+export const ALL_DEMO_USERS: UserProfile[] = [
+  DEMO_FARMER,
+  DEMO_BUYER,
+  DEMO_SELLER,
+  DEMO_CONSULTANT,
+  DEMO_VETERINARIAN,
+  DEMO_TRANSPORTER,
+  DEMO_LAB,
+  DEMO_ADMIN,
+];
+
+export const DEFAULT_USER: UserProfile = DEMO_FARMER;
+export const ADMIN_USER: UserProfile = DEMO_ADMIN;
+
+export const INITIAL_AUDIT_LOGS = [
+  {
+    id: 'log-001',
+    timestamp: '2026-10-21 07:15 AM',
+    actorEmail: 'admin@smart-agri.ke',
+    actorRole: 'admin' as const,
+    action: 'SYSTEM_BOOTSTRAP',
+    target: 'SMART-AGRI KENYA Security Engine',
+    status: 'SUCCESS' as const,
+    ipAddress: '197.237.112.44 (Nairobi, Kenya)',
+  },
+  {
+    id: 'log-002',
+    timestamp: '2026-10-21 07:42 AM',
+    actorEmail: 'admin@smart-agri.ke',
+    actorRole: 'admin' as const,
+    action: 'KYC_SELLER_APPROVAL',
+    target: 'James Mworia (Rift Valley Agrovet)',
+    status: 'SUCCESS' as const,
+    ipAddress: '197.237.112.44 (Nairobi, Kenya)',
+  },
+  {
+    id: 'log-003',
+    timestamp: '2026-10-21 08:05 AM',
+    actorEmail: 'farmer@smart-agri.ke',
+    actorRole: 'farmer' as const,
+    action: 'MEMBER_LOGIN',
+    target: 'Samuel Kiprop Kimani Session',
+    status: 'SUCCESS' as const,
+    ipAddress: '102.68.22.18 (Nakuru, Kenya)',
+  },
+];
 
 // Initial Seed Orders
 const INITIAL_ORDERS: Order[] = [
@@ -193,6 +432,82 @@ const INITIAL_FORUM_POSTS: ForumPost[] = [
   }
 ];
 
+export interface ConsultationNoteRecord {
+  id: string;
+  expertName: string;
+  expertTitle: string;
+  institution: string;
+  county: string;
+  date: string;
+  cropOrLivestock: string;
+  farmChallenge: string;
+  prescriptionOrAdvice: string;
+  actionItems: string[];
+  followUpDate?: string;
+  contactPhone: string;
+  savedOffline: boolean;
+}
+
+const INITIAL_CONSULTATION_NOTES: ConsultationNoteRecord[] = [
+  {
+    id: 'note-001',
+    expertName: 'Dr. Evans Kiprotich',
+    expertTitle: 'Principal Agronomist & Cereal Specialist',
+    institution: 'KALRO Njoro Centre',
+    county: 'Nakuru',
+    date: '2026-10-18',
+    cropOrLivestock: 'French Beans & Hybrid Maize (H614D)',
+    farmChallenge: 'Interveinal leaf chlorosis and severe soil acidification (pH 5.2) due to continuous DAP fertilization.',
+    prescriptionOrAdvice: 'Broadcast 1.2 metric tonnes/acre of agricultural lime (CaCO3) minimum 3 weeks before planting rain onset. For basal fertilization, transition to NPK 23:23:0 or Mavuno planting fertilizer. Top-dress with CAN (26% N) at knee-height (V6) at 75kg/acre.',
+    actionItems: [
+      'Incorporate agricultural lime before October short rains.',
+      'Scout for fall armyworm at early seedling stage twice weekly.',
+      'Avoid unbuffered DAP on plots with pH below 5.5.'
+    ],
+    followUpDate: '2026-11-15',
+    contactPhone: '+254 722 456 789',
+    savedOffline: true,
+  },
+  {
+    id: 'note-002',
+    expertName: 'Dr. Mary Wambui',
+    expertTitle: 'Senior Veterinary Surgeon (KVB Reg. #2184)',
+    institution: 'Kabete Veterinary Diagnostic Services',
+    county: 'Kiambu',
+    date: '2026-10-15',
+    cropOrLivestock: 'Holstein Friesian Dairy Cattle',
+    farmChallenge: 'Tick-borne disease management and dairy mastitis prevention in zero-grazing stall.',
+    prescriptionOrAdvice: 'Dip or knapsack spray with Amitraz 12.5% EC every 7 days without skipping. For clinical East Coast Fever cases with swollen prescapular lymph nodes, treat immediately with Buparvaquone (2.5 mg/kg IM) and Oxytetracycline 20% LA. Perform post-milking teat dipping using 0.5% iodophor solution.',
+    actionItems: [
+      'Weekly Thursday acaricide spray routine for entire herd.',
+      'Check cow udder quarters before each morning milking.',
+      'Store veterinary antibiotics in cool insulated cooler box.'
+    ],
+    followUpDate: '2026-10-30',
+    contactPhone: '+254 711 987 654',
+    savedOffline: true,
+  },
+  {
+    id: 'note-003',
+    expertName: 'Eng. Peter Ochieng',
+    expertTitle: 'Agricultural Engineer & Water Harvesting Specialist',
+    institution: 'National Irrigation Authority (NIA)',
+    county: 'Machakos',
+    date: '2026-10-10',
+    cropOrLivestock: 'Greenhouse Tomatoes & Capsicum',
+    farmChallenge: 'Drip line emitter clogging from high calcium carbonates in borehole water.',
+    prescriptionOrAdvice: 'Perform periodic acid flushing using food-grade nitric acid (HNO3) diluted to pH 2.0 through Venturi injector for 15 minutes, followed by 30-minute clean water flushing. Install a 120-mesh dual disk filter downstream of borehole pump.',
+    actionItems: [
+      'Flush drip lines end-caps every 2 weeks.',
+      'Clean disk filter elements weekly with soft brush.',
+      'Monitor lateral line operating pressure at 1.0 - 1.2 bar.'
+    ],
+    followUpDate: '2026-11-01',
+    contactPhone: '+254 733 221 100',
+    savedOffline: true,
+  }
+];
+
 // Helper to safely load localStorage
 function getLocal<T>(key: string, defaultValue: T): T {
   if (typeof window === 'undefined') return defaultValue;
@@ -218,21 +533,61 @@ class AgriStore {
   private cart: CartItem[];
   private orders: Order[];
   private currentUser: UserProfile;
+  private users: UserProfile[];
+  private isAuth: boolean;
+  private auditLogs: AuditLogEntry[];
   private soilRequests: SoilTestRequest[];
   private forumPosts: ForumPost[];
   private marketPrices: MarketPriceRecord[];
+  private inquiries: ProductInquiry[];
+  private reports: ProductReport[];
+  private consultationNotes: ConsultationNoteRecord[];
   private listeners: Set<() => void> = new Set();
 
   constructor() {
     // Combine products and livestock as base catalogue
     const allInitialProducts = [...SAMPLE_PRODUCTS, ...SAMPLE_LIVESTOCK];
-    this.products = getLocal<Product[]>(LOCAL_STORAGE_KEY_PRODUCTS, allInitialProducts);
+    const storedProducts = getLocal<Product[]>(LOCAL_STORAGE_KEY_PRODUCTS, []);
+    const productMap = new Map<string, Product>();
+    // Seed initial catalogue
+    allInitialProducts.forEach(p => productMap.set(p.id, p));
+    // Overlay stored changes or user-added listings
+    storedProducts.forEach(p => productMap.set(p.id, p));
+    this.products = Array.from(productMap.values());
+
     this.cart = getLocal<CartItem[]>(LOCAL_STORAGE_KEY_CART, []);
     this.orders = getLocal<Order[]>(LOCAL_STORAGE_KEY_ORDERS, INITIAL_ORDERS);
     this.currentUser = getLocal<UserProfile>(LOCAL_STORAGE_KEY_USER, DEFAULT_USER);
+    this.users = getLocal<UserProfile[]>(LOCAL_STORAGE_KEY_USERS, ALL_DEMO_USERS);
+    this.isAuth = getLocal<boolean>(LOCAL_STORAGE_KEY_AUTH, false);
+    this.auditLogs = getLocal<AuditLogEntry[]>(LOCAL_STORAGE_KEY_AUDIT, INITIAL_AUDIT_LOGS);
     this.soilRequests = getLocal<SoilTestRequest[]>(LOCAL_STORAGE_KEY_SOIL, INITIAL_SOIL_REQUESTS);
     this.forumPosts = getLocal<ForumPost[]>(LOCAL_STORAGE_KEY_FORUM, INITIAL_FORUM_POSTS);
-    this.marketPrices = SAMPLE_MARKET_PRICES;
+
+    const storedPrices = getLocal<MarketPriceRecord[]>(LOCAL_STORAGE_KEY_PRICES, []);
+    const priceMap = new Map<string, MarketPriceRecord>();
+    SAMPLE_MARKET_PRICES.forEach(p => priceMap.set(p.id, p));
+    storedPrices.forEach(p => priceMap.set(p.id, p));
+    this.marketPrices = Array.from(priceMap.values());
+
+    this.inquiries = getLocal<ProductInquiry[]>(LOCAL_STORAGE_KEY_INQUIRIES, [
+      {
+        id: 'inq-sample-1',
+        productId: 'live-chk-kienyeji-nakuru',
+        productTitle: 'Vaccinated KALRO Improved Kienyeji Growers (Nakuru)',
+        sellerId: 'usr-farmer-01',
+        buyerId: 'usr-buyer-01',
+        buyerName: 'Grace Muthoni Wanjiku',
+        buyerPhone: '0711223344',
+        message: 'Hello, are the 150 birds available for pickup in Rongai this weekend? Are the vaccination certificates signed by a registered vet?',
+        requestedQuantity: 50,
+        deliveryPreference: 'pickup',
+        status: 'pending',
+        createdAt: '2026-10-18T11:30:00Z',
+      }
+    ]);
+    this.reports = getLocal<ProductReport[]>(LOCAL_STORAGE_KEY_REPORTS, []);
+    this.consultationNotes = getLocal<ConsultationNoteRecord[]>(LOCAL_STORAGE_KEY_CONSULTATIONS, INITIAL_CONSULTATION_NOTES);
   }
 
   public subscribe(listener: () => void): () => void {
@@ -268,6 +623,22 @@ class AgriStore {
     this.products = this.products.map(p => p.id === id ? { ...p, status } : p);
     setLocal(LOCAL_STORAGE_KEY_PRODUCTS, this.products);
     this.notify();
+  }
+
+  public updateProduct(id: string, updates: Partial<Product>): Product | null {
+    let updatedProduct: Product | null = null;
+    this.products = this.products.map(p => {
+      if (p.id === id) {
+        updatedProduct = { ...p, ...updates };
+        return updatedProduct;
+      }
+      return p;
+    });
+    if (updatedProduct) {
+      setLocal(LOCAL_STORAGE_KEY_PRODUCTS, this.products);
+      this.notify();
+    }
+    return updatedProduct;
   }
 
   public deleteProduct(id: string) {
@@ -385,27 +756,273 @@ class AgriStore {
   }
 
   // --- User & Auth ---
+  public isAuthenticated(): boolean {
+    return this.isAuth;
+  }
+
+  public setAuthenticated(auth: boolean): void {
+    this.isAuth = auth;
+    setLocal(LOCAL_STORAGE_KEY_AUTH, auth);
+    this.notify();
+  }
+
+  public logout(): void {
+    this.isAuth = false;
+    setLocal(LOCAL_STORAGE_KEY_AUTH, false);
+    this.addAuditLog({
+      actorEmail: this.currentUser?.email || 'user@smart-agri.ke',
+      actorRole: this.currentUser?.role || 'farmer',
+      action: 'MEMBER_LOGOUT',
+      target: `User signed out: ${this.currentUser?.name || 'Session'}`,
+      status: 'SUCCESS',
+    });
+    this.notify();
+  }
+
   public getCurrentUser(): UserProfile {
     return this.currentUser;
   }
 
   public setCurrentUser(user: UserProfile) {
     this.currentUser = user;
+    this.isAuth = true;
     setLocal(LOCAL_STORAGE_KEY_USER, user);
+    setLocal(LOCAL_STORAGE_KEY_AUTH, true);
+    this.addAuditLog({
+      actorEmail: user.email,
+      actorRole: user.role,
+      action: 'SESSION_ACTIVATED',
+      target: `${user.name} (${user.role}) [Code: ${user.membershipCode || 'N/A'}]`,
+      status: 'SUCCESS',
+    });
     this.notify();
   }
 
-  public switchRole(role: UserRole) {
-    if (role === 'admin') {
-      this.currentUser = { ...ADMIN_USER };
-    } else {
-      this.currentUser = {
-        ...DEFAULT_USER,
-        role,
-        farmName: role === 'transporter' ? 'Rift Transporters SACCO' : (role === 'expert' ? 'AgriConsult Kenya' : 'Rongai Valley Farm'),
+  public getUsers(): UserProfile[] {
+    return this.users;
+  }
+
+  public getUserById(id: string): UserProfile | undefined {
+    return this.users.find(u => u.id === id);
+  }
+
+  public registerUser(userData: Omit<UserProfile, 'id' | 'joinedDate'>): UserProfile {
+    const generatedCode = userData.membershipCode || generateMembershipCode(userData.county, userData.role);
+    const newUser: UserProfile = {
+      ...userData,
+      id: `usr-${Date.now()}`,
+      joinedDate: new Date().toISOString().split('T')[0],
+      membershipCode: generatedCode,
+      membershipTier: userData.membershipTier || (userData.role === 'admin' ? 'Platinum' : userData.role === 'consultant' || userData.role === 'veterinarian' ? 'Gold' : 'Silver'),
+      status: userData.role === 'admin' ? 'active' : (userData.role === 'farmer' || userData.role === 'buyer' ? 'active' : 'pending_verification'),
+      isVerified: userData.role === 'admin' || userData.role === 'farmer',
+    };
+
+    this.users = [newUser, ...this.users];
+    setLocal(LOCAL_STORAGE_KEY_USERS, this.users);
+
+    this.currentUser = newUser;
+    this.isAuth = true;
+    setLocal(LOCAL_STORAGE_KEY_USER, this.currentUser);
+    setLocal(LOCAL_STORAGE_KEY_AUTH, true);
+
+    this.addAuditLog({
+      actorEmail: newUser.email,
+      actorRole: newUser.role,
+      action: 'USER_REGISTRATION',
+      target: `New member registered: ${newUser.name} [Role: ${newUser.role}, Code: ${newUser.membershipCode}]`,
+      status: 'SUCCESS',
+    });
+
+    this.notify();
+    return newUser;
+  }
+
+  public authenticate(identifier: string, pass: string): UserProfile {
+    const trimmed = identifier.trim().toLowerCase();
+    
+    // Check against all users by exact email, phone, or membershipCode
+    const matchedUser = this.users.find(u => 
+      u.email.toLowerCase() === trimmed || 
+      u.email.toLowerCase().replace('@deriv-agri.ke', '@smart-agri.ke') === trimmed ||
+      u.email.toLowerCase().replace('@smart-agri.ke', '@deriv-agri.ke') === trimmed ||
+      u.phone.replace(/\D/g, '') === trimmed.replace(/\D/g, '') ||
+      (u.membershipCode && u.membershipCode.toLowerCase() === trimmed)
+    );
+
+    if (matchedUser) {
+      if (matchedUser.status === 'suspended') {
+        this.addAuditLog({
+          actorEmail: matchedUser.email,
+          actorRole: matchedUser.role,
+          action: 'LOGIN_BLOCKED_SUSPENDED',
+          target: matchedUser.email,
+          status: 'WARNING',
+        });
+        throw new Error('This account has been temporarily suspended by the platform administrator.');
+      }
+
+      this.currentUser = matchedUser;
+      this.isAuth = true;
+      setLocal(LOCAL_STORAGE_KEY_USER, this.currentUser);
+      setLocal(LOCAL_STORAGE_KEY_AUTH, true);
+
+      this.addAuditLog({
+        actorEmail: matchedUser.email,
+        actorRole: matchedUser.role,
+        action: 'MEMBER_LOGIN',
+        target: `Authenticated session: ${matchedUser.name} [${matchedUser.membershipCode || 'N/A'}]`,
+        status: 'SUCCESS',
+      });
+
+      this.notify();
+      return matchedUser;
+    }
+
+    // Fallback: If not found, log attempt and throw
+    this.addAuditLog({
+      actorEmail: identifier,
+      actorRole: 'farmer',
+      action: 'LOGIN_FAILURE',
+      target: `Failed attempt for identifier: ${identifier}`,
+      status: 'FAILED',
+    });
+    throw new Error('Invalid email, phone number, or member ID. Please check your credentials and try again.');
+  }
+
+  public verifyMembershipCode(code: string): MembershipVerificationResult {
+    const cleanCode = code.trim().toUpperCase();
+    const user = this.users.find(u => u.membershipCode?.toUpperCase() === cleanCode);
+    if (user) {
+      // MINIMAL NON-PII DATA ONLY: strictly no name, no email, no phone, no financial data
+      return {
+        code: user.membershipCode || cleanCode,
+        isValid: true,
+        role: user.role,
+        county: user.county,
+        status: user.status || 'active',
+        membershipTier: user.membershipTier || 'Gold',
+        verifiedAt: new Date().toLocaleTimeString('en-GB') + ' ' + new Date().toISOString().split('T')[0],
+        notes: 'Official registration status confirmed in authoritative agricultural registry.',
       };
     }
+    return {
+      code: cleanCode,
+      isValid: false,
+      status: 'suspended',
+      verifiedAt: new Date().toLocaleTimeString('en-GB') + ' ' + new Date().toISOString().split('T')[0],
+      notes: 'No active membership record found for this identification code in the national registry.',
+    };
+  }
+
+  public switchRole(role: UserRole) {
+    let targetProfile: UserProfile;
+
+    switch (role) {
+      case 'admin':
+        targetProfile = DEMO_ADMIN;
+        break;
+      case 'farmer':
+        targetProfile = DEMO_FARMER;
+        break;
+      case 'buyer':
+        targetProfile = DEMO_BUYER;
+        break;
+      case 'seller':
+        targetProfile = DEMO_SELLER;
+        break;
+      case 'consultant':
+      case 'expert':
+        targetProfile = DEMO_CONSULTANT;
+        break;
+      case 'veterinarian':
+        targetProfile = DEMO_VETERINARIAN;
+        break;
+      case 'transporter':
+        targetProfile = DEMO_TRANSPORTER;
+        break;
+      case 'lab':
+        targetProfile = DEMO_LAB;
+        break;
+      default:
+        targetProfile = DEMO_FARMER;
+    }
+
+    // Ensure it exists in users list
+    if (!this.users.some(u => u.id === targetProfile.id)) {
+      this.users.push(targetProfile);
+      setLocal(LOCAL_STORAGE_KEY_USERS, this.users);
+    }
+
+    this.currentUser = { ...targetProfile };
+    this.isAuth = true;
     setLocal(LOCAL_STORAGE_KEY_USER, this.currentUser);
+    setLocal(LOCAL_STORAGE_KEY_AUTH, true);
+
+    this.addAuditLog({
+      actorEmail: targetProfile.email,
+      actorRole: targetProfile.role,
+      action: 'DEMO_PERSONA_SWITCH',
+      target: `Switched active role to: ${targetProfile.role.toUpperCase()} (${targetProfile.name}) [${targetProfile.membershipCode || 'N/A'}]`,
+      status: 'SUCCESS',
+    });
+
+    this.notify();
+  }
+
+  public updateUserStatus(userId: string, status: 'active' | 'pending_verification' | 'suspended') {
+    this.users = this.users.map(u => u.id === userId ? { ...u, status } : u);
+    setLocal(LOCAL_STORAGE_KEY_USERS, this.users);
+
+    if (this.currentUser.id === userId) {
+      this.currentUser = { ...this.currentUser, status };
+      setLocal(LOCAL_STORAGE_KEY_USER, this.currentUser);
+    }
+
+    this.addAuditLog({
+      actorEmail: this.currentUser.email,
+      actorRole: this.currentUser.role,
+      action: 'USER_STATUS_CHANGE',
+      target: `User ID ${userId} status changed to ${status}`,
+      status: 'SUCCESS',
+    });
+
+    this.notify();
+  }
+
+  public updateUserRole(userId: string, newRole: UserRole) {
+    this.users = this.users.map(u => u.id === userId ? { ...u, role: newRole } : u);
+    setLocal(LOCAL_STORAGE_KEY_USERS, this.users);
+
+    if (this.currentUser.id === userId) {
+      this.currentUser = { ...this.currentUser, role: newRole };
+      setLocal(LOCAL_STORAGE_KEY_USER, this.currentUser);
+    }
+
+    this.addAuditLog({
+      actorEmail: this.currentUser.email,
+      actorRole: this.currentUser.role,
+      action: 'USER_ROLE_CHANGE',
+      target: `User ID ${userId} role changed to ${newRole}`,
+      status: 'SUCCESS',
+    });
+
+    this.notify();
+  }
+
+  public getAuditLogs(): AuditLogEntry[] {
+    return this.auditLogs;
+  }
+
+  public addAuditLog(entry: Omit<AuditLogEntry, 'id' | 'timestamp'>) {
+    const newLog: AuditLogEntry = {
+      ...entry,
+      id: `log-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      timestamp: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) + ' ' + new Date().toISOString().split('T')[0],
+      ipAddress: entry.ipAddress || '197.237.112.44 (Nairobi, Kenya)',
+    };
+    this.auditLogs = [newLog, ...this.auditLogs].slice(0, 100);
+    setLocal(LOCAL_STORAGE_KEY_AUDIT, this.auditLogs);
     this.notify();
   }
 
@@ -457,6 +1074,84 @@ class AgriStore {
   // --- Market Prices ---
   public getMarketPrices(): MarketPriceRecord[] {
     return this.marketPrices;
+  }
+
+  public addMarketPrice(record: Omit<MarketPriceRecord, 'id' | 'verifiedAt'>): MarketPriceRecord {
+    const newPrice: MarketPriceRecord = {
+      ...record,
+      id: `mp-${Date.now()}`,
+      verifiedAt: new Date().toISOString(),
+      isIndicative: true,
+      priceType: record.priceType || 'verified_observation',
+      observationDate: record.observationDate || new Date().toISOString().split('T')[0],
+    };
+    this.marketPrices = [newPrice, ...this.marketPrices];
+    setLocal(LOCAL_STORAGE_KEY_PRICES, this.marketPrices);
+    this.notify();
+    return newPrice;
+  }
+
+  // --- Inquiries ---
+  public getInquiries(): ProductInquiry[] {
+    return this.inquiries;
+  }
+
+  public getInquiriesForSeller(sellerId: string): ProductInquiry[] {
+    return this.inquiries.filter(inq => inq.sellerId === sellerId);
+  }
+
+  public addInquiry(inquiry: Omit<ProductInquiry, 'id' | 'createdAt' | 'status'>): ProductInquiry {
+    const newInquiry: ProductInquiry = {
+      ...inquiry,
+      id: `inq-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      status: 'pending',
+    };
+    this.inquiries = [newInquiry, ...this.inquiries];
+    setLocal(LOCAL_STORAGE_KEY_INQUIRIES, this.inquiries);
+    this.notify();
+    return newInquiry;
+  }
+
+  // --- Reports ---
+  public getReports(): ProductReport[] {
+    return this.reports;
+  }
+
+  public addReport(report: Omit<ProductReport, 'id' | 'createdAt' | 'status'>): ProductReport {
+    const newReport: ProductReport = {
+      ...report,
+      id: `rep-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      status: 'pending_review',
+    };
+    this.reports = [newReport, ...this.reports];
+    setLocal(LOCAL_STORAGE_KEY_REPORTS, this.reports);
+    this.notify();
+    return newReport;
+  }
+
+  // --- Saved Consultation Notes (PWA Offline Enabled) ---
+  public getConsultationNotes(): ConsultationNoteRecord[] {
+    return this.consultationNotes;
+  }
+
+  public saveConsultationNote(note: Omit<ConsultationNoteRecord, 'id' | 'savedOffline'>): ConsultationNoteRecord {
+    const newNote: ConsultationNoteRecord = {
+      ...note,
+      id: `note-${Date.now()}`,
+      savedOffline: true,
+    };
+    this.consultationNotes = [newNote, ...this.consultationNotes];
+    setLocal(LOCAL_STORAGE_KEY_CONSULTATIONS, this.consultationNotes);
+    this.notify();
+    return newNote;
+  }
+
+  public deleteConsultationNote(id: string): void {
+    this.consultationNotes = this.consultationNotes.filter(n => n.id !== id);
+    setLocal(LOCAL_STORAGE_KEY_CONSULTATIONS, this.consultationNotes);
+    this.notify();
   }
 
   // --- Admin Statistics ---

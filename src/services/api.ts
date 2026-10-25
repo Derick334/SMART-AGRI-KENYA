@@ -62,6 +62,8 @@ export interface WeatherResponse {
   source: string;
   updatedAt: string;
   isFallback?: boolean;
+  isOfflineCached?: boolean;
+  cachedAt?: string;
 }
 
 export const api = {
@@ -160,13 +162,42 @@ export const api = {
     return await res.json();
   },
 
-  // 5. Weather Forecast for Kenyan County
+  // 5. Weather Forecast for Kenyan County (with offline caching)
   async fetchCountyWeather(countyName: string, lat: number, lon: number): Promise<WeatherResponse> {
+    const cacheKey = `smart_agri_weather_${countyName.toLowerCase().trim()}`;
     try {
       const res = await fetch(`/api/weather?county=${encodeURIComponent(countyName)}&lat=${lat}&lon=${lon}`);
       if (!res.ok) throw new Error('Failed to fetch weather');
-      return await res.json();
+      const data: WeatherResponse = await res.json();
+      
+      // Store into local cache for offline availability
+      if (typeof window !== 'undefined' && data) {
+        try {
+          localStorage.setItem(cacheKey, JSON.stringify({
+            ...data,
+            cachedAt: new Date().toISOString()
+          }));
+        } catch {}
+      }
+      return data;
     } catch (err) {
+      console.warn('Weather network error, retrieving cached forecast for', countyName, err);
+      // Retrieve from offline cache if available
+      if (typeof window !== 'undefined') {
+        try {
+          const cachedStr = localStorage.getItem(cacheKey);
+          if (cachedStr) {
+            const cachedData = JSON.parse(cachedStr);
+            return {
+              ...cachedData,
+              isFallback: false,
+              isOfflineCached: true,
+            };
+          }
+        } catch {}
+      }
+
+      // Return synthetic default if not previously cached
       return {
         county: countyName,
         coordinates: { lat, lon },
@@ -187,7 +218,124 @@ export const api = {
         source: 'Kenya Agro-Meteorological Advisory Grid',
         updatedAt: new Date().toISOString(),
         isFallback: true,
+        isOfflineCached: true,
       };
     }
   },
+
+  // 6. Secure Authentication endpoints
+  async login(identifier: string, password: string) {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ identifier, password }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || 'Login failed. Please check your credentials.');
+    }
+    if (data.token && typeof window !== 'undefined') {
+      localStorage.setItem('deriv_agri_session_token', data.token);
+    }
+    return data;
+  },
+
+  async register(userData: any) {
+    const res = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(userData),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || 'Registration failed. Please review your details.');
+    }
+    if (data.token && typeof window !== 'undefined') {
+      localStorage.setItem('deriv_agri_session_token', data.token);
+    }
+    return data;
+  },
+
+  async getMe() {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('deriv_agri_session_token') : null;
+    if (!token) return null;
+
+    try {
+      const res = await fetch('/api/auth/me', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      if (!res.ok) {
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('deriv_agri_session_token');
+        }
+        return null;
+      }
+      const data = await res.json();
+      return data.user;
+    } catch {
+      return null;
+    }
+  },
+
+  async logout() {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('deriv_agri_session_token') : null;
+    if (token) {
+      try {
+        await fetch('/api/auth/logout', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+      } catch {}
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('deriv_agri_session_token');
+      }
+    }
+  },
+
+  async verifyMemberId(memberId: string) {
+    const res = await fetch('/api/auth/verify-member', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ memberId }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || 'Verification request failed.');
+    }
+    return data;
+  },
+
+  async requestPasswordReset(identifier: string) {
+    const res = await fetch('/api/auth/forgot-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ identifier }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || 'Password reset request failed.');
+    }
+    return data;
+  },
+
+  async resetPassword(token: string, newPassword: string) {
+    const res = await fetch('/api/auth/reset-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, newPassword }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || 'Password update failed.');
+    }
+    return data;
+  },
 };
+
+export const apiService = api;
+
+
