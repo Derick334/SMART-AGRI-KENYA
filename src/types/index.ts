@@ -41,6 +41,66 @@ export interface UserProfile {
   membershipTier?: 'Standard' | 'Silver' | 'Gold' | 'Platinum' | 'Cooperative';
   cooperativeAffiliation?: string;
   qrCodeData?: string;
+  isMainSuperAdmin?: boolean;
+  adminPermissions?: AdminPermissions;
+}
+
+export interface AdminPermissions {
+  manageUsers: boolean;
+  manageAdmins: boolean;
+  manageMarketplace: boolean;
+  manageOrders: boolean;
+  managePayments: boolean;
+  manageContent: boolean;
+  manageBranding: boolean;
+  manageDelivery: boolean;
+  manageSettings: boolean;
+  viewReports: boolean;
+}
+
+export interface AdminAccount {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  role: 'admin';
+  isMainSuperAdmin: boolean;
+  permissions: AdminPermissions;
+  status: 'active' | 'suspended';
+  lastLogin?: string;
+  createdAt: string;
+  appointedBy?: string;
+}
+
+export interface PlatformBranding {
+  platformName: string;
+  logoUrl: string;
+  emblemUrl: string;
+  heroBannerUrl: string;
+  primaryColor: string;
+  secondaryColor: string;
+  supportPhone: string;
+  supportEmail: string;
+  headquartersAddress: string;
+}
+
+export interface DeliverySettings {
+  baseFeeKsh: number;
+  perKmRateKsh: number;
+  expressSurchargeKsh: number;
+  freeDeliveryThresholdKsh: number;
+  countyRates: Record<string, number>;
+  activeCarriers: string[];
+}
+
+export interface PlatformGovernanceSettings {
+  allowPublicRegistrations: boolean;
+  requireKycForSellers: boolean;
+  maintenanceMode: boolean;
+  maintenanceNotice: string;
+  lowStockAlertThreshold: number;
+  orderEscrowAutoReleaseDays: number;
+  enableDisputeArbitration: boolean;
 }
 
 export interface MembershipVerificationResult {

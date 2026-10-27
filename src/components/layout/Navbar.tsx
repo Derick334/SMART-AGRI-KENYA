@@ -12,7 +12,12 @@ import {
   Home,
   CloudSun,
   Info,
-  PhoneCall
+  PhoneCall,
+  Store,
+  Sprout,
+  Beef,
+  Package,
+  TrendingUp
 } from 'lucide-react';
 import { agriStore } from '../../services/store';
 import { KENYA_COUNTIES } from '../../data/kenyaCounties';
@@ -29,6 +34,11 @@ interface NavbarProps {
 
 export const NAV_TABS = [
   { id: 'home', label: 'Home', icon: Home },
+  { id: 'marketplace', label: 'Marketplace', icon: Store },
+  { id: 'crops', label: 'Crops & Produce', icon: Sprout },
+  { id: 'livestock', label: 'Livestock & Cattle', icon: Beef },
+  { id: 'inputs', label: 'Farm Inputs', icon: Package },
+  { id: 'market-prices', label: 'Market Prices', icon: TrendingUp },
   { id: 'weather', label: 'Weather', icon: CloudSun },
   { id: 'about', label: 'About Us', icon: Info },
   { id: 'contact', label: 'Contact', icon: PhoneCall },

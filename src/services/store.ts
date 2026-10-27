@@ -11,7 +11,10 @@ import {
   AuditLogEntry,
   MembershipVerificationResult,
   ProductInquiry,
-  ProductReport
+  ProductReport,
+  PlatformBranding,
+  DeliverySettings,
+  PlatformGovernanceSettings
 } from '../types';
 import { SAMPLE_PRODUCTS } from '../data/sampleProducts';
 import { SAMPLE_LIVESTOCK } from '../data/sampleLivestock';
@@ -31,6 +34,9 @@ const LOCAL_STORAGE_KEY_INQUIRIES = 'smart_agri_inquiries_v1';
 const LOCAL_STORAGE_KEY_REPORTS = 'smart_agri_reports_v1';
 const LOCAL_STORAGE_KEY_PRICES = 'smart_agri_prices_v2';
 const LOCAL_STORAGE_KEY_CONSULTATIONS = 'smart_agri_consultations_v2';
+const LOCAL_STORAGE_KEY_BRANDING = 'deriv_agri_branding_v1';
+const LOCAL_STORAGE_KEY_DELIVERY = 'deriv_agri_delivery_v1';
+const LOCAL_STORAGE_KEY_GOVERNANCE = 'deriv_agri_governance_v1';
 
 export function getCountyAbbr(countyName: string): string {
   const map: Record<string, string> = {
@@ -241,9 +247,97 @@ export const DEMO_ADMIN: UserProfile = {
   isVerified: true,
   avatarUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=200&q=80',
   joinedDate: '2023-01-01',
+  adminPermissions: {
+    manageUsers: true,
+    manageAdmins: false,
+    manageMarketplace: true,
+    manageOrders: true,
+    managePayments: false,
+    manageContent: true,
+    manageBranding: false,
+    manageDelivery: true,
+    manageSettings: false,
+    viewReports: true,
+  }
+};
+
+export const DEMO_MAIN_SUPER_ADMIN: UserProfile = {
+  id: 'usr-owner-01',
+  name: 'Derick Onyango (Main Super Admin)',
+  email: 'onyangoderick37@gmail.com',
+  phone: '0700000000',
+  role: 'admin',
+  isMainSuperAdmin: true,
+  county: 'Nairobi',
+  subCounty: 'Westlands',
+  town: 'Nairobi HQ',
+  organizationName: 'DERIV-AGRI KENYA Executive Office',
+  businessType: 'Central Governance & Exclusive Main Super Admin',
+  nationalIdNumber: '29104821',
+  membershipCode: 'SAK-HQ-2026-OWNER',
+  membershipTier: 'Platinum',
+  status: 'active',
+  isVerified: true,
+  avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+  joinedDate: '2023-01-01',
+  adminPermissions: {
+    manageUsers: true,
+    manageAdmins: true,
+    manageMarketplace: true,
+    manageOrders: true,
+    managePayments: true,
+    manageContent: true,
+    manageBranding: true,
+    manageDelivery: true,
+    manageSettings: true,
+    viewReports: true,
+  }
+};
+
+export const DEFAULT_BRANDING: PlatformBranding = {
+  platformName: 'DERIV-AGRI KENYA',
+  logoUrl: '/images/smart_agri_logo.png',
+  emblemUrl: '/images/smart_agri_emblem.png',
+  heroBannerUrl: 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=1600&q=80',
+  primaryColor: '#214E34',
+  secondaryColor: '#D6A545',
+  supportPhone: '+254 700 000 000',
+  supportEmail: 'support@deriv-agri.ke',
+  headquartersAddress: 'SMART-AGRI Tower, Waiyaki Way, Westlands, Nairobi, Kenya',
+};
+
+export const DEFAULT_DELIVERY_SETTINGS: DeliverySettings = {
+  baseFeeKsh: 350,
+  perKmRateKsh: 35,
+  expressSurchargeKsh: 500,
+  freeDeliveryThresholdKsh: 25000,
+  countyRates: {
+    'Nairobi': 300,
+    'Kiambu': 450,
+    'Nakuru': 500,
+    'Uasin Gishu': 750,
+    'Mombasa': 900,
+    'Kisumu': 800,
+    'Machakos': 550,
+    'Meru': 700,
+    'Nyeri': 600,
+  },
+  activeCarriers: ['Safaricom Boda Parcel', 'Fargo Courier', 'Speedaf Express', 'Local Cooperative Transport SACCO'],
+};
+
+export const DEFAULT_GOVERNANCE_SETTINGS: PlatformGovernanceSettings = {
+  allowPublicRegistrations: true,
+  requireKycForSellers: true,
+  maintenanceMode: false,
+  maintenanceNotice: 'Scheduled routine agricultural database optimization. We will be back online shortly.',
+  lowStockAlertThreshold: 5,
+  orderEscrowAutoReleaseDays: 3,
+  enableDisputeArbitration: true,
 };
 
 export const ALL_DEMO_USERS: UserProfile[] = [
+  DEMO_MAIN_SUPER_ADMIN,
+  DEMO_ADMIN,
   DEMO_FARMER,
   DEMO_BUYER,
   DEMO_SELLER,
@@ -251,11 +345,10 @@ export const ALL_DEMO_USERS: UserProfile[] = [
   DEMO_VETERINARIAN,
   DEMO_TRANSPORTER,
   DEMO_LAB,
-  DEMO_ADMIN,
 ];
 
 export const DEFAULT_USER: UserProfile = DEMO_FARMER;
-export const ADMIN_USER: UserProfile = DEMO_ADMIN;
+export const ADMIN_USER: UserProfile = DEMO_MAIN_SUPER_ADMIN;
 
 export const INITIAL_AUDIT_LOGS = [
   {
@@ -542,6 +635,9 @@ class AgriStore {
   private inquiries: ProductInquiry[];
   private reports: ProductReport[];
   private consultationNotes: ConsultationNoteRecord[];
+  private branding: PlatformBranding;
+  private deliverySettings: DeliverySettings;
+  private governanceSettings: PlatformGovernanceSettings;
   private listeners: Set<() => void> = new Set();
 
   constructor() {
@@ -563,6 +659,9 @@ class AgriStore {
     this.auditLogs = getLocal<AuditLogEntry[]>(LOCAL_STORAGE_KEY_AUDIT, INITIAL_AUDIT_LOGS);
     this.soilRequests = getLocal<SoilTestRequest[]>(LOCAL_STORAGE_KEY_SOIL, INITIAL_SOIL_REQUESTS);
     this.forumPosts = getLocal<ForumPost[]>(LOCAL_STORAGE_KEY_FORUM, INITIAL_FORUM_POSTS);
+    this.branding = getLocal<PlatformBranding>(LOCAL_STORAGE_KEY_BRANDING, DEFAULT_BRANDING);
+    this.deliverySettings = getLocal<DeliverySettings>(LOCAL_STORAGE_KEY_DELIVERY, DEFAULT_DELIVERY_SETTINGS);
+    this.governanceSettings = getLocal<PlatformGovernanceSettings>(LOCAL_STORAGE_KEY_GOVERNANCE, DEFAULT_GOVERNANCE_SETTINGS);
 
     const storedPrices = getLocal<MarketPriceRecord[]>(LOCAL_STORAGE_KEY_PRICES, []);
     const priceMap = new Map<string, MarketPriceRecord>();
@@ -971,6 +1070,18 @@ class AgriStore {
   }
 
   public updateUserStatus(userId: string, status: 'active' | 'pending_verification' | 'suspended') {
+    const targetUser = this.users.find(u => u.id === userId);
+    if (targetUser && (targetUser.email.toLowerCase() === 'onyangoderick37@gmail.com' || targetUser.isMainSuperAdmin)) {
+      this.addAuditLog({
+        actorEmail: this.currentUser?.email || 'unknown',
+        actorRole: this.currentUser?.role || 'admin',
+        action: 'SECURITY_ALERT_IMMUTABLE_SUPER_ADMIN',
+        target: `Blocked attempt to modify Main Super Admin status (${targetUser.email})`,
+        status: 'FAILED',
+      });
+      throw new Error('SECURITY VIOLATION: The Main Super Admin account (onyangoderick37@gmail.com) is permanently protected and cannot be suspended, modified, or demoted.');
+    }
+
     this.users = this.users.map(u => u.id === userId ? { ...u, status } : u);
     setLocal(LOCAL_STORAGE_KEY_USERS, this.users);
 
@@ -991,6 +1102,18 @@ class AgriStore {
   }
 
   public updateUserRole(userId: string, newRole: UserRole) {
+    const targetUser = this.users.find(u => u.id === userId);
+    if (targetUser && (targetUser.email.toLowerCase() === 'onyangoderick37@gmail.com' || targetUser.isMainSuperAdmin)) {
+      this.addAuditLog({
+        actorEmail: this.currentUser?.email || 'unknown',
+        actorRole: this.currentUser?.role || 'admin',
+        action: 'SECURITY_ALERT_IMMUTABLE_SUPER_ADMIN',
+        target: `Blocked attempt to change Main Super Admin role (${targetUser.email})`,
+        status: 'FAILED',
+      });
+      throw new Error('SECURITY VIOLATION: The Main Super Admin role (onyangoderick37@gmail.com) is permanent and cannot be modified or demoted.');
+    }
+
     this.users = this.users.map(u => u.id === userId ? { ...u, role: newRole } : u);
     setLocal(LOCAL_STORAGE_KEY_USERS, this.users);
 
@@ -1008,6 +1131,88 @@ class AgriStore {
     });
 
     this.notify();
+  }
+
+  public deleteUser(userId: string) {
+    const targetUser = this.users.find(u => u.id === userId);
+    if (targetUser && (targetUser.email.toLowerCase() === 'onyangoderick37@gmail.com' || targetUser.isMainSuperAdmin)) {
+      this.addAuditLog({
+        actorEmail: this.currentUser?.email || 'unknown',
+        actorRole: this.currentUser?.role || 'admin',
+        action: 'SECURITY_ALERT_IMMUTABLE_SUPER_ADMIN',
+        target: `Blocked attempt to delete Main Super Admin (${targetUser.email})`,
+        status: 'FAILED',
+      });
+      throw new Error('CRITICAL SECURITY VIOLATION: The Main Super Admin account cannot be removed or deleted.');
+    }
+
+    this.users = this.users.filter(u => u.id !== userId);
+    setLocal(LOCAL_STORAGE_KEY_USERS, this.users);
+    this.addAuditLog({
+      actorEmail: this.currentUser.email,
+      actorRole: this.currentUser.role,
+      action: 'USER_DELETED',
+      target: `User ID ${userId} removed`,
+      status: 'SUCCESS',
+    });
+    this.notify();
+  }
+
+  // --- Platform Branding Assets ---
+  public getBranding(): PlatformBranding {
+    return this.branding;
+  }
+
+  public updateBranding(updates: Partial<PlatformBranding>): PlatformBranding {
+    this.branding = { ...this.branding, ...updates };
+    setLocal(LOCAL_STORAGE_KEY_BRANDING, this.branding);
+    this.addAuditLog({
+      actorEmail: this.currentUser.email,
+      actorRole: this.currentUser.role,
+      action: 'PLATFORM_BRANDING_UPDATED',
+      target: 'Platform logos and branding styles updated without code change',
+      status: 'SUCCESS',
+    });
+    this.notify();
+    return this.branding;
+  }
+
+  // --- Delivery Settings ---
+  public getDeliverySettings(): DeliverySettings {
+    return this.deliverySettings;
+  }
+
+  public updateDeliverySettings(updates: Partial<DeliverySettings>): DeliverySettings {
+    this.deliverySettings = { ...this.deliverySettings, ...updates };
+    setLocal(LOCAL_STORAGE_KEY_DELIVERY, this.deliverySettings);
+    this.addAuditLog({
+      actorEmail: this.currentUser.email,
+      actorRole: this.currentUser.role,
+      action: 'DELIVERY_SETTINGS_UPDATED',
+      target: 'County shipping rates and freight configuration updated',
+      status: 'SUCCESS',
+    });
+    this.notify();
+    return this.deliverySettings;
+  }
+
+  // --- Platform Governance Settings ---
+  public getGovernanceSettings(): PlatformGovernanceSettings {
+    return this.governanceSettings;
+  }
+
+  public updateGovernanceSettings(updates: Partial<PlatformGovernanceSettings>): PlatformGovernanceSettings {
+    this.governanceSettings = { ...this.governanceSettings, ...updates };
+    setLocal(LOCAL_STORAGE_KEY_GOVERNANCE, this.governanceSettings);
+    this.addAuditLog({
+      actorEmail: this.currentUser.email,
+      actorRole: this.currentUser.role,
+      action: 'PLATFORM_GOVERNANCE_UPDATED',
+      target: 'Platform registration rules, KYC, and maintenance state updated',
+      status: 'SUCCESS',
+    });
+    this.notify();
+    return this.governanceSettings;
   }
 
   public getAuditLogs(): AuditLogEntry[] {

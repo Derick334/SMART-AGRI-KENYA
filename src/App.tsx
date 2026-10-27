@@ -260,17 +260,8 @@ export default function App() {
     setIsCartOpen(true);
   };
 
-  // Protected View Product handler
+  // Public View Product handler (allows browsing & variety comparison)
   const handleViewProduct = (product: Product) => {
-    if (!agriStore.isAuthenticated()) {
-      const target = product.livestockDetails ? 'livestock' : 'marketplace';
-      setIntendedDestination(target);
-      const notice = `Registration and authentication are required to view "${product.title}" details and certifications.`;
-      setAuthNotice(notice);
-      showToast(`🔒 ${notice}`);
-      handleSelectTab('auth');
-      return;
-    }
     setViewingProduct(product);
   };
 
