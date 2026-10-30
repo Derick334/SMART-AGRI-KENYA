@@ -58,6 +58,9 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                 src={selectedImage || product.images[0]}
                 alt={product.title}
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=800&q=80';
+                }}
               />
               <span className="absolute top-3 left-3 bg-[#214E34]/90 text-white text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
                 {product.subcategory || product.category}
@@ -75,7 +78,14 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                       selectedImage === img ? 'border-[#367C46] ring-1 ring-[#367C46]' : 'border-[#E2E7DE] opacity-75'
                     }`}
                   >
-                    <img src={img} alt="" className="w-full h-full object-cover" />
+                    <img 
+                      src={img} 
+                      alt="" 
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=400&q=80';
+                      }}
+                    />
                   </button>
                 ))}
               </div>

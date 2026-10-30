@@ -1,4 +1,4 @@
-import { Product } from '../types';
+import type { Product } from '../types';
 
 export const SAMPLE_PRODUCTS: Product[] = [
   // ==========================================
@@ -494,7 +494,7 @@ export const SAMPLE_PRODUCTS: Product[] = [
     sellerCounty: 'Kirinyaga',
     sellerSubCounty: 'Mwea West',
     images: [
-      'https://images.unsplash.com/photo-1546470427-227c7369a68e?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=800&q=80',
     ],
     isVerifiedSeller: true,
     rating: 4.9,
@@ -647,7 +647,7 @@ export const SAMPLE_PRODUCTS: Product[] = [
     sellerCounty: 'Nyandarua',
     sellerSubCounty: 'Kinangop',
     images: [
-      'https://images.unsplash.com/photo-1524179091875-bf99a9a6fa57?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=800&q=80',
     ],
     isVerifiedSeller: true,
     rating: 4.8,
@@ -1022,7 +1022,7 @@ export const SAMPLE_PRODUCTS: Product[] = [
     sellerCounty: 'Kiambu',
     sellerSubCounty: 'Limuru',
     images: [
-      'https://images.unsplash.com/photo-1524179091875-bf99a9a6fa57?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=800&q=80',
     ],
     isVerifiedSeller: true,
     rating: 4.7,

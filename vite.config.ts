@@ -54,6 +54,7 @@ export default defineConfig(() => {
         },
         workbox: {
           globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,woff,woff2}'],
+          navigateFallbackDenylist: [/^\/api\//],
           runtimeCaching: [
             {
               urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
@@ -72,7 +73,7 @@ export default defineConfig(() => {
                   maxAgeSeconds: 60 * 60 * 24 * 365,
                 },
                 cacheableResponse: {
-                  statuses: [0, 200],
+                  statuses: [200],
                 },
               },
             },
@@ -86,12 +87,18 @@ export default defineConfig(() => {
                   maxAgeSeconds: 60 * 60 * 24 * 30,
                 },
                 cacheableResponse: {
-                  statuses: [0, 200],
+                  statuses: [200],
                 },
               },
             },
             {
-              urlPattern: /\/api\/(products|market-prices|weather|consultations|orders|forum).*/i,
+              // Authentication & Streaming SSE endpoints must NEVER be cached
+              urlPattern: /\/api\/(auth|gemini|admin)\/.*/i,
+              handler: 'NetworkOnly',
+            },
+            {
+              // Cached read-only API data with network timeout and 200-only cache
+              urlPattern: /\/api\/(products|market-prices|weather|consultations|orders|forum|cms).*/i,
               handler: 'NetworkFirst',
               options: {
                 cacheName: 'smart-agri-api-cache',
@@ -101,7 +108,7 @@ export default defineConfig(() => {
                   maxAgeSeconds: 60 * 60 * 24 * 7,
                 },
                 cacheableResponse: {
-                  statuses: [0, 200],
+                  statuses: [200],
                 },
               },
             },

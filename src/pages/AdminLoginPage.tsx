@@ -447,6 +447,7 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onSuccess, onBac
                         type="email"
                         required
                         autoFocus
+                        autoComplete="username email"
                         placeholder="e.g. onyangoderick37@gmail.com"
                         value={adminEmail}
                         onChange={(e) => setAdminEmail(e.target.value)}
@@ -474,6 +475,7 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onSuccess, onBac
                       <input
                         type={showPassword ? 'text' : 'password'}
                         required
+                        autoComplete="current-password"
                         value={adminPassword}
                         onChange={(e) => setAdminPassword(e.target.value)}
                         placeholder="Enter administrator password"
@@ -532,6 +534,7 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ onSuccess, onBac
                       required
                       autoFocus
                       maxLength={9}
+                      autoComplete="one-time-code"
                       placeholder="e.g. 123456 or 8492-1029"
                       value={mfaCode}
                       onChange={(e) => setMfaCode(e.target.value)}

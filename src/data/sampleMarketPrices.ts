@@ -1,4 +1,4 @@
-import { MarketPriceRecord } from '../types';
+import type { MarketPriceRecord } from '../types';
 
 export const SAMPLE_MARKET_PRICES: MarketPriceRecord[] = [
   {

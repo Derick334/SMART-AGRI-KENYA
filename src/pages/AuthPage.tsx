@@ -448,6 +448,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                     type="text"
                     required
                     autoFocus
+                    autoComplete="username"
                     placeholder="e.g. user@deriv-agri.ke, 0722123456, or SAK-NKR-2026-F4829"
                     value={loginIdentifier}
                     onChange={(e) => setLoginIdentifier(e.target.value)}
@@ -475,6 +476,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                   <input
                     type={showPassword ? 'text' : 'password'}
                     required
+                    autoComplete="current-password"
                     value={loginPassword}
                     onChange={(e) => setLoginPassword(e.target.value)}
                     placeholder="Enter your password"
@@ -598,6 +600,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                   <input
                     type="text"
                     required
+                    autoComplete="name"
                     placeholder="e.g. Samuel Kiprop Kimani"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
@@ -613,6 +616,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                   <input
                     type="tel"
                     required
+                    autoComplete="tel"
                     placeholder="07XXXXXXXX or 01XXXXXXXX"
                     value={regPhone}
                     onChange={(e) => setRegPhone(e.target.value)}
@@ -629,6 +633,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                 <input
                   type="email"
                   required
+                  autoComplete="email"
                   placeholder="e.g. samuel@gmail.com"
                   value={regEmail}
                   onChange={(e) => setRegEmail(e.target.value)}
@@ -659,6 +664,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                 <input
                   type="text"
                   required
+                  autoComplete="address-level2"
                   placeholder="e.g. Njoro, Eldoret CBD, Kongowea"
                   value={town}
                   onChange={(e) => setTown(e.target.value)}
@@ -756,6 +762,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
                   <input
                     type={showPassword ? 'text' : 'password'}
                     required
+                    autoComplete="new-password"
                     value={regPassword}
                     onChange={(e) => setRegPassword(e.target.value)}
                     placeholder="Min 8 chars, letters & numbers"

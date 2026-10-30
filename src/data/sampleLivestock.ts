@@ -1,4 +1,4 @@
-import { Product } from '../types';
+import type { Product } from '../types';
 
 export const SAMPLE_LIVESTOCK: Product[] = [
   // CATTLE / DAIRY & BEEF (6 Products)
@@ -122,7 +122,7 @@ export const SAMPLE_LIVESTOCK: Product[] = [
     sellerCounty: 'Kiambu',
     sellerSubCounty: 'Limuru',
     images: [
-      'https://images.unsplash.com/photo-1527153857715-3908f2ae5e81?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1570042225831-d98fa7577f1e?auto=format&fit=crop&w=800&q=80',
     ],
     isVerifiedSeller: true,
     rating: 5.0,
