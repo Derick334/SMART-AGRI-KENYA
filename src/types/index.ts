@@ -480,3 +480,247 @@ export interface ConsultationBooking {
   prescriptionOrAdvice?: string;
 }
 
+export interface ConsultationNoteRecord {
+  id: string;
+  expertName: string;
+  expertTitle: string;
+  institution: string;
+  county: string;
+  date: string;
+  cropOrLivestock: string;
+  farmChallenge: string;
+  prescriptionOrAdvice: string;
+  actionItems: string[];
+  followUpDate: string;
+  contactPhone: string;
+  savedOffline?: boolean;
+}
+
+// ==========================================
+// UPGRADED AGRICULTURAL INTELLIGENCE TYPES
+// ==========================================
+
+export interface SoilAnalysisInput {
+  county: string;
+  subCounty?: string;
+  farmLocation?: string;
+  crop: string;
+  soilType?: string;
+  soilPh?: number;
+  moisturePercent?: number;
+  nitrogenPercent?: number;
+  phosphorusPpm?: number;
+  potassiumPpm?: number;
+  organicCarbonPercent?: number;
+  salinityEc?: number;
+  fertilizerHistory?: string;
+  recentAmendments?: string;
+  observedSymptoms?: string[];
+  photoUrl?: string;
+  fieldSizeAcres?: number;
+  farmerId?: string;
+  labResults?: {
+    nitrogenPercent?: number;
+    phosphorusPpm?: number;
+    potassiumCmolKg?: number;
+    organicCarbonPercent?: number;
+    salinityECdsPerM?: number;
+  };
+}
+
+export interface SoilAnalysisReport {
+  id: string;
+  createdAt: string;
+  farmerId?: string;
+  input: SoilAnalysisInput;
+  cropName: string;
+  phAnalysis: {
+    value?: number;
+    rating: 'Extremely Acidic' | 'Moderately Acidic' | 'Optimal' | 'Alkaline' | 'Unmeasured';
+    optimalRange: string;
+    impactExplanation: string;
+    limeRequiredKgPerAcre: number;
+  };
+  nutrientStatuses: {
+    nutrient: 'N' | 'P' | 'K' | 'Organic Carbon' | 'Salinity';
+    measuredValue?: string;
+    status: 'Deficient' | 'Low' | 'Optimal' | 'Excessive' | 'Unmeasured (Visual Estimate)';
+    explanation: string;
+  }[];
+  fertilizerPlan: {
+    areaTreated: string;
+    assumptions: string;
+    basalFertilizer: {
+      product: string;
+      rateKgPerAcre: number;
+      applicationTiming: string;
+      notes: string;
+    };
+    topDressing: {
+      product: string;
+      rateKgPerAcre: number;
+      applicationTiming: string;
+      notes: string;
+    };
+    organicRemedies: string[];
+  };
+  laboratoryVerificationRequired: boolean;
+  confidenceScore: 'Verified Measurements' | 'Symptom-Based Estimate';
+  recommendedNextSteps: string[];
+}
+
+export interface IrrigationInput {
+  county: string;
+  crop: string;
+  growthStage: 'initial' | 'vegetative' | 'flowering' | 'fruiting' | 'maturity';
+  soilType: string;
+  fieldAreaAcres: number;
+  irrigationMethod: 'drip' | 'sprinkler' | 'furrow';
+  waterSource: string;
+  flowRateLitersPerHour?: number;
+  measuredSoilMoisturePercent?: number;
+  soilTensiometerCbar?: number;
+}
+
+export interface IrrigationScheduleReport {
+  id: string;
+  createdAt: string;
+  input: IrrigationInput;
+  referenceEt0MmPerDay: number;
+  cropCoefficientKc: number;
+  netCropWaterDemandMmPerDay: number;
+  effectiveRainfallMmPerDay: number;
+  irrigationNeeded: boolean;
+  systemEfficiencyPercent: number;
+  grossWaterRequirementMm: number;
+  waterVolumeTotalLiters: number;
+  waterVolumeM3: number;
+  recommendedDurationHours: number;
+  recommendedDurationMinutes: number;
+  irrigationTimingAdvice: string;
+  weatherAlert?: {
+    type: 'rain_hold' | 'heat_warning' | 'waterlogging_risk' | 'favorable';
+    message: string;
+  };
+  waterConservationTips: string[];
+  drainageAdvice: string;
+  isEstimate: boolean;
+  calculationMethod: string;
+}
+
+export interface PestDiagnosisSubmission {
+  targetType: 'crop' | 'livestock';
+  cropOrAnimal: string;
+  county: string;
+  farmLocation?: string;
+  growthStageOrAge?: string;
+  symptoms: string;
+  onsetDaysAgo?: number;
+  isSpreading?: boolean;
+  recentSpraysOrTreatments?: string;
+  photoBase64?: string;
+  imageBase64?: string;
+  photoUrl?: string;
+}
+
+export interface PestDiagnosisReport {
+  id: string;
+  createdAt: string;
+  farmerId?: string;
+  targetType: 'crop' | 'livestock';
+  targetHost: string;
+  symptomsSubmitted: string;
+  imageProvided: boolean;
+  isImageClear: boolean;
+  preliminaryAssessmentNote: string;
+  primaryDiagnosis: {
+    name: string;
+    scientificName?: string;
+    confidence: 'High' | 'Moderate' | 'Low';
+    confidencePercent: number;
+    category: 'pest' | 'fungal' | 'bacterial' | 'viral' | 'deficiency' | 'unclear';
+    visualEvidence: string[];
+  };
+  differentialDiagnoses: {
+    name: string;
+    confidencePercent: number;
+    distinguishingFeatures: string;
+  }[];
+  integratedPestManagement: {
+    culturalPhysicalControls: string[];
+    biologicalControls: string[];
+    pcpbAuthorizedChemicals: {
+      activeIngredient: string;
+      tradeExamples: string;
+      targetStage: string;
+      phiDays: number;
+      ppeRequirement: string;
+      environmentalPrecautions: string;
+    }[];
+  };
+  professionalReferralRequired: boolean;
+  followUpPhotos?: {
+    id: string;
+    photoUrl: string;
+    date: string;
+    notes: string;
+    status: 'improving' | 'unchanged' | 'worsened';
+  }[];
+}
+
+export interface AiTelemetryMetric {
+  id: string;
+  timestamp: string;
+  queryType: 'farming_advisory' | 'pest_diagnosis' | 'soil_analysis' | 'irrigation';
+  modelUsed: string;
+  latencyMs: number;
+  wasCacheHit: boolean;
+  tokensUsed?: number;
+  status: 'SUCCESS' | 'FALLBACK_OFFLINE' | 'ERROR';
+}
+
+export interface AiFeedbackReport {
+  id: string;
+  timestamp: string;
+  farmerEmail: string;
+  farmerQuery: string;
+  aiResponseText: string;
+  feedbackType: 'inaccurate_advice' | 'helpful' | 'missing_kenya_context' | 'chemical_safety_concern';
+  notes: string;
+  status: 'pending_review' | 'resolved';
+}
+
+export type ChatModelTier = 'gemini-3.1-flash-lite' | 'gemini-3.8-flash' | 'gemini-4-argon';
+
+export type ChatbotRole = 'agronomist' | 'veterinarian' | 'soil_scientist' | 'market_analyst';
+
+export type GroundingMode = 'auto' | 'search' | 'maps' | 'none';
+
+export interface GroundingChunkWeb {
+  uri: string;
+  title: string;
+}
+
+export interface GroundingChunkMap {
+  uri: string;
+  title: string;
+  snippets?: string[];
+}
+
+export interface MultiTurnChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  text: string;
+  timestamp: string;
+  modelUsed?: ChatModelTier | string;
+  roleId?: ChatbotRole;
+  groundingType?: 'search' | 'maps' | 'none' | 'rag';
+  searchSources?: GroundingChunkWeb[];
+  mapSources?: GroundingChunkMap[];
+  searchQueries?: string[];
+  citations?: Array<{ title: string; organization: string; citationCode: string; year: number }>;
+  latencyMs?: number;
+  isStreaming?: boolean;
+  error?: string;
+}
+

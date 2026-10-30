@@ -5,6 +5,7 @@ import { CartDrawer } from './components/checkout/CartDrawer';
 import { CheckoutModal } from './components/checkout/CheckoutModal';
 import { ProductDetailModal } from './components/marketplace/ProductDetailModal';
 import { LivestockDetailModal } from './components/livestock/LivestockDetailModal';
+import { FloatingChatbotWidget } from './components/common/FloatingChatbotWidget';
 
 // Pages
 import { HomePage } from './pages/HomePage';
@@ -522,6 +523,14 @@ export default function App() {
           onClose={() => setViewingProduct(null)}
           onAddToCart={handleAddToCart}
           userCounty={selectedCounty}
+        />
+      )}
+
+      {/* Global Floating Multi-Turn Gemini Agricultural Chatbot */}
+      {activeTab !== 'ai-assistant' && activeTab !== 'admin' && activeTab !== 'admin-login' && (
+        <FloatingChatbotWidget
+          currentCounty={selectedCounty}
+          onNavigateToFullChat={() => handleSelectTab('ai-assistant')}
         />
       )}
     </div>

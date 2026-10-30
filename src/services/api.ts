@@ -1,11 +1,24 @@
-/**
- * SMART-AGRI KENYA - Client API Service
- * Interacts with backend server routes (/api/*)
- */
+import {
+  SoilAnalysisInput,
+  SoilAnalysisReport,
+  IrrigationInput,
+  IrrigationScheduleReport,
+  PestDiagnosisSubmission,
+  PestDiagnosisReport,
+  AiTelemetryMetric,
+  AiFeedbackReport,
+  ChatModelTier,
+  ChatbotRole,
+  GroundingMode,
+  MultiTurnChatMessage,
+  GroundingChunkWeb,
+  GroundingChunkMap
+} from '../types';
 
 export interface AiAssistantResponse {
   text: string;
   isFallback?: boolean;
+  latencyMs?: number;
 }
 
 export interface DiagnoseResponse {
@@ -333,6 +346,195 @@ export const api = {
       throw new Error(data.error || 'Password update failed.');
     }
     return data;
+  },
+
+  // 8.5 Multi-turn Gemini Chatbot with Search and Maps Grounding
+  async sendMultiTurnChat(payload: {
+    message: string;
+    history?: Array<{ role: 'user' | 'assistant'; text: string }>;
+    model?: ChatModelTier | 'auto';
+    roleId?: ChatbotRole;
+    groundingMode?: GroundingMode;
+    county?: string;
+    userLocation?: { latitude: number; longitude: number };
+    language?: 'English' | 'Kiswahili';
+  }): Promise<{ success: boolean; response: MultiTurnChatMessage }> {
+    const res = await fetch('/api/gemini/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || 'Failed to process chat with Gemini');
+    }
+    return data;
+  },
+
+  // 9. Fast Streaming Multi-Turn Farming Assistant (Server-Sent Events)
+  async askFarmingAssistantStream(
+    payload: {
+      message: string;
+      county?: string;
+      crop?: string;
+      livestock?: string;
+      history?: Array<{ role: 'user' | 'assistant'; content?: string; text?: string }>;
+      language?: 'English' | 'Kiswahili';
+      liveContext?: any;
+      model?: ChatModelTier | 'auto';
+      roleId?: ChatbotRole;
+      groundingMode?: GroundingMode;
+      userLocation?: { latitude: number; longitude: number };
+    },
+    onChunk: (chunk: string) => void,
+    onDone: (data: { 
+      citations: Array<{ title: string; organization: string; citationCode: string; year: number }>; 
+      latencyMs: number;
+      modelUsed?: string;
+      groundingType?: 'search' | 'maps' | 'none' | 'rag';
+      searchSources?: GroundingChunkWeb[];
+      mapSources?: GroundingChunkMap[];
+    }) => void,
+    onError: (err: string) => void
+  ) {
+    try {
+      const response = await fetch('/api/gemini/assistant/stream', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok || !response.body) {
+        throw new Error('Failed to connect to streaming advisory service');
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6));
+              if (data.error) {
+                onError(data.error);
+                return;
+              }
+              if (data.chunk) {
+                onChunk(data.chunk);
+              }
+              if (data.done) {
+                onDone({
+                  citations: data.citations || [],
+                  latencyMs: data.latencyMs || 0,
+                  modelUsed: data.modelUsed,
+                  groundingType: data.groundingType,
+                  searchSources: data.searchSources,
+                  mapSources: data.mapSources,
+                });
+              }
+            } catch {
+              // Ignore line parsing anomaly
+            }
+          }
+        }
+      }
+    } catch (err: any) {
+      console.warn('Streaming failed, fallback invoked:', err);
+      onError(err.message || 'Advisory connection interrupted.');
+    }
+  },
+
+  // 10. Soil Health Analysis (Deterministic agronomic calculation engine)
+  async analyzeSoil(input: SoilAnalysisInput): Promise<{ success: boolean; report: SoilAnalysisReport; latencyMs: number }> {
+    const res = await fetch('/api/soil/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || 'Soil analysis calculation failed');
+    }
+    return data;
+  },
+
+  // 11. Smart Irrigation Calculation (FAO-56 Penman-Monteith)
+  async calculateIrrigation(input: IrrigationInput): Promise<{ success: boolean; report: IrrigationScheduleReport; latencyMs: number }> {
+    const res = await fetch('/api/irrigation/calculate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || 'Irrigation schedule calculation failed');
+    }
+    return data;
+  },
+
+  // 12. Upgraded AI Pest & Disease Diagnosis
+  async diagnosePestSubmission(submission: PestDiagnosisSubmission & { isImageBlurry?: boolean }): Promise<{ success: boolean; diagnosis: PestDiagnosisReport; latencyMs: number }> {
+    const res = await fetch('/api/gemini/diagnose', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(submission),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || 'Pest diagnosis service failed');
+    }
+    return data;
+  },
+
+  // 13. Admin AI Telemetry & Observability
+  async fetchAiMetrics(): Promise<{
+    metrics: AiTelemetryMetric[];
+    summary: {
+      totalQueries: number;
+      averageLatencyMs: number;
+      cacheHitRatePercent: number;
+      successRatePercent: number;
+      activeModel: string;
+    };
+  }> {
+    const res = await fetch('/api/admin/ai/metrics');
+    return await res.json();
+  },
+
+  // 14. Farmer Feedback Submission
+  async submitAiFeedback(payload: {
+    farmerEmail: string;
+    farmerQuery: string;
+    aiResponseText: string;
+    feedbackType: string;
+    notes?: string;
+  }): Promise<{ success: boolean; feedback: AiFeedbackReport }> {
+    const res = await fetch('/api/ai/feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    return await res.json();
+  },
+
+  // 15. Admin AI Feedback List & Resolution
+  async fetchAiFeedbackList(): Promise<{ feedbackList: AiFeedbackReport[]; total: number }> {
+    const res = await fetch('/api/admin/ai/feedback');
+    return await res.json();
+  },
+
+  async resolveAiFeedback(id: string): Promise<boolean> {
+    const res = await fetch(`/api/admin/ai/feedback/${id}/resolve`, { method: 'PUT' });
+    return res.ok;
   },
 };
 

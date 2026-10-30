@@ -19,6 +19,20 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+      // Ignore Vite HMR WebSocket closed without opened errors in iframe / cloud proxy environments
+      window.addEventListener('error', function(e) {
+        if (e && e.message && (e.message.indexOf('WebSocket') !== -1 || e.message.indexOf('closed without opened') !== -1)) {
+          e.stopImmediatePropagation();
+          e.preventDefault();
+        }
+      });
+      window.addEventListener('unhandledrejection', function(e) {
+        if (e && e.reason && e.reason.message && (e.reason.message.indexOf('WebSocket') !== -1 || e.reason.message.indexOf('closed without opened') !== -1)) {
+          e.preventDefault();
+        }
+      });
+    </script>
   </head>
   <body class="bg-[#F7F6F0] text-[#252D27] antialiased font-sans selection:bg-[#367C46] selection:text-white">
     <div id="root"></div>

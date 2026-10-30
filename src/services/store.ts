@@ -14,7 +14,12 @@ import {
   ProductReport,
   PlatformBranding,
   DeliverySettings,
-  PlatformGovernanceSettings
+  PlatformGovernanceSettings,
+  SoilAnalysisReport,
+  IrrigationScheduleReport,
+  PestDiagnosisReport,
+  AiTelemetryMetric,
+  AiFeedbackReport
 } from '../types';
 import { SAMPLE_PRODUCTS } from '../data/sampleProducts';
 import { SAMPLE_LIVESTOCK } from '../data/sampleLivestock';
@@ -37,6 +42,11 @@ const LOCAL_STORAGE_KEY_CONSULTATIONS = 'smart_agri_consultations_v2';
 const LOCAL_STORAGE_KEY_BRANDING = 'deriv_agri_branding_v1';
 const LOCAL_STORAGE_KEY_DELIVERY = 'deriv_agri_delivery_v1';
 const LOCAL_STORAGE_KEY_GOVERNANCE = 'deriv_agri_governance_v1';
+const LOCAL_STORAGE_KEY_SOIL_REPORTS = 'deriv_agri_soil_reports_v1';
+const LOCAL_STORAGE_KEY_IRRIGATION = 'deriv_agri_irrigation_v1';
+const LOCAL_STORAGE_KEY_PEST_DIAGNOSES = 'deriv_agri_pest_diagnoses_v1';
+const LOCAL_STORAGE_KEY_AI_TELEMETRY = 'deriv_agri_ai_telemetry_v1';
+const LOCAL_STORAGE_KEY_AI_FEEDBACK = 'deriv_agri_ai_feedback_v1';
 
 export function getCountyAbbr(countyName: string): string {
   const map: Record<string, string> = {
@@ -601,6 +611,253 @@ const INITIAL_CONSULTATION_NOTES: ConsultationNoteRecord[] = [
   }
 ];
 
+// Initial Agricultural Intelligence Seeds
+const INITIAL_SOIL_REPORTS: SoilAnalysisReport[] = [
+  {
+    id: 'soil-rep-001',
+    createdAt: '2026-10-20T10:15:00Z',
+    farmerId: 'usr-farmer-01',
+    cropName: 'Maize (Zea mays)',
+    input: {
+      county: 'Nakuru',
+      crop: 'Maize (Zea mays)',
+      soilType: 'Red Volcanic Clay (Nitisol)',
+      soilPh: 5.2,
+      moisturePercent: 38,
+      fertilizerHistory: 'Continuous DAP application (50kg/acre) for 4 consecutive seasons with no liming.',
+      observedSymptoms: ['Stunted early vegetative growth', 'Purple tinting on lower leaf midribs (P deficiency)', 'Poor root anchorage'],
+      fieldSizeAcres: 2.5,
+    },
+    phAnalysis: {
+      value: 5.2,
+      rating: 'Moderately Acidic',
+      optimalRange: '5.8 - 7.0',
+      impactExplanation: 'At pH 5.2, free exchangeable Aluminum (Al3+) binds available soil phosphates, rendering up to 65% of applied phosphorus unavailable to root hairs. Nitrogen uptake efficiency is reduced by ~40%.',
+      limeRequiredKgPerAcre: 1000,
+    },
+    nutrientStatuses: [
+      {
+        nutrient: 'N',
+        status: 'Low',
+        explanation: 'Nitrogen mineralization is slow in acidic soils; top-dressing with CAN required at knee-height.',
+      },
+      {
+        nutrient: 'P',
+        status: 'Deficient',
+        explanation: 'Phosphorus availability severely locked by acid fixation. Broadcast agricultural lime before re-applying phosphate.',
+      },
+      {
+        nutrient: 'K',
+        status: 'Optimal',
+        explanation: 'Volcanic clay soils in Nakuru typically retain adequate exchangeable potassium.',
+      },
+      {
+        nutrient: 'Organic Carbon',
+        status: 'Low',
+        explanation: 'Organic matter depleted from repeated tillage. Cattle manure will buffer cation exchange capacity.',
+      },
+      {
+        nutrient: 'Salinity',
+        status: 'Optimal',
+        explanation: 'Low electrical conductivity (<0.8 dS/m); no salinity hazard.',
+      }
+    ],
+    fertilizerPlan: {
+      areaTreated: '2.5 Acres (calculated at standard rate per acre)',
+      assumptions: 'Assumes agricultural limestone (CaCO3, 85% CCE) incorporated 3-4 weeks before planting rains. Basal fertilizer applied in furrow 5cm away from seed.',
+      basalFertilizer: {
+        product: 'NPK 23:23:0 or Mavuno Planting Fertilizer',
+        rateKgPerAcre: 75,
+        applicationTiming: 'At planting, banded 5cm to the side and 5cm below the seed furrow.',
+        notes: 'Avoid pure DAP on soils below pH 5.5 to prevent compounding acidification.',
+      },
+      topDressing: {
+        product: 'Calcium Ammonium Nitrate (CAN 26% N)',
+        rateKgPerAcre: 75,
+        applicationTiming: 'Split application: 50% at V6 (knee-height) and 50% just prior to tasseling.',
+        notes: 'Apply when soil is moist, avoid direct contact with leaf funnels.',
+      },
+      organicRemedies: [
+        'Broadcast 4 - 5 tonnes/acre of well-composted farmyard cattle manure.',
+        'Incorporate 1,000 kg/acre agricultural lime (CaCO3) minimum 3 weeks prior to rain onset.',
+        'Rotate with cowpeas or lablab cover crop to regenerate soil organic nitrogen.'
+      ],
+    },
+    laboratoryVerificationRequired: false,
+    confidenceScore: 'Verified Measurements',
+    recommendedNextSteps: [
+      'Order agricultural lime from approved agro-dealers in Nakuru.',
+      'Allow lime to react with moist soil for 3-4 weeks before planting.',
+      'Schedule a follow-up pH check in 12 months after harvest.'
+    ],
+  }
+];
+
+const INITIAL_IRRIGATION_SCHEDULES: IrrigationScheduleReport[] = [
+  {
+    id: 'irrig-001',
+    createdAt: '2026-10-22T08:30:00Z',
+    input: {
+      county: 'Machakos',
+      crop: 'Tomatoes (Solanum lycopersicum)',
+      growthStage: 'flowering',
+      soilType: 'Sandy Loam',
+      fieldAreaAcres: 1.0,
+      irrigationMethod: 'drip',
+      waterSource: 'Earth Dam / Borehole',
+      flowRateLitersPerHour: 2400,
+    },
+    referenceEt0MmPerDay: 5.2,
+    cropCoefficientKc: 1.15,
+    netCropWaterDemandMmPerDay: 5.98,
+    effectiveRainfallMmPerDay: 0,
+    irrigationNeeded: true,
+    systemEfficiencyPercent: 90,
+    grossWaterRequirementMm: 6.64,
+    waterVolumeTotalLiters: 26890,
+    waterVolumeM3: 26.89,
+    recommendedDurationHours: 11.2,
+    recommendedDurationMinutes: 672,
+    irrigationTimingAdvice: 'Split into two irrigation pulses: early morning (06:00 - 09:30 AM) and late afternoon (04:30 - 07:00 PM) to minimize evaporative losses.',
+    drainageAdvice: 'Sandy loam allows rapid percolation (25-35 mm/hr); pulse irrigation prevents nutrient leaching past the 40cm root zone.',
+    waterConservationTips: [
+      'Apply grass or plastic mulch to suppress bare soil evaporation by up to 35%.',
+      'Inspect drip line end-caps for emitter clogging caused by borehole mineral scaling.',
+      'Check soil tension with a tensiometer to avoid over-irrigating during fruit set.'
+    ],
+    isEstimate: true,
+    calculationMethod: 'FAO-56 Penman-Monteith ETc = ETo (5.2 mm/d) x Kc (1.15) with 90% Drip Efficiency on 1.0 Acre (4,047 L/mm/acre).',
+  }
+];
+
+const INITIAL_PEST_DIAGNOSES: PestDiagnosisReport[] = [
+  {
+    id: 'diag-001',
+    createdAt: '2026-10-23T14:10:00Z',
+    farmerId: 'usr-farmer-01',
+    targetType: 'crop',
+    targetHost: 'Maize (Zea mays) - V5 Stage',
+    symptomsSubmitted: 'Window-pane feeding marks on leaf whorl, coarse sawdust frass inside funnel, small caterpillars visible.',
+    imageProvided: true,
+    isImageClear: true,
+    preliminaryAssessmentNote: 'Clear daylight photograph displaying characteristic inverted Y-mark on head capsule and four abdominal spots.',
+    primaryDiagnosis: {
+      name: 'Fall Armyworm (Spodoptera frugiperda)',
+      scientificName: 'Spodoptera frugiperda (Smith)',
+      confidence: 'High',
+      confidencePercent: 94,
+      category: 'pest',
+      visualEvidence: [
+        'Characteristic inverted white "Y" suture on head capsule.',
+        'Four dark pinacula arranged in square formation on the 8th abdominal segment.',
+        'Window-pane feeding lesions and coarse moist frass plugged into central whorl.'
+      ],
+    },
+    differentialDiagnoses: [
+      {
+        name: 'African Maize Stalk Borer (Busseola fusca)',
+        confidencePercent: 6,
+        distinguishingFeatures: 'Lacks the distinct square 4-dot pattern on abdominal segment 8; boring occurs lower on stem rather than whorl surface.',
+      }
+    ],
+    integratedPestManagement: {
+      culturalPhysicalControls: [
+        'Hand-pick and crush egg masses and early-instar larvae in smallholder plots.',
+        'Drop a pinch of dry fine wood ash or sand mixed with lime into the funnel to suffocate larvae.',
+        'Plant push-pull trap crops: Desmodium between maize rows and Napier grass on field margins.'
+      ],
+      biologicalControls: [
+        'Apply Bacillus thuringiensis (Bt) or Beauveria bassiana bio-insecticides during early instar stages.',
+        'Spray cold-pressed Neem seed oil (Azadirachtin 0.03% EC) at 3-5 ml per liter of water.'
+      ],
+      pcpbAuthorizedChemicals: [
+        {
+          activeIngredient: 'Chlorantraniliprole 200g/L SC (e.g. Coragen)',
+          tradeExamples: 'Coragen 200 SC, Belt Expert',
+          targetStage: 'Early larval instars (L1-L3) directed into funnel.',
+          phiDays: 7,
+          ppeRequirement: 'Nitrile gloves, eye goggles, particulate respirator, rubber gumboots.',
+          environmentalPrecautions: 'Harmful to aquatic organisms; do not spray within 15m of rivers or open water.',
+        },
+        {
+          activeIngredient: 'Emamectin Benzoate 50g/kg WDG',
+          tradeExamples: 'Prove 1.92 EC, Kingo 50 WDG',
+          targetStage: 'Whorl application at early threshold (5% infested plants).',
+          phiDays: 14,
+          ppeRequirement: 'Full chemical-resistant overalls, chemical respirator, gloves.',
+          environmentalPrecautions: 'Extremely toxic to bees; spray exclusively at dawn (05:30 - 07:00 AM) before bee flight.',
+        }
+      ],
+    },
+    professionalReferralRequired: false,
+    followUpPhotos: [
+      {
+        id: 'fup-101',
+        photoUrl: 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?auto=format&fit=crop&w=400&q=80',
+        date: '2026-10-25',
+        notes: 'Follow-up inspection 48 hours post Neem oil spray: active caterpillars absent from funnels, fresh whorl leaf emerging undamaged.',
+        status: 'improving',
+      }
+    ],
+  }
+];
+
+const INITIAL_AI_TELEMETRY: AiTelemetryMetric[] = [
+  {
+    id: 'tel-001',
+    timestamp: '2026-10-27T08:14:22Z',
+    queryType: 'farming_advisory',
+    modelUsed: 'gemini-3.8-flash',
+    latencyMs: 382,
+    wasCacheHit: false,
+    tokensUsed: 420,
+    status: 'SUCCESS',
+  },
+  {
+    id: 'tel-002',
+    timestamp: '2026-10-27T08:20:05Z',
+    queryType: 'pest_diagnosis',
+    modelUsed: 'gemini-3.8-flash',
+    latencyMs: 740,
+    wasCacheHit: false,
+    tokensUsed: 680,
+    status: 'SUCCESS',
+  },
+  {
+    id: 'tel-003',
+    timestamp: '2026-10-27T08:35:41Z',
+    queryType: 'soil_analysis',
+    modelUsed: 'deterministic_agronomy_engine',
+    latencyMs: 45,
+    wasCacheHit: true,
+    tokensUsed: 0,
+    status: 'SUCCESS',
+  },
+  {
+    id: 'tel-004',
+    timestamp: '2026-10-27T08:48:19Z',
+    queryType: 'irrigation',
+    modelUsed: 'fao_penman_monteith_calc',
+    latencyMs: 18,
+    wasCacheHit: true,
+    tokensUsed: 0,
+    status: 'SUCCESS',
+  }
+];
+
+const INITIAL_AI_FEEDBACK: AiFeedbackReport[] = [
+  {
+    id: 'fb-001',
+    timestamp: '2026-10-26T11:20:00Z',
+    farmerEmail: 'farmer@smart-agri.ke',
+    farmerQuery: 'Can I mix Mancozeb and CAN fertilizer in the same knapsack spray for potatoes?',
+    aiResponseText: 'Never combine foliar fertilizer CAN with fungicide Mancozeb in the same spray tank due to chemical scorching risk and spray solution precipitation.',
+    feedbackType: 'helpful',
+    notes: 'Very clear warning that saved my potato crop from leaf burn.',
+    status: 'resolved',
+  }
+];
+
 // Helper to safely load localStorage
 function getLocal<T>(key: string, defaultValue: T): T {
   if (typeof window === 'undefined') return defaultValue;
@@ -638,6 +895,11 @@ class AgriStore {
   private branding: PlatformBranding;
   private deliverySettings: DeliverySettings;
   private governanceSettings: PlatformGovernanceSettings;
+  private soilAnalysisReports: SoilAnalysisReport[];
+  private irrigationSchedules: IrrigationScheduleReport[];
+  private pestDiagnoses: PestDiagnosisReport[];
+  private aiTelemetryMetrics: AiTelemetryMetric[];
+  private aiFeedbackReports: AiFeedbackReport[];
   private listeners: Set<() => void> = new Set();
 
   constructor() {
@@ -653,16 +915,19 @@ class AgriStore {
 
     this.cart = getLocal<CartItem[]>(LOCAL_STORAGE_KEY_CART, []);
     this.orders = getLocal<Order[]>(LOCAL_STORAGE_KEY_ORDERS, INITIAL_ORDERS);
-    this.currentUser = getLocal<UserProfile>(LOCAL_STORAGE_KEY_USER, DEFAULT_USER);
+    this.currentUser = getLocal<UserProfile>(LOCAL_STORAGE_KEY_USER, DEMO_FARMER);
+    this.isAuth = getLocal<boolean>(LOCAL_STORAGE_KEY_AUTH, true);
     this.users = getLocal<UserProfile[]>(LOCAL_STORAGE_KEY_USERS, ALL_DEMO_USERS);
-    this.isAuth = getLocal<boolean>(LOCAL_STORAGE_KEY_AUTH, false);
     this.auditLogs = getLocal<AuditLogEntry[]>(LOCAL_STORAGE_KEY_AUDIT, INITIAL_AUDIT_LOGS);
     this.soilRequests = getLocal<SoilTestRequest[]>(LOCAL_STORAGE_KEY_SOIL, INITIAL_SOIL_REQUESTS);
     this.forumPosts = getLocal<ForumPost[]>(LOCAL_STORAGE_KEY_FORUM, INITIAL_FORUM_POSTS);
+    this.inquiries = getLocal<ProductInquiry[]>(LOCAL_STORAGE_KEY_INQUIRIES, []);
+    this.reports = getLocal<ProductReport[]>(LOCAL_STORAGE_KEY_REPORTS, []);
+    this.marketPrices = getLocal<MarketPriceRecord[]>(LOCAL_STORAGE_KEY_PRICES, SAMPLE_MARKET_PRICES);
     this.branding = getLocal<PlatformBranding>(LOCAL_STORAGE_KEY_BRANDING, DEFAULT_BRANDING);
     this.deliverySettings = getLocal<DeliverySettings>(LOCAL_STORAGE_KEY_DELIVERY, DEFAULT_DELIVERY_SETTINGS);
     this.governanceSettings = getLocal<PlatformGovernanceSettings>(LOCAL_STORAGE_KEY_GOVERNANCE, DEFAULT_GOVERNANCE_SETTINGS);
-
+    this.consultationNotes = getLocal<ConsultationNoteRecord[]>(LOCAL_STORAGE_KEY_CONSULTATIONS, INITIAL_CONSULTATION_NOTES);
     const storedPrices = getLocal<MarketPriceRecord[]>(LOCAL_STORAGE_KEY_PRICES, []);
     const priceMap = new Map<string, MarketPriceRecord>();
     SAMPLE_MARKET_PRICES.forEach(p => priceMap.set(p.id, p));
@@ -687,6 +952,11 @@ class AgriStore {
     ]);
     this.reports = getLocal<ProductReport[]>(LOCAL_STORAGE_KEY_REPORTS, []);
     this.consultationNotes = getLocal<ConsultationNoteRecord[]>(LOCAL_STORAGE_KEY_CONSULTATIONS, INITIAL_CONSULTATION_NOTES);
+    this.soilAnalysisReports = getLocal<SoilAnalysisReport[]>(LOCAL_STORAGE_KEY_SOIL_REPORTS, INITIAL_SOIL_REPORTS);
+    this.irrigationSchedules = getLocal<IrrigationScheduleReport[]>(LOCAL_STORAGE_KEY_IRRIGATION, INITIAL_IRRIGATION_SCHEDULES);
+    this.pestDiagnoses = getLocal<PestDiagnosisReport[]>(LOCAL_STORAGE_KEY_PEST_DIAGNOSES, INITIAL_PEST_DIAGNOSES);
+    this.aiTelemetryMetrics = getLocal<AiTelemetryMetric[]>(LOCAL_STORAGE_KEY_AI_TELEMETRY, INITIAL_AI_TELEMETRY);
+    this.aiFeedbackReports = getLocal<AiFeedbackReport[]>(LOCAL_STORAGE_KEY_AI_FEEDBACK, INITIAL_AI_FEEDBACK);
   }
 
   public subscribe(listener: () => void): () => void {
@@ -1356,6 +1626,125 @@ class AgriStore {
   public deleteConsultationNote(id: string): void {
     this.consultationNotes = this.consultationNotes.filter(n => n.id !== id);
     setLocal(LOCAL_STORAGE_KEY_CONSULTATIONS, this.consultationNotes);
+    this.notify();
+  }
+
+  // --- Soil Health Analysis Reports ---
+  public getSoilAnalysisReports(): SoilAnalysisReport[] {
+    return this.soilAnalysisReports;
+  }
+
+  public saveSoilAnalysisReport(report: SoilAnalysisReport): void {
+    const existingIndex = this.soilAnalysisReports.findIndex(r => r.id === report.id);
+    if (existingIndex >= 0) {
+      this.soilAnalysisReports[existingIndex] = report;
+    } else {
+      this.soilAnalysisReports = [report, ...this.soilAnalysisReports];
+    }
+    setLocal(LOCAL_STORAGE_KEY_SOIL_REPORTS, this.soilAnalysisReports);
+    this.notify();
+  }
+
+  public deleteSoilAnalysisReport(id: string): void {
+    this.soilAnalysisReports = this.soilAnalysisReports.filter(r => r.id !== id);
+    setLocal(LOCAL_STORAGE_KEY_SOIL_REPORTS, this.soilAnalysisReports);
+    this.notify();
+  }
+
+  // --- Smart Irrigation Schedules ---
+  public getIrrigationSchedules(): IrrigationScheduleReport[] {
+    return this.irrigationSchedules;
+  }
+
+  public saveIrrigationSchedule(schedule: IrrigationScheduleReport): void {
+    this.irrigationSchedules = [schedule, ...this.irrigationSchedules.filter(s => s.id !== schedule.id)];
+    setLocal(LOCAL_STORAGE_KEY_IRRIGATION, this.irrigationSchedules);
+    this.notify();
+  }
+
+  public deleteIrrigationSchedule(id: string): void {
+    this.irrigationSchedules = this.irrigationSchedules.filter(s => s.id !== id);
+    setLocal(LOCAL_STORAGE_KEY_IRRIGATION, this.irrigationSchedules);
+    this.notify();
+  }
+
+  // --- AI Pest & Disease Diagnoses ---
+  public getPestDiagnoses(): PestDiagnosisReport[] {
+    return this.pestDiagnoses;
+  }
+
+  public savePestDiagnosis(diagnosis: PestDiagnosisReport): void {
+    const existingIndex = this.pestDiagnoses.findIndex(d => d.id === diagnosis.id);
+    if (existingIndex >= 0) {
+      this.pestDiagnoses[existingIndex] = diagnosis;
+    } else {
+      this.pestDiagnoses = [diagnosis, ...this.pestDiagnoses];
+    }
+    setLocal(LOCAL_STORAGE_KEY_PEST_DIAGNOSES, this.pestDiagnoses);
+    this.notify();
+  }
+
+  public addFollowUpPhoto(diagnosisId: string, followUp: { photoUrl: string; notes: string; status: 'improving' | 'unchanged' | 'worsened' }): void {
+    this.pestDiagnoses = this.pestDiagnoses.map(diag => {
+      if (diag.id === diagnosisId) {
+        const followUps = diag.followUpPhotos || [];
+        return {
+          ...diag,
+          followUpPhotos: [
+            ...followUps,
+            {
+              id: `fup-${Date.now()}`,
+              photoUrl: followUp.photoUrl,
+              date: new Date().toISOString().split('T')[0],
+              notes: followUp.notes,
+              status: followUp.status,
+            }
+          ]
+        };
+      }
+      return diag;
+    });
+    setLocal(LOCAL_STORAGE_KEY_PEST_DIAGNOSES, this.pestDiagnoses);
+    this.notify();
+  }
+
+  // --- AI Telemetry & Observability ---
+  public getAiTelemetryMetrics(): AiTelemetryMetric[] {
+    return this.aiTelemetryMetrics;
+  }
+
+  public recordAiTelemetry(metric: Omit<AiTelemetryMetric, 'id' | 'timestamp'>): void {
+    const newMetric: AiTelemetryMetric = {
+      ...metric,
+      id: `tel-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      timestamp: new Date().toISOString(),
+    };
+    this.aiTelemetryMetrics = [newMetric, ...this.aiTelemetryMetrics.slice(0, 99)];
+    setLocal(LOCAL_STORAGE_KEY_AI_TELEMETRY, this.aiTelemetryMetrics);
+    this.notify();
+  }
+
+  // --- AI Feedback & Grounding Reports ---
+  public getAiFeedbackReports(): AiFeedbackReport[] {
+    return this.aiFeedbackReports;
+  }
+
+  public submitAiFeedback(feedback: Omit<AiFeedbackReport, 'id' | 'timestamp' | 'status'>): AiFeedbackReport {
+    const newReport: AiFeedbackReport = {
+      ...feedback,
+      id: `fb-${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      status: 'pending_review',
+    };
+    this.aiFeedbackReports = [newReport, ...this.aiFeedbackReports];
+    setLocal(LOCAL_STORAGE_KEY_AI_FEEDBACK, this.aiFeedbackReports);
+    this.notify();
+    return newReport;
+  }
+
+  public resolveAiFeedback(id: string): void {
+    this.aiFeedbackReports = this.aiFeedbackReports.map(fb => fb.id === id ? { ...fb, status: 'resolved' as const } : fb);
+    setLocal(LOCAL_STORAGE_KEY_AI_FEEDBACK, this.aiFeedbackReports);
     this.notify();
   }
 
