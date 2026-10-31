@@ -4,14 +4,18 @@
 
 export type UserRole = 
   | 'farmer' 
+  | 'expert'
+  | 'agribusiness'
+  | 'student'
+  | 'cooperative'
+  | 'extension'
   | 'buyer' 
   | 'seller' 
   | 'consultant' 
   | 'veterinarian' 
   | 'transporter' 
   | 'lab' 
-  | 'admin'
-  | 'expert'; // backwards-compatibility alias for consultant
+  | 'admin';
 
 export interface UserProfile {
   id: string;
@@ -25,13 +29,37 @@ export interface UserProfile {
   town?: string;
   farmName?: string;
   farmSizeAcres?: number;
-  organizationName?: string;
+  farmingActivities?: string[];
+  cropsGrown?: string[];
+  livestockKept?: string[];
+  farmLocation?: string;
+  qualifications?: string;
+  areasOfExpertise?: string[];
+  yearsOfExperience?: number;
+  professionalBio?: string;
+  supportingDocuments?: string[];
+  businessName?: string;
   businessType?: string;
+  businessLocation?: string;
+  productsAndServices?: string[];
+  institution?: string;
+  researchFocus?: string;
+  academicProgram?: string;
+  studentId?: string;
+  organizationName?: string;
+  organizationCategory?: string;
+  registrationNumber?: string;
+  numberOfMembers?: number;
+  representativeName?: string;
+  extensionStation?: string;
+  employerMinistry?: string;
+  specialization?: string;
+  designation?: string;
   licenseNumber?: string;
   nationalIdNumber?: string;
   kraPin?: string;
   verifiedBadges?: string[];
-  status?: 'active' | 'pending_verification' | 'suspended';
+  status?: 'active' | 'pending_verification' | 'suspended' | 'pending' | 'rejected';
   lastLogin?: string;
   isVerified: boolean;
   avatarUrl?: string;
@@ -106,7 +134,7 @@ export interface PlatformGovernanceSettings {
 export interface MembershipVerificationResult {
   code: string;
   isValid: boolean;
-  status?: 'active' | 'pending_verification' | 'suspended';
+  status?: 'active' | 'pending_verification' | 'suspended' | 'pending' | 'rejected';
   role?: UserRole;
   county?: string;
   membershipTier?: string;
@@ -723,4 +751,188 @@ export interface MultiTurnChatMessage {
   isStreaming?: boolean;
   error?: string;
 }
+
+// ==========================================
+// Agricultural Management Models (Part F)
+// ==========================================
+
+export interface CropRecord {
+  id: string;
+  farmerId: string;
+  name: string;
+  variety: string;
+  acreage: number;
+  plantingDate: string;
+  expectedHarvestDate: string;
+  currentStage: 'Land Prep' | 'Germination' | 'Vegetative' | 'Flowering' | 'Maturity' | 'Harvested';
+  healthStatus: 'Excellent' | 'Good' | 'Fair' | 'Under Pest Treatment';
+  estimatedYieldBags: number;
+  soilPh?: number;
+  notes?: string;
+}
+
+export interface LivestockRecord {
+  id: string;
+  farmerId: string;
+  category: 'Cattle' | 'Goat' | 'Sheep' | 'Poultry' | 'Pig' | 'Beekeeping';
+  breed: string;
+  count: number;
+  tagNumbers?: string[];
+  purpose: 'Dairy' | 'Beef' | 'Egg Production' | 'Broiler Meat' | 'Breeding Stock';
+  healthStatus: 'Vaccinated & Healthy' | 'Under Observation' | 'Treatment Required';
+  lastVaccinationDate?: string;
+  dailyProduction?: string; // e.g. "28 Litres/day" or "180 Eggs/day"
+  notes?: string;
+}
+
+export interface PlantingScheduleRecord {
+  id: string;
+  farmerId: string;
+  seasonName: string; // e.g. "2026 Long Rains"
+  cropName: string;
+  targetAcreage: number;
+  landPrepDate: string;
+  plantingWindow: string;
+  basalFertilizer: string;
+  topDressingWindow: string;
+  projectedHarvest: string;
+  status: 'Scheduled' | 'In Progress' | 'Completed';
+}
+
+export interface HarvestRecord {
+  id: string;
+  farmerId: string;
+  cropName: string;
+  harvestDate: string;
+  harvestedAcreage: number;
+  quantity: number;
+  unit: string; // 'Bags (90kg)', 'Kgs', 'Tonnes', 'Crates'
+  qualityGrade: 'Grade 1 (Export/Premium)' | 'Grade 2 (Commercial)' | 'Grade 3 (Feed/Process)';
+  storageLocation: string;
+  marketDestination: 'NCPB Silo' | 'Wholesale Market' | 'Direct Buyer' | 'Farm Storage';
+  revenueKsh?: number;
+}
+
+export interface FarmExpenseRecord {
+  id: string;
+  farmerId: string;
+  date: string;
+  category: 'Certified Seeds' | 'Fertilizer & Lime' | 'Agrochemicals' | 'Veterinary Care' | 'Labor & Tillage' | 'Irrigation & Fuel' | 'Transport & Logistics';
+  description: string;
+  amountKsh: number;
+  vendorName?: string;
+  receiptNumber?: string;
+}
+
+export interface FarmProductionRecord {
+  id: string;
+  farmerId: string;
+  date: string;
+  productName: string;
+  quantity: number;
+  unit: string;
+  unitPriceKsh: number;
+  totalRevenueKsh: number;
+  buyerName?: string;
+}
+
+export interface ConsultationRecord {
+  id: string;
+  farmerId: string;
+  farmerName: string;
+  farmerPhone: string;
+  farmerCounty: string;
+  expertId: string;
+  expertName: string;
+  expertRole: 'Agronomist' | 'Veterinarian' | 'Soil Scientist' | 'Extension Officer';
+  scheduledDate: string;
+  scheduledTime: string;
+  subject: string;
+  status: 'pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled';
+  advisoryReport?: string;
+  prescribedInputs?: string[];
+  createdAt: string;
+}
+
+export interface FieldInspectionRecord {
+  id: string;
+  officerId?: string;
+  officerName: string;
+  farmerId: string;
+  farmerName: string;
+  farmLocation: string;
+  inspectionDate: string;
+  purpose?: 'KEPHIS Seed Inspection' | 'Soil Fertility Audit' | 'Pest Outbreak Assessment' | 'Cooperative Yield Survey' | string;
+  cropOrLivestock?: string;
+  findings: string;
+  recommendations: string;
+  followUpDate?: string;
+  complianceRating?: 'Compliant' | 'Action Required' | 'Critical Quarantine';
+  status?: 'pending_followup' | 'urgent' | 'completed' | string;
+  severity?: 'mild' | 'moderate' | 'severe';
+}
+
+export interface MemberActivityLog {
+  id: string;
+  userId: string;
+  category: 'registration' | 'login' | 'farm' | 'crop' | 'livestock' | 'consultation' | 'inspection' | 'order' | 'membership' | 'profile';
+  title: string;
+  description: string;
+  timestamp: string;
+  recordRef?: string;
+}
+
+export interface InAppNotification {
+  id: string;
+  userId: string;
+  category: 'system' | 'weather' | 'membership' | 'consultation' | 'marketplace' | 'training';
+  title: string;
+  message: string;
+  isRead: boolean;
+  createdAt: string;
+  linkTab?: string;
+}
+
+export interface MediaAsset {
+  id: string;
+  name: string;
+  folder: 'Banners' | 'Crops' | 'Livestock' | 'Experts' | 'Services' | 'Logos';
+  url: string;
+  sizeBytes: number;
+  mimeType: string;
+  uploadedAt: string;
+  alt: string;
+}
+
+export interface CmsVisualSection {
+  id: string;
+  type: 'hero' | 'features' | 'services' | 'stats' | 'testimonials' | 'cta' | 'news' | 'contact' | 'custom_text' | 'image_gallery';
+  title: string;
+  subtitle?: string;
+  content?: string;
+  badge?: string;
+  image?: string;
+  ctaText?: string;
+  ctaLink?: string;
+  order: number;
+  items?: Array<{
+    title: string;
+    description: string;
+    icon?: string;
+    image?: string;
+    link?: string;
+  }>;
+}
+
+export interface CmsPageDoc {
+  id: string;
+  slug: string;
+  title: string;
+  subtitle: string;
+  seoDescription?: string;
+  isPublished: boolean;
+  publishedAt: string;
+  sections: CmsVisualSection[];
+}
+
 

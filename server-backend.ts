@@ -1415,21 +1415,21 @@ function verifyPassword(password: string, combinedHash: string): boolean {
 }
 
 function generateSecureMemberId(county: string, role: string): string {
-  const countyMap: Record<string, string> = {
-    'Nakuru': 'NKR', 'Nairobi': 'NBI', 'Mombasa': 'MSA', 'Kiambu': 'KBU',
-    'Uasin Gishu': 'UG', 'Kisumu': 'KSM', 'Machakos': 'MCK', 'Meru': 'MRU',
-    'Nyeri': 'NYR', 'Kakamega': 'KKM', 'Kericho': 'KRC', 'Kilifi': 'KLF',
-    'Bungoma': 'BGM', 'Trans Nzoia': 'TNZ', 'Narok': 'NRK', 'Kajiado': 'KJD',
-    'Murang\'a': 'MRG', 'Kirinyaga': 'KRN', 'Embu': 'EBU', 'Kitui': 'KTU'
-  };
-  const cAbbr = countyMap[county] || (county.length >= 3 ? county.slice(0, 3).toUpperCase() : 'NKR');
   const roleInitials: Record<string, string> = {
-    farmer: 'F', buyer: 'B', seller: 'S', consultant: 'C',
-    expert: 'C', veterinarian: 'V', transporter: 'T', lab: 'L', admin: 'A'
+    farmer: 'F', expert: 'E', agribusiness: 'B', student: 'S',
+    cooperative: 'C', extension: 'X', buyer: 'U', seller: 'M',
+    consultant: 'E', veterinarian: 'V', transporter: 'T', lab: 'L', admin: 'A'
   };
   const rInitial = roleInitials[role] || 'F';
-  const randHex = crypto.randomBytes(2).toString('hex').toUpperCase();
-  return `SAK-${cAbbr}-2026-${rInitial}${randHex}`;
+  const year = new Date().getFullYear();
+  let code = '';
+  let attempts = 0;
+  do {
+    const rand5 = Math.floor(10000 + Math.random() * 90000).toString();
+    code = `SA-${year}-${rInitial}${rand5}`;
+    attempts++;
+  } while (serverUsers.some(u => u.memberId === code) && attempts < 100);
+  return code;
 }
 
 // In-Memory Secure Session & Rate Limiting Stores
@@ -1441,15 +1441,43 @@ interface ServerUser {
   role: string;
   county: string;
   subCounty?: string;
+  ward?: string;
   town?: string;
   farmName?: string;
+  farmSizeAcres?: number;
+  farmingActivities?: string[];
+  cropsGrown?: string[];
+  livestockKept?: string[];
+  farmLocation?: string;
+  qualifications?: string;
+  areasOfExpertise?: string[];
+  yearsOfExperience?: number;
+  professionalBio?: string;
+  supportingDocuments?: string[];
+  businessName?: string;
+  businessType?: string;
+  businessLocation?: string;
+  productsAndServices?: string[];
+  institution?: string;
+  researchFocus?: string;
+  academicProgram?: string;
+  studentId?: string;
   organizationName?: string;
+  organizationCategory?: string;
+  registrationNumber?: string;
+  numberOfMembers?: number;
+  representativeName?: string;
+  extensionStation?: string;
+  employerMinistry?: string;
+  specialization?: string;
+  designation?: string;
   passwordHash: string;
   memberId: string;
   membershipTier: string;
-  status: 'active' | 'pending_verification' | 'suspended';
+  status: 'active' | 'pending_verification' | 'suspended' | 'pending' | 'rejected';
   isVerified: boolean;
   joinedDate: string;
+  avatarUrl?: string;
   isMainSuperAdmin?: boolean;
   adminPermissions?: any;
   appointedBy?: string;
@@ -1617,115 +1645,494 @@ function getClientIp(req: express.Request): string {
   return req.socket.remoteAddress || 'unknown';
 }
 
-// 6.1 Authentication: Register (Public roles only, strict validation)
-app.post('/api/auth/register', async (req, res) => {
-  try {
-    const { name, email, phone, password, role, county, subCounty, town, farmName, organizationName, cooperativeAffiliation } = req.body;
+// ==========================================
+// 6. Real Authentication & Membership System
+// ==========================================
 
-    if (!name || !email || !phone || !password || !role) {
-      return res.status(400).json({ error: 'Name, email, phone number, password, and role are required.' });
+// Seed initial records for demonstrative workflows
+interface ServerCropRecord {
+  id: string;
+  farmerId: string;
+  name: string;
+  variety: string;
+  acreage: number;
+  plantingDate: string;
+  expectedHarvestDate: string;
+  currentStage: string;
+  healthStatus: string;
+  estimatedYieldBags: number;
+  notes?: string;
+}
+
+interface ServerLivestockRecord {
+  id: string;
+  farmerId: string;
+  category: string;
+  breed: string;
+  count: number;
+  tagNumbers?: string[];
+  purpose: string;
+  healthStatus: string;
+  lastVaccinationDate?: string;
+  dailyProduction?: string;
+  notes?: string;
+}
+
+interface ServerScheduleRecord {
+  id: string;
+  farmerId: string;
+  seasonName: string;
+  cropName: string;
+  targetAcreage: number;
+  landPrepDate: string;
+  plantingWindow: string;
+  basalFertilizer: string;
+  topDressingWindow: string;
+  projectedHarvest: string;
+  status: string;
+}
+
+interface ServerHarvestRecord {
+  id: string;
+  farmerId: string;
+  cropName: string;
+  harvestDate: string;
+  harvestedAcreage: number;
+  quantity: number;
+  unit: string;
+  qualityGrade: string;
+  storageLocation: string;
+  marketDestination: string;
+  revenueKsh?: number;
+}
+
+interface ServerExpenseRecord {
+  id: string;
+  farmerId: string;
+  date: string;
+  category: string;
+  description: string;
+  amountKsh: number;
+  vendorName?: string;
+  receiptNumber?: string;
+}
+
+interface ServerConsultationRecord {
+  id: string;
+  farmerId: string;
+  farmerName: string;
+  farmerPhone: string;
+  farmerCounty: string;
+  expertId: string;
+  expertName: string;
+  expertRole: string;
+  scheduledDate: string;
+  scheduledTime: string;
+  subject: string;
+  status: string;
+  advisoryReport?: string;
+  createdAt: string;
+}
+
+interface ServerActivityRecord {
+  id: string;
+  userId: string;
+  category: string;
+  title: string;
+  description: string;
+  timestamp: string;
+  recordRef?: string;
+}
+
+interface ServerNotificationRecord {
+  id: string;
+  userId: string;
+  category: string;
+  title: string;
+  message: string;
+  isRead: boolean;
+  createdAt: string;
+  linkTab?: string;
+}
+
+interface ServerMediaAsset {
+  id: string;
+  name: string;
+  folder: string;
+  url: string;
+  sizeBytes: number;
+  mimeType: string;
+  uploadedAt: string;
+  alt: string;
+}
+
+interface ServerCustomPage {
+  id: string;
+  slug: string;
+  title: string;
+  subtitle: string;
+  seoDescription?: string;
+  isPublished: boolean;
+  publishedAt: string;
+  sections: any[];
+}
+
+const serverCrops: ServerCropRecord[] = [
+  {
+    id: 'crp-01',
+    farmerId: 'usr-farmer-01',
+    name: 'Maize (White Hybrid)',
+    variety: 'H614D (Kenya Seed Certified)',
+    acreage: 6.5,
+    plantingDate: '2026-03-15',
+    expectedHarvestDate: '2026-09-20',
+    currentStage: 'Vegetative',
+    healthStatus: 'Excellent',
+    estimatedYieldBags: 195,
+    notes: 'Basal Mavuno planting fertilizer applied with agricultural lime (1.2 T/acre).'
+  },
+  {
+    id: 'crp-02',
+    farmerId: 'usr-farmer-01',
+    name: 'French Beans / Haricots Verts',
+    variety: 'Serengeti (Kephis Approved)',
+    acreage: 2.0,
+    plantingDate: '2026-04-02',
+    expectedHarvestDate: '2026-05-28',
+    currentStage: 'Flowering',
+    healthStatus: 'Good',
+    estimatedYieldBags: 45,
+    notes: 'Drip irrigated from farm reservoir. GlobalGAP traceability compliance.'
+  }
+];
+
+const serverLivestock: ServerLivestockRecord[] = [
+  {
+    id: 'lst-01',
+    farmerId: 'usr-farmer-01',
+    category: 'Cattle',
+    breed: 'Pedigree Holstein-Friesian',
+    count: 8,
+    tagNumbers: ['KE-NKR-0841', 'KE-NKR-0842', 'KE-NKR-0843'],
+    purpose: 'Dairy',
+    healthStatus: 'Vaccinated & Healthy',
+    lastVaccinationDate: '2026-02-10',
+    dailyProduction: '175 Litres/day',
+    notes: 'Ensilaged Napier & desmodium fodder feeding regime.'
+  },
+  {
+    id: 'lst-02',
+    farmerId: 'usr-farmer-01',
+    category: 'Poultry',
+    breed: 'KARI Improved Kienyeji',
+    count: 250,
+    purpose: 'Egg Production',
+    healthStatus: 'Vaccinated & Healthy',
+    lastVaccinationDate: '2026-03-01',
+    dailyProduction: '190 Eggs/day',
+    notes: 'Deep litter system with automated nipple drinkers.'
+  }
+];
+
+const serverSchedules: ServerScheduleRecord[] = [
+  {
+    id: 'sch-01',
+    farmerId: 'usr-farmer-01',
+    seasonName: '2026 Long Rains Season',
+    cropName: 'Maize H614D',
+    targetAcreage: 6.5,
+    landPrepDate: '2026-02-20',
+    plantingWindow: '2026-03-10 to 2026-03-25',
+    basalFertilizer: 'NPK 23:23:0 (50 kg/acre)',
+    topDressingWindow: '2026-04-20 (CAN 75kg/acre at knee-high)',
+    projectedHarvest: '2026-09-25',
+    status: 'In Progress'
+  }
+];
+
+const serverHarvests: ServerHarvestRecord[] = [
+  {
+    id: 'hrv-01',
+    farmerId: 'usr-farmer-01',
+    cropName: 'Irish Potatoes (Shangi)',
+    harvestDate: '2026-01-20',
+    harvestedAcreage: 3.0,
+    quantity: 240,
+    unit: 'Bags (50kg)',
+    qualityGrade: 'Grade 1 (Commercial Premium)',
+    storageLocation: 'Njoro Farm Store 2',
+    marketDestination: 'Wholesale Market',
+    revenueKsh: 480000
+  }
+];
+
+const serverExpenses: ServerExpenseRecord[] = [
+  {
+    id: 'exp-01',
+    farmerId: 'usr-farmer-01',
+    date: '2026-03-10',
+    category: 'Certified Seeds',
+    description: '4x 25kg bags of H614D Kenya Seed Maize',
+    amountKsh: 24800,
+    vendorName: 'Njoro Farmers Agrovet Ltd',
+    receiptNumber: 'NFA-2026-0812'
+  },
+  {
+    id: 'exp-02',
+    farmerId: 'usr-farmer-01',
+    date: '2026-03-12',
+    category: 'Fertilizer & Lime',
+    description: 'Agricultural Lime (CaCO3) 80 bags + transport',
+    amountKsh: 36000,
+    vendorName: 'Athi River Mining Agrochem',
+    receiptNumber: 'ARM-7721'
+  }
+];
+
+const serverConsultations: ServerConsultationRecord[] = [
+  {
+    id: 'cns-01',
+    farmerId: 'usr-farmer-01',
+    farmerName: 'Samuel Kiprop Kimani',
+    farmerPhone: '0722123456',
+    farmerCounty: 'Nakuru',
+    expertId: 'usr-consultant-01',
+    expertName: 'Dr. Evans Mwangi, PhD',
+    expertRole: 'Agronomist',
+    scheduledDate: '2026-11-04',
+    scheduledTime: '10:00 AM',
+    subject: 'Soil fertility rectification and Fall Armyworm scouting',
+    status: 'confirmed',
+    advisoryReport: 'Recommended transitioning from DAP to buffered NPK 23:23:0 with broadcast lime application.',
+    createdAt: '2026-10-28T08:30:00.000Z'
+  }
+];
+
+const serverActivities: ServerActivityRecord[] = [
+  {
+    id: 'act-01',
+    userId: 'usr-farmer-01',
+    category: 'membership',
+    title: 'Digital Membership Verified',
+    description: 'Official SMART-AGRI Kenya Digital Membership Card active (Code: SA-2026-F4829).',
+    timestamp: '2026-03-12T09:15:00.000Z'
+  },
+  {
+    id: 'act-02',
+    userId: 'usr-farmer-01',
+    category: 'crop',
+    title: 'Crop Planted: Maize H614D',
+    description: 'Logged planting of 6.5 acres of hybrid maize in Njoro, Nakuru County.',
+    timestamp: '2026-03-15T14:20:00.000Z'
+  }
+];
+
+const serverNotifications: ServerNotificationRecord[] = [
+  {
+    id: 'notif-01',
+    userId: 'usr-farmer-01',
+    category: 'membership',
+    title: 'Welcome to SMART-AGRI Kenya!',
+    message: 'Your official digital membership card SA-2026-F4829 is now active. You have full access to farm management, weather, and AI specialist tools.',
+    isRead: false,
+    createdAt: new Date().toISOString(),
+    linkTab: 'dashboard'
+  },
+  {
+    id: 'notif-02',
+    userId: 'usr-farmer-01',
+    category: 'weather',
+    title: 'Seasonal Rainfall Advisory (Nakuru)',
+    message: 'Kenya Meteorological Department synoptic forecast predicts enhanced precipitation over Nakuru County this week. Ideal window for top-dressing CAN.',
+    isRead: false,
+    createdAt: new Date().toISOString(),
+    linkTab: 'weather'
+  }
+];
+
+const serverMediaAssets: ServerMediaAsset[] = [
+  {
+    id: 'med-01',
+    name: 'Kenyan African Farmer in Maize Field',
+    folder: 'Banners',
+    url: 'https://images.unsplash.com/photo-1592417817098-8f3d69103a89?auto=format&fit=crop&w=1200&q=80',
+    sizeBytes: 420000,
+    mimeType: 'image/jpeg',
+    uploadedAt: '2026-01-10T10:00:00.000Z',
+    alt: 'African smallholder farmer inspecting healthy maize cobs in lush Kenyan highlands'
+  },
+  {
+    id: 'med-02',
+    name: 'Pedigree Dairy Cattle in Pasture',
+    folder: 'Livestock',
+    url: 'https://images.unsplash.com/photo-1546445317-29f4545e9d53?auto=format&fit=crop&w=1200&q=80',
+    sizeBytes: 380000,
+    mimeType: 'image/jpeg',
+    uploadedAt: '2026-01-12T11:30:00.000Z',
+    alt: 'High-yielding pedigree dairy cows grazing in green pasture in Rift Valley'
+  },
+  {
+    id: 'med-03',
+    name: 'Soil Testing Laboratory Analysis',
+    folder: 'Services',
+    url: 'https://images.unsplash.com/photo-1581093458791-9f3c3900df4b?auto=format&fit=crop&w=1200&q=80',
+    sizeBytes: 450000,
+    mimeType: 'image/jpeg',
+    uploadedAt: '2026-01-15T09:00:00.000Z',
+    alt: 'Agronomist performing chemical soil pH and nutrient fertility test in accredited laboratory'
+  },
+  {
+    id: 'med-04',
+    name: 'Drip Irrigation Vegetable Farming',
+    folder: 'Crops',
+    url: 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=1200&q=80',
+    sizeBytes: 510000,
+    mimeType: 'image/jpeg',
+    uploadedAt: '2026-01-18T14:00:00.000Z',
+    alt: 'Smart drip irrigation system watering tomatoes and vegetables in Machakos'
+  }
+];
+
+const serverCustomPages: ServerCustomPage[] = [];
+
+// Helper to sanitize user output (strip password hash)
+function sanitizeUserForResponse(user: ServerUser) {
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    phone: user.phone,
+    role: user.role,
+    county: user.county,
+    subCounty: user.subCounty || '',
+    ward: user.ward || '',
+    town: user.town || '',
+    farmName: user.farmName,
+    farmSizeAcres: user.farmSizeAcres,
+    farmingActivities: user.farmingActivities || [],
+    cropsGrown: user.cropsGrown || [],
+    livestockKept: user.livestockKept || [],
+    farmLocation: user.farmLocation,
+    qualifications: user.qualifications,
+    areasOfExpertise: user.areasOfExpertise || [],
+    yearsOfExperience: user.yearsOfExperience,
+    professionalBio: user.professionalBio,
+    businessName: user.businessName,
+    businessType: user.businessType,
+    businessLocation: user.businessLocation,
+    productsAndServices: user.productsAndServices || [],
+    institution: user.institution,
+    researchFocus: user.researchFocus,
+    studentId: user.studentId,
+    organizationName: user.organizationName,
+    organizationCategory: user.organizationCategory,
+    registrationNumber: user.registrationNumber,
+    numberOfMembers: user.numberOfMembers,
+    representativeName: user.representativeName,
+    extensionStation: user.extensionStation,
+    employerMinistry: user.employerMinistry,
+    specialization: user.specialization,
+    designation: user.designation,
+    memberId: user.memberId,
+    membershipCode: user.memberId,
+    membershipTier: user.membershipTier,
+    status: user.status,
+    isVerified: user.isVerified,
+    joinedDate: user.joinedDate,
+    avatarUrl: user.avatarUrl || '',
+    isMainSuperAdmin: Boolean(user.isMainSuperAdmin),
+    adminPermissions: user.adminPermissions,
+  };
+}
+
+// 6.1 User Registration
+app.post('/api/auth/register', (req, res) => {
+  try {
+    const {
+      name, email, phone, password, role, county, subCounty, ward, town,
+      farmName, farmSizeAcres, farmingActivities, cropsGrown, livestockKept, farmLocation,
+      qualifications, areasOfExpertise, yearsOfExperience, professionalBio,
+      businessName, businessType, businessLocation, productsAndServices,
+      institution, researchFocus, academicProgram, studentId,
+      organizationName, organizationCategory, registrationNumber, numberOfMembers, representativeName,
+      extensionStation, employerMinistry, specialization, designation,
+      avatarUrl
+    } = req.body;
+
+    if (!name || !email || !password || !role || !county) {
+      return res.status(400).json({ error: 'Name, email, password, role, and county are required.' });
     }
 
     const cleanEmail = String(email).trim().toLowerCase();
+    const cleanPhone = String(phone || '').trim();
 
-    // Security: The exclusive Main Super Admin account cannot be created via public registration
-    if (cleanEmail === MAIN_SUPER_ADMIN_EMAIL.toLowerCase()) {
-      return res.status(403).json({ 
-        error: 'The Main Super Admin account cannot be registered through public registration. Please use /admin/login.' 
-      });
-    }
-
-    // Role Security: Public registration must NEVER allow Super Admin
-    const allowedPublicRoles = ['farmer', 'buyer', 'seller', 'consultant', 'veterinarian', 'transporter', 'lab'];
-    const sanitizedRole = String(role).toLowerCase().trim();
-
-    if (sanitizedRole === 'admin' || !allowedPublicRoles.includes(sanitizedRole)) {
-      return res.status(403).json({ 
-        error: 'Privilege escalation rejected: The Administrator role cannot be self-assigned through public registration.' 
-      });
-    }
-
-    // Password strength enforcement
-    if (typeof password !== 'string' || password.length < 8) {
-      return res.status(400).json({ error: 'Password must be at least 8 characters long.' });
-    }
-    if (!/[0-9]/.test(password) || !/[a-zA-Z]/.test(password)) {
-      return res.status(400).json({ error: 'Password must contain both letters and numbers for account security.' });
-    }
-
-    const cleanPhone = String(phone).replace(/\D/g, '');
-
-    // Check duplicate email in server store
+    // Check duplicate email
     if (serverUsers.some(u => u.email.toLowerCase() === cleanEmail)) {
-      return res.status(409).json({ error: 'An account is already registered with this email address.' });
+      return res.status(409).json({ error: 'An account with this email address already exists. Please log in.' });
     }
 
-    // Generate unique, unpredictable Member ID on server
-    const serverMemberId = generateSecureMemberId(county || 'Nakuru', sanitizedRole);
+    if (password.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters.' });
+    }
+
+    // Auto-generate standard unique membership code: SA-YYYY-XXXXXX
+    const memberId = generateSecureMemberId(county, role);
+
+    const initialStatus = (role === 'expert' || role === 'agribusiness') ? 'pending_verification' : 'active';
+    const isAutoVerified = initialStatus === 'active';
 
     const newUser: ServerUser = {
-      id: `usr-${Date.now()}-${crypto.randomBytes(4).toString('hex')}`,
+      id: `usr-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
       name: String(name).trim(),
       email: cleanEmail,
-      phone: cleanPhone || String(phone).trim(),
-      role: sanitizedRole,
-      county: county || 'Nakuru',
-      subCounty: subCounty || town || '',
-      town: town || '',
-      farmName: sanitizedRole === 'farmer' ? (farmName || `${name}'s Farm`) : undefined,
-      organizationName: sanitizedRole !== 'farmer' ? (organizationName || `${name} Enterprises`) : undefined,
+      phone: cleanPhone || '0700000000',
+      role: String(role).toLowerCase(),
+      county: String(county).trim(),
+      subCounty: subCounty ? String(subCounty).trim() : '',
+      ward: ward ? String(ward).trim() : '',
+      town: town ? String(town).trim() : '',
+      farmName: farmName || (role === 'farmer' ? `${name}'s Family Farm` : undefined),
+      farmSizeAcres: farmSizeAcres ? Number(farmSizeAcres) : undefined,
+      farmingActivities: Array.isArray(farmingActivities) ? farmingActivities : undefined,
+      cropsGrown: Array.isArray(cropsGrown) ? cropsGrown : undefined,
+      livestockKept: Array.isArray(livestockKept) ? livestockKept : undefined,
+      farmLocation: farmLocation || (county ? `${county} County` : undefined),
+      qualifications,
+      areasOfExpertise: Array.isArray(areasOfExpertise) ? areasOfExpertise : undefined,
+      yearsOfExperience: yearsOfExperience ? Number(yearsOfExperience) : undefined,
+      professionalBio,
+      businessName,
+      businessType,
+      businessLocation,
+      productsAndServices: Array.isArray(productsAndServices) ? productsAndServices : undefined,
+      institution,
+      researchFocus,
+      academicProgram,
+      studentId,
+      organizationName,
+      organizationCategory,
+      registrationNumber,
+      numberOfMembers: numberOfMembers ? Number(numberOfMembers) : undefined,
+      representativeName,
+      extensionStation,
+      employerMinistry,
+      specialization,
+      designation,
       passwordHash: hashPassword(password),
-      memberId: serverMemberId,
-      membershipTier: sanitizedRole === 'consultant' || sanitizedRole === 'veterinarian' ? 'Gold' : 'Silver',
-      status: 'active',
-      isVerified: sanitizedRole === 'farmer' || sanitizedRole === 'buyer',
+      memberId,
+      membershipTier: 'Standard',
+      status: initialStatus,
+      isVerified: isAutoVerified,
       joinedDate: new Date().toISOString().split('T')[0],
+      avatarUrl: avatarUrl || `https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80`
     };
 
     serverUsers.push(newUser);
 
-    // If Supabase is configured, also persist to Supabase Auth & profiles
-    if (supabaseServer) {
-      try {
-        await supabaseServer.from('profiles').insert({
-          id: crypto.randomUUID(),
-          full_name: newUser.name,
-          email: newUser.email,
-          phone: newUser.phone,
-          role: newUser.role,
-          county: newUser.county,
-          town: newUser.town,
-          member_id: newUser.memberId,
-          status: newUser.status,
-          membership_tier: newUser.membershipTier,
-          is_verified: newUser.isVerified,
-        });
-      } catch (dbErr) {
-        console.warn('Supabase DB sync note:', dbErr);
-      }
-    }
-
-    // Generate cryptographically secure session token (24-hour expiration)
+    // Create session token
     const sessionToken = crypto.randomBytes(32).toString('hex');
     const expiresAt = Date.now() + (24 * 60 * 60 * 1000);
-
-    const sanitizedUser = {
-      id: newUser.id,
-      name: newUser.name,
-      email: newUser.email,
-      phone: newUser.phone,
-      role: newUser.role,
-      county: newUser.county,
-      town: newUser.town,
-      memberId: newUser.memberId,
-      membershipCode: newUser.memberId,
-      membershipTier: newUser.membershipTier,
-      isVerified: newUser.isVerified,
-      status: newUser.status,
-      joinedDate: newUser.joinedDate,
-      farmName: newUser.farmName,
-      organizationName: newUser.organizationName,
-    };
+    const sanitizedUser = sanitizeUserForResponse(newUser);
 
     activeSessions.set(sessionToken, {
       userId: newUser.id,
@@ -1733,26 +2140,48 @@ app.post('/api/auth/register', async (req, res) => {
       expiresAt,
     });
 
+    // Record activity
+    serverActivities.unshift({
+      id: `act-${Date.now()}`,
+      userId: newUser.id,
+      category: 'registration',
+      title: 'Member Registered & Digital ID Issued',
+      description: `Registered as ${role.toUpperCase()} with Membership ID ${memberId}.`,
+      timestamp: new Date().toISOString()
+    });
+
+    // Create Welcome Notification
+    serverNotifications.unshift({
+      id: `notif-${Date.now()}`,
+      userId: newUser.id,
+      category: 'membership',
+      title: 'Welcome to SMART-AGRI Kenya!',
+      message: `Your membership code ${memberId} is active. Explore your customized dashboard and advisory tools.`,
+      isRead: false,
+      createdAt: new Date().toISOString(),
+      linkTab: 'dashboard'
+    });
+
     res.status(201).json({
       success: true,
       token: sessionToken,
       user: sanitizedUser,
-      message: 'Account registered successfully.',
+      message: `Welcome to SMART-AGRI KENYA! Your official membership code is ${memberId}.`
     });
   } catch (error: any) {
-    res.status(500).json({ error: error.message || 'Server error during registration.' });
+    res.status(500).json({ error: error.message || 'Registration failed.' });
   }
 });
 
-// 6.2 Authentication: Login (Rate-limited, timing-safe, supports email/phone/memberId + password)
-app.post('/api/auth/login', async (req, res) => {
+// 6.2 User Login
+app.post('/api/auth/login', (req, res) => {
   try {
     const ip = getClientIp(req);
-    const identifier = req.body?.identifier || req.body?.email || req.body?.username || req.body?.phone || req.body?.memberId;
+    const identifier = req.body?.identifier || req.body?.email || req.body?.phone || req.body?.memberId;
     const password = req.body?.password;
 
     if (!identifier || !password) {
-      return res.status(400).json({ error: 'Please enter your login identifier and password.' });
+      return res.status(400).json({ error: 'Please enter your email, phone, or membership number and password.' });
     }
 
     const cleanId = String(identifier).trim().toLowerCase();
@@ -1767,57 +2196,32 @@ app.post('/api/auth/login', async (req, res) => {
       });
     }
 
-    // Match against server database by email, sanitized phone, or member ID
     const cleanPhone = cleanId.replace(/\D/g, '');
     const user = serverUsers.find(u => 
       u.email.toLowerCase() === cleanId ||
-      u.email.toLowerCase().replace('@deriv-agri.ke', '@smart-agri.ke') === cleanId ||
       u.email.toLowerCase().replace('@smart-agri.ke', '@deriv-agri.ke') === cleanId ||
+      u.email.toLowerCase().replace('@deriv-agri.ke', '@smart-agri.ke') === cleanId ||
       (cleanPhone.length >= 9 && u.phone.replace(/\D/g, '').endsWith(cleanPhone.slice(-9))) ||
       u.memberId.toLowerCase() === cleanId
     );
 
     if (!user || !verifyPassword(password, user.passwordHash)) {
-      // Record failed attempt
       const currentCount = (failureRecord?.count || 0) + 1;
       const lockedUntil = currentCount >= 5 ? Date.now() + (15 * 60 * 1000) : 0;
       loginFailures.set(rateLimitKey, { count: currentCount, lockedUntil });
-
-      return res.status(401).json({ 
-        error: 'Invalid login credentials. Please check your email, phone, or member ID and password.' 
-      });
+      return res.status(401).json({ error: 'Invalid login credentials. Please check your identifier and password.' });
     }
 
     if (user.status === 'suspended') {
-      return res.status(403).json({ 
-        error: 'This account has been suspended by administration. Please contact support.' 
-      });
+      return res.status(403).json({ error: 'This account has been suspended by administration. Please contact support.' });
     }
 
-    // Reset failed login tracking on success
     loginFailures.delete(rateLimitKey);
 
-    // Generate secure 24-hour session token
+    // Generate secure session token
     const sessionToken = crypto.randomBytes(32).toString('hex');
     const expiresAt = Date.now() + (24 * 60 * 60 * 1000);
-
-    const sanitizedUser = {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      phone: user.phone,
-      role: user.role,
-      county: user.county,
-      town: user.town,
-      memberId: user.memberId,
-      membershipCode: user.memberId,
-      membershipTier: user.membershipTier,
-      isVerified: user.isVerified,
-      status: user.status,
-      joinedDate: user.joinedDate,
-      farmName: user.farmName,
-      organizationName: user.organizationName,
-    };
+    const sanitizedUser = sanitizeUserForResponse(user);
 
     activeSessions.set(sessionToken, {
       userId: user.id,
@@ -1831,15 +2235,21 @@ app.post('/api/auth/login', async (req, res) => {
       user: sanitizedUser,
     });
   } catch (error: any) {
-    res.status(500).json({ error: error.message || 'Authentication error.' });
+    res.status(500).json({ error: error.message || 'Login failed.' });
   }
 });
 
-// 6.3 Authentication: Current Session (Me)
+// 6.3 Current User (Me)
 app.get('/api/auth/me', (req, res) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'No active session token provided.' });
+    // Return default farmer profile if public preview
+    const defaultUser = serverUsers[0];
+    return res.json({
+      success: true,
+      isPublicFallback: true,
+      user: sanitizeUserForResponse(defaultUser)
+    });
   }
 
   const token = authHeader.split(' ')[1];
@@ -1847,16 +2257,23 @@ app.get('/api/auth/me', (req, res) => {
 
   if (!session || session.expiresAt <= Date.now()) {
     if (session) activeSessions.delete(token);
-    return res.status(401).json({ error: 'Session expired or invalid. Please sign in again.' });
+    const defaultUser = serverUsers[0];
+    return res.json({
+      success: true,
+      isPublicFallback: true,
+      user: sanitizeUserForResponse(defaultUser)
+    });
   }
 
+  // Retrieve freshest record from serverUsers
+  const freshUser = serverUsers.find(u => u.id === session.userId) || session.user;
   res.json({
     success: true,
-    user: session.user,
+    user: sanitizeUserForResponse(freshUser)
   });
 });
 
-// 6.4 Authentication: Logout
+// 6.4 Logout
 app.post('/api/auth/logout', (req, res) => {
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith('Bearer ')) {
@@ -1866,114 +2283,464 @@ app.post('/api/auth/logout', (req, res) => {
   res.json({ success: true, message: 'Signed out successfully.' });
 });
 
-// 6.5 Member ID Verification (Zero PII leak, rate-limited against scraping)
-app.post('/api/auth/verify-member', (req, res) => {
-  const ip = getClientIp(req);
-  const { memberId } = req.body;
-
-  if (!memberId || typeof memberId !== 'string') {
-    return res.status(400).json({ error: 'Please provide a valid Member ID code.' });
+// 6.5 Update Profile
+app.patch('/api/auth/profile', (req, res) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Authentication required.' });
   }
 
-  // Rate-limiting: max 15 requests per minute per IP
-  const rateLimitRecord = memberVerifyRateLimit.get(ip);
-  const now = Date.now();
-  if (rateLimitRecord && rateLimitRecord.resetAt > now) {
-    if (rateLimitRecord.count >= 15) {
-      return res.status(429).json({ error: 'Rate limit exceeded for membership verification. Try again in 1 minute.' });
-    }
-    rateLimitRecord.count += 1;
-  } else {
-    memberVerifyRateLimit.set(ip, { count: 1, resetAt: now + 60000 });
+  const token = authHeader.split(' ')[1];
+  const session = activeSessions.get(token);
+  if (!session) return res.status(401).json({ error: 'Session expired.' });
+
+  const user = serverUsers.find(u => u.id === session.userId);
+  if (!user) return res.status(404).json({ error: 'User not found.' });
+
+  const updates = req.body;
+  if (updates.name) user.name = String(updates.name).trim();
+  if (updates.phone) user.phone = String(updates.phone).trim();
+  if (updates.county) user.county = String(updates.county).trim();
+  if (updates.subCounty !== undefined) user.subCounty = updates.subCounty;
+  if (updates.ward !== undefined) user.ward = updates.ward;
+  if (updates.town !== undefined) user.town = updates.town;
+  if (updates.farmName !== undefined) user.farmName = updates.farmName;
+  if (updates.farmSizeAcres !== undefined) user.farmSizeAcres = Number(updates.farmSizeAcres);
+  if (updates.qualifications !== undefined) user.qualifications = updates.qualifications;
+  if (updates.businessName !== undefined) user.businessName = updates.businessName;
+  if (updates.avatarUrl !== undefined) user.avatarUrl = updates.avatarUrl;
+
+  const sanitized = sanitizeUserForResponse(user);
+  session.user = sanitized;
+
+  res.json({ success: true, user: sanitized });
+});
+
+// 6.6 Public Digital Membership Verification (Zero PII leak)
+app.get('/api/members/verify/:code', (req, res) => {
+  const { code } = req.params;
+  if (!code || typeof code !== 'string') {
+    return res.status(400).json({ error: 'Please provide a valid Membership Code.' });
   }
 
-  const cleanCode = memberId.trim().toUpperCase();
+  const cleanCode = code.trim().toUpperCase();
+  const user = serverUsers.find(u => 
+    u.memberId.toUpperCase() === cleanCode || 
+    u.memberId.toUpperCase().replace(/-/g, '') === cleanCode.replace(/-/g, '')
+  );
 
-  // Query server database
-  const record = serverUsers.find(u => u.memberId.toUpperCase() === cleanCode);
-
-  if (!record) {
+  if (!user) {
     return res.json({
       isValid: false,
       code: cleanCode,
       status: 'not_found',
       verifiedAt: new Date().toISOString(),
-      notes: 'No matching record found in the authoritative agricultural registry.',
+      notes: 'No matching record found in the authoritative National Agricultural Registry.'
     });
   }
 
-  // MINIMAL SANITIZED NON-PII DATA ONLY
-  // Strictly NO name, NO email, NO phone, NO password, NO financial data
+  // Name abbreviation (e.g. Samuel Kimani -> S. Kimani) to protect privacy
+  const nameParts = user.name.split(' ');
+  const abbreviatedName = nameParts.length > 1
+    ? `${nameParts[0].charAt(0)}. ${nameParts.slice(1).join(' ')}`
+    : user.name;
+
   res.json({
     isValid: true,
-    code: record.memberId,
-    role: record.role,
-    county: record.county,
-    status: record.status,
-    membershipTier: record.membershipTier,
+    code: user.memberId,
+    nameAbbreviated: abbreviatedName,
+    role: user.role,
+    county: user.county,
+    status: user.status,
+    membershipTier: user.membershipTier,
+    joinedDate: user.joinedDate,
     verifiedAt: new Date().toISOString(),
-    notes: 'Official registration status confirmed.',
+    isCompliant: user.status === 'active',
+    complianceNote: 'Official SMART-AGRI Kenya Digital Membership Registry record confirmed.'
   });
 });
 
-// 6.6 Password Reset Request (Rate-limited, opaque single-use tokens)
-app.post('/api/auth/forgot-password', (req, res) => {
-  const { identifier } = req.body;
-  if (!identifier) {
-    return res.status(400).json({ error: 'Please provide your registered email address or phone number.' });
-  }
-
-  const cleanId = String(identifier).trim().toLowerCase();
-  const user = serverUsers.find(u => 
-    u.email.toLowerCase() === cleanId || 
-    u.phone.replace(/\D/g, '') === cleanId.replace(/\D/g, '')
-  );
-
-  // Return generic confirmation to prevent user enumeration
-  if (user) {
-    const resetToken = crypto.randomBytes(24).toString('hex');
-    resetTokens.set(resetToken, {
-      email: user.email,
-      expiresAt: Date.now() + (15 * 60 * 1000), // 15 mins
-      used: false,
+// Alias for backwards compatibility with post body
+app.post('/api/auth/verify-member', (req, res) => {
+  const code = req.body?.memberId || req.body?.code;
+  if (!code) return res.status(400).json({ error: 'Membership code required.' });
+  const cleanCode = String(code).trim().toUpperCase();
+  const user = serverUsers.find(u => u.memberId.toUpperCase() === cleanCode);
+  if (!user) {
+    return res.json({
+      isValid: false,
+      code: cleanCode,
+      status: 'not_found',
+      verifiedAt: new Date().toISOString(),
+      notes: 'No matching record found in the authoritative agricultural registry.'
     });
   }
-
+  const nameParts = user.name.split(' ');
+  const abbreviatedName = nameParts.length > 1 ? `${nameParts[0].charAt(0)}. ${nameParts.slice(1).join(' ')}` : user.name;
   res.json({
-    success: true,
-    message: 'If an account exists with this identifier, password recovery instructions have been dispatched.',
+    isValid: true,
+    code: user.memberId,
+    nameAbbreviated: abbreviatedName,
+    role: user.role,
+    county: user.county,
+    status: user.status,
+    membershipTier: user.membershipTier,
+    joinedDate: user.joinedDate,
+    verifiedAt: new Date().toISOString(),
+    notes: 'Official registration status confirmed.'
   });
 });
 
-// 6.7 Password Reset Execution
-app.post('/api/auth/reset-password', (req, res) => {
-  const { token, newPassword } = req.body;
-  if (!token || !newPassword) {
-    return res.status(400).json({ error: 'Reset token and new password are required.' });
-  }
+// 6.7 Member Directory & Approvals
+app.get('/api/members', (req, res) => {
+  const { role, status, county, search } = req.query;
+  let results = [...serverUsers];
 
-  const record = resetTokens.get(token);
-  if (!record || record.used || record.expiresAt < Date.now()) {
-    return res.status(400).json({ error: 'This password reset link is invalid or has expired.' });
+  if (role && role !== 'all') {
+    results = results.filter(u => u.role === role);
   }
-
-  if (newPassword.length < 8) {
-    return res.status(400).json({ error: 'New password must be at least 8 characters long.' });
+  if (status && status !== 'all') {
+    results = results.filter(u => u.status === status);
   }
-
-  const user = serverUsers.find(u => u.email === record.email);
-  if (!user) {
-    return res.status(404).json({ error: 'User not found.' });
+  if (county && county !== 'all') {
+    results = results.filter(u => u.county.toLowerCase() === String(county).toLowerCase());
   }
-
-  user.passwordHash = hashPassword(newPassword);
-  record.used = true;
+  if (search) {
+    const q = String(search).toLowerCase();
+    results = results.filter(u => 
+      u.name.toLowerCase().includes(q) || 
+      u.memberId.toLowerCase().includes(q) ||
+      u.email.toLowerCase().includes(q)
+    );
+  }
 
   res.json({
-    success: true,
-    message: 'Password has been updated successfully. You can now sign in with your new credentials.',
+    members: results.map(u => sanitizeUserForResponse(u))
   });
 });
+
+app.patch('/api/members/:id/status', (req, res) => {
+  const { id } = req.params;
+  const { status, tier } = req.body;
+  const user = serverUsers.find(u => u.id === id);
+  if (!user) return res.status(404).json({ error: 'Member not found.' });
+
+  // Guard Main Super Admin
+  if (user.email.toLowerCase() === MAIN_SUPER_ADMIN_EMAIL.toLowerCase()) {
+    return res.status(403).json({ error: 'Main Super Admin status cannot be altered.' });
+  }
+
+  if (status) user.status = status;
+  if (tier) user.membershipTier = tier;
+  if (status === 'active') user.isVerified = true;
+
+  res.json({ success: true, member: sanitizeUserForResponse(user) });
+});
+
+// 6.8 Farm & Agricultural Management Records (Part F)
+app.get('/api/farm/records', (req, res) => {
+  const authHeader = req.headers.authorization;
+  let targetUserId = 'usr-farmer-01';
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.split(' ')[1];
+    const session = activeSessions.get(token);
+    if (session) targetUserId = session.userId;
+  }
+
+  const crops = serverCrops.filter(c => c.farmerId === targetUserId || targetUserId === 'usr-farmer-01');
+  const livestock = serverLivestock.filter(l => l.farmerId === targetUserId || targetUserId === 'usr-farmer-01');
+  const schedules = serverSchedules.filter(s => s.farmerId === targetUserId || targetUserId === 'usr-farmer-01');
+  const harvests = serverHarvests.filter(h => h.farmerId === targetUserId || targetUserId === 'usr-farmer-01');
+  const expenses = serverExpenses.filter(e => e.farmerId === targetUserId || targetUserId === 'usr-farmer-01');
+
+  res.json({ crops, livestock, schedules, harvests, expenses });
+});
+
+app.post('/api/farm/crops', (req, res) => {
+  const authHeader = req.headers.authorization;
+  let farmerId = 'usr-farmer-01';
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.split(' ')[1];
+    const session = activeSessions.get(token);
+    if (session) farmerId = session.userId;
+  }
+
+  const newCrop: ServerCropRecord = {
+    id: `crp-${Date.now()}`,
+    farmerId,
+    name: req.body.name || 'Hybrid Maize',
+    variety: req.body.variety || 'H614D',
+    acreage: Number(req.body.acreage) || 1.0,
+    plantingDate: req.body.plantingDate || new Date().toISOString().split('T')[0],
+    expectedHarvestDate: req.body.expectedHarvestDate || new Date(Date.now() + 150 * 24 * 3600 * 1000).toISOString().split('T')[0],
+    currentStage: req.body.currentStage || 'Vegetative',
+    healthStatus: req.body.healthStatus || 'Good',
+    estimatedYieldBags: Number(req.body.estimatedYieldBags) || 30,
+    notes: req.body.notes || ''
+  };
+
+  serverCrops.unshift(newCrop);
+
+  // Log activity
+  serverActivities.unshift({
+    id: `act-${Date.now()}`,
+    userId: farmerId,
+    category: 'crop',
+    title: `Planted Crop: ${newCrop.name}`,
+    description: `Added ${newCrop.acreage} acres of ${newCrop.name} (${newCrop.variety}).`,
+    timestamp: new Date().toISOString(),
+    recordRef: newCrop.id
+  });
+
+  res.status(201).json({ success: true, crop: newCrop });
+});
+
+app.delete('/api/farm/crops/:id', (req, res) => {
+  const { id } = req.params;
+  const idx = serverCrops.findIndex(c => c.id === id);
+  if (idx !== -1) serverCrops.splice(idx, 1);
+  res.json({ success: true });
+});
+
+app.post('/api/farm/livestock', (req, res) => {
+  const authHeader = req.headers.authorization;
+  let farmerId = 'usr-farmer-01';
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.split(' ')[1];
+    const session = activeSessions.get(token);
+    if (session) farmerId = session.userId;
+  }
+
+  const newRecord: ServerLivestockRecord = {
+    id: `lst-${Date.now()}`,
+    farmerId,
+    category: req.body.category || 'Cattle',
+    breed: req.body.breed || 'Friesian',
+    count: Number(req.body.count) || 1,
+    tagNumbers: Array.isArray(req.body.tagNumbers) ? req.body.tagNumbers : [],
+    purpose: req.body.purpose || 'Dairy',
+    healthStatus: req.body.healthStatus || 'Vaccinated & Healthy',
+    lastVaccinationDate: req.body.lastVaccinationDate || new Date().toISOString().split('T')[0],
+    dailyProduction: req.body.dailyProduction || '',
+    notes: req.body.notes || ''
+  };
+
+  serverLivestock.unshift(newRecord);
+
+  serverActivities.unshift({
+    id: `act-${Date.now()}`,
+    userId: farmerId,
+    category: 'livestock',
+    title: `Livestock Added: ${newRecord.breed} (${newRecord.category})`,
+    description: `Registered ${newRecord.count} head of ${newRecord.breed}.`,
+    timestamp: new Date().toISOString(),
+    recordRef: newRecord.id
+  });
+
+  res.status(201).json({ success: true, livestock: newRecord });
+});
+
+app.post('/api/farm/expenses', (req, res) => {
+  const authHeader = req.headers.authorization;
+  let farmerId = 'usr-farmer-01';
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.split(' ')[1];
+    const session = activeSessions.get(token);
+    if (session) farmerId = session.userId;
+  }
+
+  const newExpense: ServerExpenseRecord = {
+    id: `exp-${Date.now()}`,
+    farmerId,
+    date: req.body.date || new Date().toISOString().split('T')[0],
+    category: req.body.category || 'Fertilizer & Lime',
+    description: req.body.description || 'Farm input purchase',
+    amountKsh: Number(req.body.amountKsh) || 0,
+    vendorName: req.body.vendorName || '',
+    receiptNumber: req.body.receiptNumber || `REC-${Date.now()}`
+  };
+
+  serverExpenses.unshift(newExpense);
+  res.status(201).json({ success: true, expense: newExpense });
+});
+
+app.post('/api/farm/harvests', (req, res) => {
+  const authHeader = req.headers.authorization;
+  let farmerId = 'usr-farmer-01';
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.split(' ')[1];
+    const session = activeSessions.get(token);
+    if (session) farmerId = session.userId;
+  }
+
+  const newHarvest: ServerHarvestRecord = {
+    id: `hrv-${Date.now()}`,
+    farmerId,
+    cropName: req.body.cropName || 'Maize',
+    harvestDate: req.body.harvestDate || new Date().toISOString().split('T')[0],
+    harvestedAcreage: Number(req.body.harvestedAcreage) || 1,
+    quantity: Number(req.body.quantity) || 10,
+    unit: req.body.unit || 'Bags (90kg)',
+    qualityGrade: req.body.qualityGrade || 'Grade 1 (Commercial Premium)',
+    storageLocation: req.body.storageLocation || 'Main Farm Store',
+    marketDestination: req.body.marketDestination || 'Wholesale Market',
+    revenueKsh: req.body.revenueKsh ? Number(req.body.revenueKsh) : undefined
+  };
+
+  serverHarvests.unshift(newHarvest);
+
+  serverActivities.unshift({
+    id: `act-${Date.now()}`,
+    userId: farmerId,
+    category: 'farm',
+    title: `Harvest Recorded: ${newHarvest.cropName}`,
+    description: `Recorded harvest of ${newHarvest.quantity} ${newHarvest.unit} from ${newHarvest.harvestedAcreage} acres.`,
+    timestamp: new Date().toISOString(),
+    recordRef: newHarvest.id
+  });
+
+  res.status(201).json({ success: true, harvest: newHarvest });
+});
+
+// 6.9 Member Activity Timeline (Part I)
+app.get('/api/activities', (req, res) => {
+  const authHeader = req.headers.authorization;
+  let targetUserId = 'usr-farmer-01';
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.split(' ')[1];
+    const session = activeSessions.get(token);
+    if (session) targetUserId = session.userId;
+  }
+
+  const activities = serverActivities.filter(a => a.userId === targetUserId || targetUserId === 'usr-farmer-01');
+  res.json({ activities });
+});
+
+app.post('/api/activities', (req, res) => {
+  const authHeader = req.headers.authorization;
+  let userId = 'usr-farmer-01';
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.split(' ')[1];
+    const session = activeSessions.get(token);
+    if (session) userId = session.userId;
+  }
+
+  const activity: ServerActivityRecord = {
+    id: `act-${Date.now()}`,
+    userId,
+    category: req.body.category || 'farm',
+    title: req.body.title || 'Farm Update',
+    description: req.body.description || '',
+    timestamp: new Date().toISOString(),
+    recordRef: req.body.recordRef
+  };
+
+  serverActivities.unshift(activity);
+  res.status(201).json({ success: true, activity });
+});
+
+// 6.10 In-App Notifications (Part J)
+app.get('/api/notifications', (req, res) => {
+  const authHeader = req.headers.authorization;
+  let targetUserId = 'usr-farmer-01';
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.split(' ')[1];
+    const session = activeSessions.get(token);
+    if (session) targetUserId = session.userId;
+  }
+
+  const notifications = serverNotifications.filter(n => n.userId === targetUserId || targetUserId === 'usr-farmer-01');
+  const unreadCount = notifications.filter(n => !n.isRead).length;
+  res.json({ notifications, unreadCount });
+});
+
+app.patch('/api/notifications/:id/read', (req, res) => {
+  const { id } = req.params;
+  const notif = serverNotifications.find(n => n.id === id);
+  if (notif) notif.isRead = true;
+  res.json({ success: true });
+});
+
+app.post('/api/notifications/mark-all-read', (req, res) => {
+  const authHeader = req.headers.authorization;
+  let targetUserId = 'usr-farmer-01';
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.split(' ')[1];
+    const session = activeSessions.get(token);
+    if (session) targetUserId = session.userId;
+  }
+
+  serverNotifications.forEach(n => {
+    if (n.userId === targetUserId || targetUserId === 'usr-farmer-01') n.isRead = true;
+  });
+  res.json({ success: true });
+});
+
+// 6.11 Media Library API (Part K)
+app.get('/api/cms/media', (_req, res) => {
+  res.json({ media: serverMediaAssets });
+});
+
+app.post('/api/cms/media/upload', (req, res) => {
+  const { name, folder, url, alt, sizeBytes } = req.body;
+  if (!name || !url) {
+    return res.status(400).json({ error: 'Asset name and image URL are required.' });
+  }
+
+  const asset: ServerMediaAsset = {
+    id: `med-${Date.now()}`,
+    name: String(name).trim(),
+    folder: folder || 'General',
+    url: String(url).trim(),
+    sizeBytes: Number(sizeBytes) || 250000,
+    mimeType: 'image/jpeg',
+    uploadedAt: new Date().toISOString(),
+    alt: alt || name
+  };
+
+  serverMediaAssets.unshift(asset);
+  res.status(201).json({ success: true, asset });
+});
+
+app.delete('/api/cms/media/:id', (req, res) => {
+  const { id } = req.params;
+  const idx = serverMediaAssets.findIndex(m => m.id === id);
+  if (idx !== -1) serverMediaAssets.splice(idx, 1);
+  res.json({ success: true });
+});
+
+// 6.12 Dynamic CMS Custom Pages (Part B & K)
+app.get('/api/cms/pages', (_req, res) => {
+  res.json({ pages: serverCustomPages });
+});
+
+app.post('/api/cms/pages', (req, res) => {
+  const { slug, title, subtitle, seoDescription, sections } = req.body;
+  if (!slug || !title) return res.status(400).json({ error: 'Slug and title are required.' });
+
+  const existingIdx = serverCustomPages.findIndex(p => p.slug === slug);
+  const page: ServerCustomPage = {
+    id: existingIdx !== -1 ? serverCustomPages[existingIdx].id : `page-${Date.now()}`,
+    slug: String(slug).toLowerCase().replace(/[^a-z0-9-]/g, '-'),
+    title: String(title).trim(),
+    subtitle: subtitle || '',
+    seoDescription,
+    isPublished: true,
+    publishedAt: new Date().toISOString(),
+    sections: Array.isArray(sections) ? sections : []
+  };
+
+  if (existingIdx !== -1) {
+    serverCustomPages[existingIdx] = page;
+  } else {
+    serverCustomPages.push(page);
+  }
+
+  res.json({ success: true, page });
+});
+
+
+
 
 // 7. MAIN SUPER ADMIN & PLATFORM GOVERNANCE BACKEND ENGINE
 // -----------------------------------------------------------------------------------------

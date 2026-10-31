@@ -23,6 +23,10 @@ import { VeterinarianDashboardPage } from './VeterinarianDashboardPage';
 import { TransporterDashboardPage } from './TransporterDashboardPage';
 import { LabPartnerDashboardPage } from './LabPartnerDashboardPage';
 import { AdminPortalPage } from './AdminPortalPage';
+import { StudentDashboardPage } from './StudentDashboardPage';
+import { CooperativeDashboardPage } from './CooperativeDashboardPage';
+import { ExtensionDashboardPage } from './ExtensionDashboardPage';
+import { DigitalMembershipCard } from '../components/membership/DigitalMembershipCard';
 
 interface RoleDashboardRouterProps {
   onLogout?: () => void;
@@ -39,12 +43,6 @@ export const RoleDashboardRouter: React.FC<RoleDashboardRouterProps> = ({ onLogo
     return agriStore.subscribe(update);
   }, []);
 
-  const handleSignOut = () => {
-    agriStore.logout();
-    if (onLogout) onLogout();
-    else if (onSelectTab) onSelectTab('auth');
-  };
-
   const roleLabels: Record<string, { label: string; icon: string; color: string }> = {
     farmer: { label: 'Farmer Dashboard', icon: '🧑‍🌾', color: 'bg-[#EBF3ED] text-[#214E34] border-[#CFD7CA]' },
     buyer: { label: 'Commercial Buyer Portal', icon: '🛒', color: 'bg-[#EBF3ED] text-[#214E34] border-[#CFD7CA]' },
@@ -54,6 +52,9 @@ export const RoleDashboardRouter: React.FC<RoleDashboardRouterProps> = ({ onLogo
     veterinarian: { label: 'Veterinary Surgeon Clinic', icon: '🩺', color: 'bg-[#EBF3ED] text-[#214E34] border-[#CFD7CA]' },
     transporter: { label: 'Logistics & Fleet Dispatch', icon: '🚚', color: 'bg-[#FCF8EE] text-[#79543A] border-[#E2E7DE]' },
     lab: { label: 'Soil Health Laboratory', icon: '🧪', color: 'bg-[#EBF3ED] text-[#214E34] border-[#CFD7CA]' },
+    student: { label: 'Academic & Researcher Portal', icon: '🎓', color: 'bg-indigo-50 text-indigo-900 border-indigo-200' },
+    cooperative: { label: 'Cooperative Union Hub', icon: '🏛️', color: 'bg-amber-50 text-amber-900 border-amber-200' },
+    extension: { label: 'Extension Field Officer Portal', icon: '📋', color: 'bg-teal-50 text-teal-900 border-teal-200' },
     admin: { label: 'Central Admin Control Center', icon: '🛡️', color: 'bg-[#FCF8EE] text-[#79543A] border-[#D6A545]/40' },
   };
 
@@ -109,11 +110,10 @@ export const RoleDashboardRouter: React.FC<RoleDashboardRouterProps> = ({ onLogo
 
 
             <button
-              onClick={handleSignOut}
+              onClick={() => onSelectTab ? onSelectTab('home') : null}
               className="bg-[#FCF8EE] hover:bg-[#F3E7C9] text-[#79543A] px-3 py-1.5 rounded-lg font-bold border border-[#E2E7DE] flex items-center gap-1 transition cursor-pointer"
             >
-              <LogOut className="w-3.5 h-3.5" />
-              <span>Sign Out</span>
+              <span>Back to Home</span>
             </button>
           </div>
         </div>
@@ -129,16 +129,19 @@ export const RoleDashboardRouter: React.FC<RoleDashboardRouterProps> = ({ onLogo
       {currentUser.role === 'veterinarian' && <VeterinarianDashboardPage />}
       {currentUser.role === 'transporter' && <TransporterDashboardPage />}
       {currentUser.role === 'lab' && <LabPartnerDashboardPage />}
+      {(currentUser.role === 'student' || (currentUser.role as any) === 'researcher') && <StudentDashboardPage user={currentUser} />}
+      {currentUser.role === 'cooperative' && <CooperativeDashboardPage user={currentUser} />}
+      {currentUser.role === 'extension' && <ExtensionDashboardPage user={currentUser} />}
       {currentUser.role === 'admin' && <AdminPortalPage />}
 
       {/* Digital Member ID Card Modal */}
       {showMemberCardModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full border border-[#E2E7DE] shadow-2xl space-y-4 text-xs">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-4 animate-in fade-in overflow-y-auto">
+          <div className="bg-white rounded-2xl p-6 max-w-lg w-full border border-[#E2E7DE] shadow-2xl space-y-4 my-8">
             <div className="flex items-center justify-between pb-3 border-b border-[#E2E7DE]">
               <div className="flex items-center gap-2">
                 <Award className="w-5 h-5 text-[#367C46]" />
-                <h3 className="text-base font-black text-[#214E34]">Digital Member Card</h3>
+                <h3 className="text-base font-black text-[#214E34]">Official Digital Membership Card</h3>
               </div>
               <button 
                 onClick={() => setShowMemberCardModal(false)} 
@@ -148,84 +151,15 @@ export const RoleDashboardRouter: React.FC<RoleDashboardRouterProps> = ({ onLogo
               </button>
             </div>
 
-            {/* Official Card Graphic */}
-            <div className="p-5 bg-gradient-to-br from-[#214E34] via-[#183926] to-[#0D2418] rounded-2xl text-white shadow-xl border border-[#367C46] space-y-4 relative overflow-hidden">
-              <div className="absolute right-0 top-0 translate-x-4 -translate-y-4 w-32 h-32 rounded-full bg-[#D6A545]/15 pointer-events-none blur-lg" />
+            <DigitalMembershipCard user={currentUser} showQrCode={true} />
 
-              <div className="flex items-center justify-between pb-2 border-b border-white/10">
-                <div className="flex items-center gap-2">
-                  <div className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center font-black text-sm text-[#D6A545]">
-                    SAK
-                  </div>
-                  <div>
-                    <h4 className="font-extrabold text-xs tracking-wider uppercase text-white">SMART-AGRI KENYA</h4>
-                    <span className="text-[9px] text-[#D6A545] font-semibold">National Agricultural Registry</span>
-                  </div>
-                </div>
-                <span className="bg-[#367C46] text-white text-[10px] font-black px-2.5 py-0.5 rounded-full border border-white/20">
-                  {currentUser.membershipTier || 'Verified'} Member
-                </span>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <div className="w-14 h-14 rounded-xl bg-white/15 overflow-hidden shrink-0 border border-white/20 flex items-center justify-center">
-                  {currentUser.avatarUrl ? (
-                    <img src={currentUser.avatarUrl} alt={currentUser.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <span className="text-xl font-black text-white">{currentUser.name.charAt(0)}</span>
-                  )}
-                </div>
-                <div>
-                  <h4 className="text-base font-extrabold text-white leading-tight">{currentUser.name}</h4>
-                  <div className="text-[11px] text-[#D6A545] font-semibold capitalize mt-0.5">
-                    {currentUser.role} · {currentUser.county} County
-                  </div>
-                  {currentUser.farmName && (
-                    <div className="text-[10px] text-white/70">{currentUser.farmName}</div>
-                  )}
-                  {currentUser.organizationName && (
-                    <div className="text-[10px] text-white/70">{currentUser.organizationName}</div>
-                  )}
-                </div>
-              </div>
-
-              <div className="p-3 bg-black/40 rounded-xl border border-white/10 flex items-center justify-between">
-                <div>
-                  <span className="text-[9px] text-[#D6A545] block font-mono font-bold uppercase tracking-wider">Permanent Membership Code</span>
-                  <span className="font-mono text-sm sm:text-base font-black text-white tracking-wider">
-                    {currentUser.membershipCode || 'SAK-NKR-2024-F4829'}
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const code = currentUser.membershipCode || 'SAK-NKR-2024-F4829';
-                    if (typeof navigator !== 'undefined' && navigator.clipboard) {
-                      navigator.clipboard.writeText(code);
-                      setCopiedCode(true);
-                      setTimeout(() => setCopiedCode(false), 2000);
-                    }
-                  }}
-                  className="bg-white/15 hover:bg-white/25 text-white px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition cursor-pointer"
-                >
-                  {copiedCode ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                  <span>{copiedCode ? 'Copied' : 'Copy'}</span>
-                </button>
-              </div>
-
-              <div className="flex items-center justify-between text-[9px] text-white/60 pt-1">
-                <span>Valid: 2026 Growing Season</span>
-                <span>Ministry of Agriculture ID: #2026-SAK</span>
-              </div>
-            </div>
-
-            <div className="flex justify-end pt-1">
+            <div className="flex justify-end pt-2">
               <button
                 type="button"
                 onClick={() => setShowMemberCardModal(false)}
                 className="w-full py-2.5 bg-[#214E34] hover:bg-[#183C27] text-white font-bold rounded-lg cursor-pointer transition text-xs"
               >
-                Close Member Card
+                Done
               </button>
             </div>
           </div>

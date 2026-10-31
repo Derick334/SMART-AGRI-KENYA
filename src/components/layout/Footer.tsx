@@ -152,29 +152,39 @@ export const Footer: React.FC<FooterProps> = ({ onSelectTab }) => {
             </h4>
             <ul className="space-y-2 text-[#CFD7CA]">
               <li>
+                <button onClick={() => onSelectTab('membership')} className="hover:text-white transition cursor-pointer text-[#D6A545] font-semibold">
+                  Digital Membership & ID
+                </button>
+              </li>
+              <li>
+                <button onClick={() => onSelectTab('verify')} className="hover:text-white transition cursor-pointer">
+                  Public Member Verification
+                </button>
+              </li>
+              <li>
+                <button onClick={() => onSelectTab('services')} className="hover:text-white transition cursor-pointer">
+                  Comprehensive Services
+                </button>
+              </li>
+              <li>
+                <button onClick={() => onSelectTab('news')} className="hover:text-white transition cursor-pointer">
+                  News & Training Calendar
+                </button>
+              </li>
+              <li>
+                <button onClick={() => onSelectTab('faq')} className="hover:text-white transition cursor-pointer">
+                  Frequently Asked Questions
+                </button>
+              </li>
+              <li>
                 <button onClick={() => onSelectTab('about')} className="hover:text-white transition cursor-pointer">
                   About SMART-AGRI KENYA
                 </button>
               </li>
               <li>
-                <button onClick={() => onSelectTab('contact')} className="hover:text-white transition cursor-pointer">
-                  Contact & County Depots
-                </button>
-              </li>
-              <li>
-                <button onClick={() => onSelectTab('auth')} className="hover:text-white transition cursor-pointer">
-                  Register as Farmer / Buyer
-                </button>
-              </li>
-              <li>
-                <button onClick={() => onSelectTab('admin')} className="hover:text-white transition cursor-pointer text-[#D6A545]">
+                <button onClick={() => onSelectTab('admin')} className="hover:text-white transition cursor-pointer text-emerald-300">
                   Administrator Portal
                 </button>
-              </li>
-              <li>
-                <span className="text-[#8FA395] text-[11px] block pt-2">
-                  Compliant with Kenya Data Protection Act 2019
-                </span>
               </li>
             </ul>
           </div>

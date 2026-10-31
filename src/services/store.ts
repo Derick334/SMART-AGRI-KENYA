@@ -19,7 +19,16 @@ import {
   IrrigationScheduleReport,
   PestDiagnosisReport,
   AiTelemetryMetric,
-  AiFeedbackReport
+  AiFeedbackReport,
+  CropRecord,
+  LivestockRecord,
+  PlantingScheduleRecord,
+  HarvestRecord,
+  FarmExpenseRecord,
+  FarmProductionRecord,
+  MemberActivityLog,
+  InAppNotification,
+  MediaAsset
 } from '../types';
 import { SAMPLE_PRODUCTS } from '../data/sampleProducts';
 import { SAMPLE_LIVESTOCK } from '../data/sampleLivestock';
@@ -47,6 +56,13 @@ const LOCAL_STORAGE_KEY_IRRIGATION = 'deriv_agri_irrigation_v1';
 const LOCAL_STORAGE_KEY_PEST_DIAGNOSES = 'deriv_agri_pest_diagnoses_v1';
 const LOCAL_STORAGE_KEY_AI_TELEMETRY = 'deriv_agri_ai_telemetry_v1';
 const LOCAL_STORAGE_KEY_AI_FEEDBACK = 'deriv_agri_ai_feedback_v1';
+const LOCAL_STORAGE_KEY_CROPS = 'smart_agri_crops_v1';
+const LOCAL_STORAGE_KEY_LIVESTOCK = 'smart_agri_livestock_v1';
+const LOCAL_STORAGE_KEY_SCHEDULES = 'smart_agri_schedules_v1';
+const LOCAL_STORAGE_KEY_HARVESTS = 'smart_agri_harvests_v1';
+const LOCAL_STORAGE_KEY_EXPENSES = 'smart_agri_expenses_v1';
+const LOCAL_STORAGE_KEY_ACTIVITIES = 'smart_agri_activities_v1';
+const LOCAL_STORAGE_KEY_NOTIFS = 'smart_agri_notifs_v1';
 
 export function getCountyAbbr(countyName: string): string {
   const map: Record<string, string> = {
@@ -67,21 +83,25 @@ export function getCountyAbbr(countyName: string): string {
 }
 
 export function generateMembershipCode(county: string, role: UserRole): string {
-  const cCode = getCountyAbbr(county);
   const roleCodeMap: Record<string, string> = {
     farmer: 'F',
-    buyer: 'B',
-    seller: 'S',
-    consultant: 'C',
-    expert: 'C',
+    expert: 'E',
+    agribusiness: 'B',
+    student: 'S',
+    cooperative: 'C',
+    extension: 'X',
+    buyer: 'U',
+    seller: 'M',
+    consultant: 'E',
     veterinarian: 'V',
     transporter: 'T',
     lab: 'L',
     admin: 'A'
   };
   const rCode = roleCodeMap[role] || 'F';
-  const randNum = Math.floor(1000 + Math.random() * 9000);
-  return `SAK-${cCode}-2026-${rCode}${randNum}`;
+  const year = new Date().getFullYear();
+  const randNum = Math.floor(10000 + Math.random() * 90000);
+  return `SA-${year}-${rCode}${randNum}`;
 }
 
 // 8 Complete Demo Personas for Kenyan Agriculture Platform
@@ -900,6 +920,13 @@ class AgriStore {
   private pestDiagnoses: PestDiagnosisReport[];
   private aiTelemetryMetrics: AiTelemetryMetric[];
   private aiFeedbackReports: AiFeedbackReport[];
+  private crops: CropRecord[];
+  private livestock: LivestockRecord[];
+  private schedules: PlantingScheduleRecord[];
+  private harvests: HarvestRecord[];
+  private expenses: FarmExpenseRecord[];
+  private activities: MemberActivityLog[];
+  private notifications: InAppNotification[];
   private listeners: Set<() => void> = new Set();
 
   constructor() {
@@ -957,6 +984,160 @@ class AgriStore {
     this.pestDiagnoses = getLocal<PestDiagnosisReport[]>(LOCAL_STORAGE_KEY_PEST_DIAGNOSES, INITIAL_PEST_DIAGNOSES);
     this.aiTelemetryMetrics = getLocal<AiTelemetryMetric[]>(LOCAL_STORAGE_KEY_AI_TELEMETRY, INITIAL_AI_TELEMETRY);
     this.aiFeedbackReports = getLocal<AiFeedbackReport[]>(LOCAL_STORAGE_KEY_AI_FEEDBACK, INITIAL_AI_FEEDBACK);
+
+    this.crops = getLocal<CropRecord[]>(LOCAL_STORAGE_KEY_CROPS, [
+      {
+        id: 'crp-01',
+        farmerId: 'usr-farmer-01',
+        name: 'Hybrid Maize',
+        variety: 'H614D (Kenya Seed Certified)',
+        acreage: 6.5,
+        plantingDate: '2026-03-15',
+        expectedHarvestDate: '2026-09-20',
+        currentStage: 'Vegetative',
+        healthStatus: 'Excellent',
+        estimatedYieldBags: 195,
+        notes: 'Basal Mavuno planting fertilizer applied with agricultural lime (1.2 T/acre).'
+      },
+      {
+        id: 'crp-02',
+        farmerId: 'usr-farmer-01',
+        name: 'French Beans',
+        variety: 'Serengeti (Kephis Approved)',
+        acreage: 2.0,
+        plantingDate: '2026-04-02',
+        expectedHarvestDate: '2026-05-28',
+        currentStage: 'Flowering',
+        healthStatus: 'Good',
+        estimatedYieldBags: 45,
+        notes: 'Drip irrigated from farm reservoir. GlobalGAP traceability compliance.'
+      }
+    ]);
+
+    this.livestock = getLocal<LivestockRecord[]>(LOCAL_STORAGE_KEY_LIVESTOCK, [
+      {
+        id: 'lst-01',
+        farmerId: 'usr-farmer-01',
+        category: 'Cattle',
+        breed: 'Pedigree Holstein-Friesian',
+        count: 8,
+        tagNumbers: ['KE-NKR-0841', 'KE-NKR-0842', 'KE-NKR-0843'],
+        purpose: 'Dairy',
+        healthStatus: 'Vaccinated & Healthy',
+        lastVaccinationDate: '2026-02-10',
+        dailyProduction: '175 Litres/day',
+        notes: 'Ensilaged Napier & desmodium fodder feeding regime.'
+      },
+      {
+        id: 'lst-02',
+        farmerId: 'usr-farmer-01',
+        category: 'Poultry',
+        breed: 'KARI Improved Kienyeji',
+        count: 250,
+        purpose: 'Egg Production',
+        healthStatus: 'Vaccinated & Healthy',
+        lastVaccinationDate: '2026-03-01',
+        dailyProduction: '190 Eggs/day',
+        notes: 'Deep litter system with automated nipple drinkers.'
+      }
+    ]);
+
+    this.schedules = getLocal<PlantingScheduleRecord[]>(LOCAL_STORAGE_KEY_SCHEDULES, [
+      {
+        id: 'sch-01',
+        farmerId: 'usr-farmer-01',
+        seasonName: '2026 Long Rains Season',
+        cropName: 'Maize H614D',
+        targetAcreage: 6.5,
+        landPrepDate: '2026-02-20',
+        plantingWindow: '2026-03-10 to 2026-03-25',
+        basalFertilizer: 'NPK 23:23:0 (50 kg/acre)',
+        topDressingWindow: '2026-04-20 (CAN 75kg/acre at knee-high)',
+        projectedHarvest: '2026-09-25',
+        status: 'In Progress'
+      }
+    ]);
+
+    this.harvests = getLocal<HarvestRecord[]>(LOCAL_STORAGE_KEY_HARVESTS, [
+      {
+        id: 'hrv-01',
+        farmerId: 'usr-farmer-01',
+        cropName: 'Irish Potatoes (Shangi)',
+        harvestDate: '2026-01-20',
+        harvestedAcreage: 3.0,
+        quantity: 240,
+        unit: 'Bags (50kg)',
+        qualityGrade: 'Grade 1 (Export/Premium)',
+        storageLocation: 'Njoro Farm Store 2',
+        marketDestination: 'Wholesale Market',
+        revenueKsh: 480000
+      }
+    ]);
+
+    this.expenses = getLocal<FarmExpenseRecord[]>(LOCAL_STORAGE_KEY_EXPENSES, [
+      {
+        id: 'exp-01',
+        farmerId: 'usr-farmer-01',
+        date: '2026-03-10',
+        category: 'Certified Seeds',
+        description: '4x 25kg bags of H614D Kenya Seed Maize',
+        amountKsh: 24800,
+        vendorName: 'Njoro Farmers Agrovet Ltd',
+        receiptNumber: 'NFA-2026-0812'
+      },
+      {
+        id: 'exp-02',
+        farmerId: 'usr-farmer-01',
+        date: '2026-03-12',
+        category: 'Fertilizer & Lime',
+        description: 'Agricultural Lime (CaCO3) 80 bags + transport',
+        amountKsh: 36000,
+        vendorName: 'Athi River Mining Agrochem',
+        receiptNumber: 'ARM-7721'
+      }
+    ]);
+
+    this.activities = getLocal<MemberActivityLog[]>(LOCAL_STORAGE_KEY_ACTIVITIES, [
+      {
+        id: 'act-01',
+        userId: 'usr-farmer-01',
+        category: 'membership',
+        title: 'Digital Membership Issued',
+        description: 'Official SMART-AGRI Kenya Digital Membership Card active (SA-2026-F4829).',
+        timestamp: '2026-03-12T09:15:00.000Z'
+      },
+      {
+        id: 'act-02',
+        userId: 'usr-farmer-01',
+        category: 'crop',
+        title: 'Planted Crop: Hybrid Maize',
+        description: 'Logged planting of 6.5 acres of hybrid maize in Njoro, Nakuru County.',
+        timestamp: '2026-03-15T14:20:00.000Z'
+      }
+    ]);
+
+    this.notifications = getLocal<InAppNotification[]>(LOCAL_STORAGE_KEY_NOTIFS, [
+      {
+        id: 'notif-01',
+        userId: 'usr-farmer-01',
+        category: 'membership',
+        title: 'Welcome to SMART-AGRI Kenya!',
+        message: 'Your official digital membership card SA-2026-F4829 is now active. You have full access to farm management, weather, and AI specialist tools.',
+        isRead: false,
+        createdAt: new Date().toISOString(),
+        linkTab: 'dashboard'
+      },
+      {
+        id: 'notif-02',
+        userId: 'usr-farmer-01',
+        category: 'weather',
+        title: 'Seasonal Rainfall Advisory (Nakuru)',
+        message: 'Kenya Meteorological Department synoptic forecast predicts enhanced precipitation over Nakuru County this week. Ideal window for top-dressing CAN.',
+        isRead: false,
+        createdAt: new Date().toISOString(),
+        linkTab: 'weather'
+      }
+    ]);
   }
 
   public subscribe(listener: () => void): () => void {
@@ -1124,9 +1305,12 @@ class AgriStore {
     this.notify();
   }
 
-  // --- User & Auth ---
+  // --- User & Platform Access ---
   public isAuthenticated(): boolean {
-    return this.isAuth;
+    if (typeof localStorage === 'undefined') return true;
+    const storedAuth = getLocal<boolean | null>(LOCAL_STORAGE_KEY_AUTH, null);
+    if (storedAuth !== null) return Boolean(storedAuth);
+    return Boolean(apiService.getAuthToken()) || true;
   }
 
   public setAuthenticated(auth: boolean): void {
@@ -1136,13 +1320,14 @@ class AgriStore {
   }
 
   public logout(): void {
+    apiService.logout();
     this.isAuth = false;
     setLocal(LOCAL_STORAGE_KEY_AUTH, false);
     this.addAuditLog({
-      actorEmail: this.currentUser?.email || 'user@smart-agri.ke',
+      actorEmail: this.currentUser?.email || 'unknown',
       actorRole: this.currentUser?.role || 'farmer',
       action: 'MEMBER_LOGOUT',
-      target: `User signed out: ${this.currentUser?.name || 'Session'}`,
+      target: `Signed out session: ${this.currentUser?.name}`,
       status: 'SUCCESS',
     });
     this.notify();
@@ -1745,6 +1930,160 @@ class AgriStore {
   public resolveAiFeedback(id: string): void {
     this.aiFeedbackReports = this.aiFeedbackReports.map(fb => fb.id === id ? { ...fb, status: 'resolved' as const } : fb);
     setLocal(LOCAL_STORAGE_KEY_AI_FEEDBACK, this.aiFeedbackReports);
+    this.notify();
+  }
+
+  // --- Agricultural Management Records (Part F) ---
+  public getCrops(): CropRecord[] {
+    return this.crops;
+  }
+
+  public addCrop(crop: Omit<CropRecord, 'id' | 'farmerId'>): CropRecord {
+    const newCrop: CropRecord = {
+      ...crop,
+      id: `crp-${Date.now()}`,
+      farmerId: this.currentUser?.id || 'usr-farmer-01',
+    };
+    this.crops = [newCrop, ...this.crops];
+    setLocal(LOCAL_STORAGE_KEY_CROPS, this.crops);
+    apiService.addCrop(newCrop).catch(() => {});
+    this.addActivity({
+      id: `act-${Date.now()}`,
+      userId: newCrop.farmerId,
+      category: 'crop',
+      title: `Planted Crop: ${newCrop.name}`,
+      description: `Added ${newCrop.acreage} acres of ${newCrop.name} (${newCrop.variety}).`,
+      timestamp: new Date().toISOString(),
+      recordRef: newCrop.id
+    });
+    this.notify();
+    return newCrop;
+  }
+
+  public deleteCrop(id: string): void {
+    this.crops = this.crops.filter(c => c.id !== id);
+    setLocal(LOCAL_STORAGE_KEY_CROPS, this.crops);
+    apiService.deleteCrop(id).catch(() => {});
+    this.notify();
+  }
+
+  public getLivestock(): LivestockRecord[] {
+    return this.livestock;
+  }
+
+  public addLivestock(item: Omit<LivestockRecord, 'id' | 'farmerId'>): LivestockRecord {
+    const newRecord: LivestockRecord = {
+      ...item,
+      id: `lst-${Date.now()}`,
+      farmerId: this.currentUser?.id || 'usr-farmer-01',
+    };
+    this.livestock = [newRecord, ...this.livestock];
+    setLocal(LOCAL_STORAGE_KEY_LIVESTOCK, this.livestock);
+    apiService.addLivestock(newRecord).catch(() => {});
+    this.addActivity({
+      id: `act-${Date.now()}`,
+      userId: newRecord.farmerId,
+      category: 'livestock',
+      title: `Livestock Added: ${newRecord.breed}`,
+      description: `Registered ${newRecord.count} head of ${newRecord.breed} (${newRecord.category}).`,
+      timestamp: new Date().toISOString(),
+      recordRef: newRecord.id
+    });
+    this.notify();
+    return newRecord;
+  }
+
+  public getPlantingSchedules(): PlantingScheduleRecord[] {
+    return this.schedules;
+  }
+
+  public addPlantingSchedule(schedule: Omit<PlantingScheduleRecord, 'id' | 'farmerId'>): PlantingScheduleRecord {
+    const newSch: PlantingScheduleRecord = {
+      ...schedule,
+      id: `sch-${Date.now()}`,
+      farmerId: this.currentUser?.id || 'usr-farmer-01',
+    };
+    this.schedules = [newSch, ...this.schedules];
+    setLocal(LOCAL_STORAGE_KEY_SCHEDULES, this.schedules);
+    this.notify();
+    return newSch;
+  }
+
+  public getHarvests(): HarvestRecord[] {
+    return this.harvests;
+  }
+
+  public addHarvest(harvest: Omit<HarvestRecord, 'id' | 'farmerId'>): HarvestRecord {
+    const newHrv: HarvestRecord = {
+      ...harvest,
+      id: `hrv-${Date.now()}`,
+      farmerId: this.currentUser?.id || 'usr-farmer-01',
+    };
+    this.harvests = [newHrv, ...this.harvests];
+    setLocal(LOCAL_STORAGE_KEY_HARVESTS, this.harvests);
+    apiService.addHarvest(newHrv).catch(() => {});
+    this.addActivity({
+      id: `act-${Date.now()}`,
+      userId: newHrv.farmerId,
+      category: 'farm',
+      title: `Harvest Logged: ${newHrv.cropName}`,
+      description: `Harvested ${newHrv.quantity} ${newHrv.unit} from ${newHrv.harvestedAcreage} acres.`,
+      timestamp: new Date().toISOString(),
+      recordRef: newHrv.id
+    });
+    this.notify();
+    return newHrv;
+  }
+
+  public getExpenses(): FarmExpenseRecord[] {
+    return this.expenses;
+  }
+
+  public addExpense(expense: Omit<FarmExpenseRecord, 'id' | 'farmerId'>): FarmExpenseRecord {
+    const newExp: FarmExpenseRecord = {
+      ...expense,
+      id: `exp-${Date.now()}`,
+      farmerId: this.currentUser?.id || 'usr-farmer-01',
+    };
+    this.expenses = [newExp, ...this.expenses];
+    setLocal(LOCAL_STORAGE_KEY_EXPENSES, this.expenses);
+    apiService.addExpense(newExp).catch(() => {});
+    this.notify();
+    return newExp;
+  }
+
+  // --- Member Activity Logs (Part I) ---
+  public getActivities(): MemberActivityLog[] {
+    return this.activities;
+  }
+
+  public addActivity(act: MemberActivityLog): void {
+    this.activities = [act, ...this.activities];
+    setLocal(LOCAL_STORAGE_KEY_ACTIVITIES, this.activities);
+    apiService.addActivity(act).catch(() => {});
+    this.notify();
+  }
+
+  // --- In-App Notifications (Part J) ---
+  public getNotifications(): InAppNotification[] {
+    return this.notifications;
+  }
+
+  public getUnreadNotificationCount(): number {
+    return this.notifications.filter(n => !n.isRead).length;
+  }
+
+  public markNotificationRead(id: string): void {
+    this.notifications = this.notifications.map(n => n.id === id ? { ...n, isRead: true } : n);
+    setLocal(LOCAL_STORAGE_KEY_NOTIFS, this.notifications);
+    apiService.markNotificationRead(id).catch(() => {});
+    this.notify();
+  }
+
+  public markAllNotificationsRead(): void {
+    this.notifications = this.notifications.map(n => ({ ...n, isRead: true }));
+    setLocal(LOCAL_STORAGE_KEY_NOTIFS, this.notifications);
+    apiService.markAllNotificationsRead().catch(() => {});
     this.notify();
   }
 

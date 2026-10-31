@@ -236,118 +236,6 @@ export const api = {
     }
   },
 
-  // 6. Secure Authentication endpoints
-  async login(identifier: string, password: string) {
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ identifier, password }),
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      throw new Error(data.error || 'Login failed. Please check your credentials.');
-    }
-    if (data.token && typeof window !== 'undefined') {
-      localStorage.setItem('deriv_agri_session_token', data.token);
-    }
-    return data;
-  },
-
-  async register(userData: any) {
-    const res = await fetch('/api/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(userData),
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      throw new Error(data.error || 'Registration failed. Please review your details.');
-    }
-    if (data.token && typeof window !== 'undefined') {
-      localStorage.setItem('deriv_agri_session_token', data.token);
-    }
-    return data;
-  },
-
-  async getMe() {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('deriv_agri_session_token') : null;
-    if (!token) return null;
-
-    try {
-      const res = await fetch('/api/auth/me', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      if (!res.ok) {
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('deriv_agri_session_token');
-        }
-        return null;
-      }
-      const data = await res.json();
-      return data.user;
-    } catch {
-      return null;
-    }
-  },
-
-  async logout() {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('deriv_agri_session_token') : null;
-    if (token) {
-      try {
-        await fetch('/api/auth/logout', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        });
-      } catch {}
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('deriv_agri_session_token');
-      }
-    }
-  },
-
-  async verifyMemberId(memberId: string) {
-    const res = await fetch('/api/auth/verify-member', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ memberId }),
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      throw new Error(data.error || 'Verification request failed.');
-    }
-    return data;
-  },
-
-  async requestPasswordReset(identifier: string) {
-    const res = await fetch('/api/auth/forgot-password', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ identifier }),
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      throw new Error(data.error || 'Password reset request failed.');
-    }
-    return data;
-  },
-
-  async resetPassword(token: string, newPassword: string) {
-    const res = await fetch('/api/auth/reset-password', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token, newPassword }),
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      throw new Error(data.error || 'Password update failed.');
-    }
-    return data;
-  },
-
   // 8.5 Multi-turn Gemini Chatbot with Search and Maps Grounding
   async sendMultiTurnChat(payload: {
     message: string;
@@ -536,8 +424,255 @@ export const api = {
     const res = await fetch(`/api/admin/ai/feedback/${id}/resolve`, { method: 'PUT' });
     return res.ok;
   },
+
+  // 16. Authentication & Membership APIs (Part C & D)
+  getAuthToken(): string | null {
+    if (typeof localStorage === 'undefined') return null;
+    return localStorage.getItem('smart_agri_auth_token_v1');
+  },
+
+  setAuthToken(token: string | null) {
+    if (typeof localStorage === 'undefined') return;
+    if (token) localStorage.setItem('smart_agri_auth_token_v1', token);
+    else localStorage.removeItem('smart_agri_auth_token_v1');
+  },
+
+  async register(payload: any): Promise<{ success: boolean; token: string; user: any; message?: string }> {
+    const res = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Registration failed');
+    if (data.token) this.setAuthToken(data.token);
+    return data;
+  },
+
+  async login(identifier: string, password: string): Promise<{ success: boolean; token: string; user: any }> {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ identifier, password }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Login failed');
+    if (data.token) this.setAuthToken(data.token);
+    return data;
+  },
+
+  async getMe(): Promise<{ success: boolean; user: any }> {
+    const token = this.getAuthToken();
+    const headers: Record<string, string> = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const res = await fetch('/api/auth/me', { headers });
+    return await res.json();
+  },
+
+  async logout(): Promise<boolean> {
+    const token = this.getAuthToken();
+    try {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+      });
+    } catch {}
+    this.setAuthToken(null);
+    return true;
+  },
+
+  async updateProfile(updates: any): Promise<{ success: boolean; user: any }> {
+    const token = this.getAuthToken();
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const res = await fetch('/api/auth/profile', {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify(updates),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to update profile');
+    return data;
+  },
+
+  async verifyMembership(code: string): Promise<any> {
+    const res = await fetch(`/api/members/verify/${encodeURIComponent(code)}`);
+    return await res.json();
+  },
+
+  async getMembers(query?: { role?: string; status?: string; county?: string; search?: string }): Promise<{ members: any[] }> {
+    const params = new URLSearchParams();
+    if (query?.role) params.append('role', query.role);
+    if (query?.status) params.append('status', query.status);
+    if (query?.county) params.append('county', query.county);
+    if (query?.search) params.append('search', query.search);
+
+    const res = await fetch(`/api/members?${params.toString()}`);
+    return await res.json();
+  },
+
+  async updateMemberStatus(id: string, status: string, tier?: string): Promise<any> {
+    const res = await fetch(`/api/members/${id}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status, tier }),
+    });
+    return await res.json();
+  },
+
+  // 17. Farm Records & Management (Part F)
+  async getFarmRecords(): Promise<{ crops: any[]; livestock: any[]; schedules: any[]; harvests: any[]; expenses: any[] }> {
+    const token = this.getAuthToken();
+    const headers: Record<string, string> = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const res = await fetch('/api/farm/records', { headers });
+    return await res.json();
+  },
+
+  async addCrop(crop: any): Promise<any> {
+    const token = this.getAuthToken();
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const res = await fetch('/api/farm/crops', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(crop),
+    });
+    return await res.json();
+  },
+
+  async deleteCrop(id: string): Promise<boolean> {
+    const res = await fetch(`/api/farm/crops/${id}`, { method: 'DELETE' });
+    return res.ok;
+  },
+
+  async addLivestock(livestock: any): Promise<any> {
+    const token = this.getAuthToken();
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const res = await fetch('/api/farm/livestock', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(livestock),
+    });
+    return await res.json();
+  },
+
+  async addExpense(expense: any): Promise<any> {
+    const token = this.getAuthToken();
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const res = await fetch('/api/farm/expenses', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(expense),
+    });
+    return await res.json();
+  },
+
+  async addHarvest(harvest: any): Promise<any> {
+    const token = this.getAuthToken();
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const res = await fetch('/api/farm/harvests', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(harvest),
+    });
+    return await res.json();
+  },
+
+  // 18. Member Activity Timeline (Part I)
+  async getActivities(): Promise<{ activities: any[] }> {
+    const token = this.getAuthToken();
+    const headers: Record<string, string> = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const res = await fetch('/api/activities', { headers });
+    return await res.json();
+  },
+
+  async addActivity(activity: any): Promise<any> {
+    const token = this.getAuthToken();
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const res = await fetch('/api/activities', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(activity),
+    });
+    return await res.json();
+  },
+
+  // 19. In-App Notifications (Part J)
+  async getNotifications(): Promise<{ notifications: any[]; unreadCount: number }> {
+    const token = this.getAuthToken();
+    const headers: Record<string, string> = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const res = await fetch('/api/notifications', { headers });
+    return await res.json();
+  },
+
+  async markNotificationRead(id: string): Promise<boolean> {
+    const res = await fetch(`/api/notifications/${id}/read`, { method: 'PATCH' });
+    return res.ok;
+  },
+
+  async markAllNotificationsRead(): Promise<boolean> {
+    const token = this.getAuthToken();
+    const headers: Record<string, string> = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const res = await fetch('/api/notifications/mark-all-read', { method: 'POST', headers });
+    return res.ok;
+  },
+
+  // 20. Media Library (Part K)
+  async getMediaAssets(): Promise<{ media: any[] }> {
+    const res = await fetch('/api/cms/media');
+    return await res.json();
+  },
+
+  async uploadMediaAsset(asset: any): Promise<any> {
+    const res = await fetch('/api/cms/media/upload', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(asset),
+    });
+    return await res.json();
+  },
+
+  async deleteMediaAsset(id: string): Promise<boolean> {
+    const res = await fetch(`/api/cms/media/${id}`, { method: 'DELETE' });
+    return res.ok;
+  },
+
+  // 21. Custom CMS Pages
+  async getCustomPages(): Promise<{ pages: any[] }> {
+    const res = await fetch('/api/cms/pages');
+    return await res.json();
+  },
+
+  async saveCustomPage(page: any): Promise<any> {
+    const res = await fetch('/api/cms/pages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(page),
+    });
+    return await res.json();
+  },
 };
 
 export const apiService = api;
+
 
 
