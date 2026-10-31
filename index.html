@@ -21,18 +21,93 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script>
-      // Ignore Vite HMR WebSocket closed without opened errors in iframe / cloud proxy environments
-      window.addEventListener('error', function(e) {
-        if (e && e.message && (e.message.indexOf('WebSocket') !== -1 || e.message.indexOf('closed without opened') !== -1)) {
-          e.stopImmediatePropagation();
-          e.preventDefault();
+      (function() {
+        // 1. Intercept Vite HMR WebSocket connections to prevent "WebSocket closed without opened" in Cloud Run / iframe environments
+        const NativeWebSocket = window.WebSocket;
+        if (NativeWebSocket) {
+          const PatchedWebSocket = function(url, protocols) {
+            const isHmr = (typeof protocols === 'string' && protocols.includes('vite-hmr')) ||
+                          (Array.isArray(protocols) && protocols.includes('vite-hmr')) ||
+                          (typeof url === 'string' && (url.includes('vite-hmr') || url.includes('token=')));
+
+            if (isHmr) {
+              const listeners = {};
+              const fakeWs = {
+                readyState: 1, // WebSocket.OPEN
+                OPEN: 1,
+                CONNECTING: 0,
+                CLOSING: 2,
+                CLOSED: 3,
+                url: url,
+                protocol: 'vite-hmr',
+                bufferedAmount: 0,
+                extensions: '',
+                binaryType: 'blob',
+                send: function() {},
+                close: function() {},
+                addEventListener: function(type, listener) {
+                  listeners[type] = listeners[type] || [];
+                  listeners[type].push(listener);
+                },
+                removeEventListener: function(type, listener) {
+                  if (listeners[type]) {
+                    listeners[type] = listeners[type].filter(function(l) { return l !== listener; });
+                  }
+                },
+                dispatchEvent: function() { return true; },
+                onopen: null,
+                onclose: null,
+                onmessage: null,
+                onerror: null,
+              };
+              try {
+                Object.setPrototypeOf(fakeWs, NativeWebSocket.prototype);
+              } catch (_) {}
+              return fakeWs;
+            }
+
+            return new NativeWebSocket(url, protocols);
+          };
+
+          PatchedWebSocket.prototype = NativeWebSocket.prototype;
+          PatchedWebSocket.OPEN = NativeWebSocket.OPEN || 1;
+          PatchedWebSocket.CONNECTING = NativeWebSocket.CONNECTING || 0;
+          PatchedWebSocket.CLOSING = NativeWebSocket.CLOSING || 2;
+          PatchedWebSocket.CLOSED = NativeWebSocket.CLOSED || 3;
+          window.WebSocket = PatchedWebSocket;
         }
-      });
-      window.addEventListener('unhandledrejection', function(e) {
-        if (e && e.reason && e.reason.message && (e.reason.message.indexOf('WebSocket') !== -1 || e.reason.message.indexOf('closed without opened') !== -1)) {
-          e.preventDefault();
-        }
-      });
+
+        // 2. Intercept and suppress any stray console.error calls regarding WebSocket closed
+        const originalConsoleError = console.error;
+        console.error = function(...args) {
+          const text = args.map(a => (a && (a.message || a.stack || String(a))) || '').join(' ');
+          if (text.includes('WebSocket closed without opened') || 
+              text.includes('failed to connect to websocket') || 
+              text.includes('vite:ws')) {
+            return;
+          }
+          originalConsoleError.apply(console, args);
+        };
+
+        // 3. Global error and unhandledrejection handlers for WebSocket errors
+        window.addEventListener('error', function(e) {
+          const msg = e && (e.message || (e.error && e.error.message)) ? String(e.message || e.error.message) : '';
+          if (msg.includes('WebSocket') || msg.includes('closed without opened')) {
+            e.stopImmediatePropagation();
+            e.preventDefault();
+            return true;
+          }
+        }, true);
+
+        window.addEventListener('unhandledrejection', function(e) {
+          const msg = e && e.reason ? String(e.reason.message || e.reason.stack || e.reason) : '';
+          if (msg.includes('WebSocket') || msg.includes('closed without opened')) {
+            e.stopImmediatePropagation();
+            e.preventDefault();
+            return true;
+          }
+        }, true);
+      })();
     </script>
   </head>
   <body class="bg-[#F7F6F0] text-[#252D27] antialiased font-sans selection:bg-[#367C46] selection:text-white">
